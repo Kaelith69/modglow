@@ -277,7 +277,6 @@ const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
 };
 
 const BODY_START_Y = 350;
-const FRAME_TOP = 50;
 const FRAME_BOTTOM_INSET = 60;
 
 function flairIcon(flair: AnnouncementFlair, color: string): string {
