@@ -261,7 +261,8 @@ const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
 function frameSvg(accent: string, height: number): string {
   const frameBottom = height - CANVAS_BOTTOM_GAP;
   const upperRight = frameBottom - 80;
-  return '<path d="M110 65 H1970 V' + upperRight + ' L1890 ' + frameBottom + ' H30 V145 Z" fill="none" stroke="' + accent + '" stroke-width="16"/>';
+  // The upper rail starts after the MODGLOW wordmark, as in the source artwork.
+  return '<path d="M466 65 H1970 V' + upperRight + ' L1890 ' + frameBottom + ' H30 V145 L85 65" fill="none" stroke="' + accent + '" stroke-width="16" stroke-linejoin="miter"/>';
 }
 
 function importantHeader(): string {
@@ -271,7 +272,7 @@ function importantHeader(): string {
     '<path d="M530 135 H1720 L1600 345 H420 Z" fill="#FFF5E8"/>',
     '<g fill="none" stroke="#FFF5E8" stroke-width="16" stroke-linejoin="round"><path d="M270 155 L375 320 H165 Z"/><path d="M270 205 V260 M270 290 V292"/></g>',
     '<text x="570" y="300" fill="#080605" font-family="' + FONT_FAMILY + '" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">IMPORTANT</text>',
-    '<g fill="#FF2525"><path d="M1750 170 L1810 170 L1725 325 H1665 Z"/><path d="M1840 170 L1900 170 L1815 325 H1755 Z"/></g>',
+    '<g fill="#FF2525"><path d="M1655 170 H1715 L1630 325 H1570 Z"/><path d="M1745 170 H1805 L1720 325 H1660 Z"/><path d="M1835 170 H1895 L1810 325 H1750 Z"/></g>',
   ].join('');
 }
 
@@ -291,10 +292,10 @@ function announcementHeader(): string {
     '<text x="165" y="80" fill="#FFF5E8" font-family="' + FONT_FAMILY + '" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>',
     '<path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>',
-    '<g fill="#126B18" stroke="#126B18" stroke-width="12" stroke-linejoin="round"><path d="M135 215 L230 185 L230 285 L135 255 Z"/><path d="M230 185 L280 165 V305 L230 285 Z"/><path d="M165 260 L200 320 L230 310 L205 255 Z"/></g>',
-    '<g stroke="#126B18" stroke-width="12" stroke-linecap="round"><path d="M295 190 L330 165"/><path d="M305 235 H350"/><path d="M295 280 L330 305"/></g>',
+    '<g transform="scale(1.3020833)" fill="#126B18" stroke="#126B18" stroke-linejoin="round"><path d="M186 139 L166 153 L135 167 L135 185 L141 211 L175 213 L200 220 Z"/><path d="M101 175 L90 190 L92 206 L108 217 L114 216 L143 252 L154 251 L157 243 L130 210 L125 169 Z"/><path d="M199 122 L195 127 L195 137 L209 224 L212 230 L219 230 L222 224 L216 188 L221 182 L221 171 L211 159 L207 126 L204 122 Z"/></g>',
+    '<g transform="scale(1.3020833)" fill="none" stroke="#126B18" stroke-width="8" stroke-linecap="round"><path d="M249 132 L230 146 L228 152"/><path d="M266 165 L237 167 L233 173"/><path d="M235 192 L251 202 L261 202"/></g>',
     '<text x="460" y="295" fill="#050A05" font-family="' + FONT_FAMILY + '" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>',
-    '<g fill="#8CFF00"><path d="M1750 170 H1810 L1725 325 H1665 Z"/><path d="M1840 170 H1900 L1815 325 H1755 Z"/></g>',
+    '<g fill="#8CFF00"><path d="M1655 170 H1715 L1630 325 H1570 Z"/><path d="M1745 170 H1805 L1720 325 H1660 Z"/><path d="M1835 170 H1895 L1810 325 H1750 Z"/></g>',
   ].join('');
 }
 
@@ -303,8 +304,9 @@ function reminderHeader(): string {
     '<text x="165" y="80" fill="#FFF5E8" font-family="' + FONT_FAMILY + '" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>',
     '<path d="M455 130 H1635 L1515 355 H350 Z" fill="#FF7900"/>',
-    '<g fill="none" stroke="#090604" stroke-width="15" stroke-linejoin="round"><rect x="160" y="185" width="145" height="125" rx="16"/><path d="M190 165 V200 M275 165 V200"/><path d="M160 225 H305"/></g>',
-    '<g fill="#090604"><rect x="185" y="245" width="22" height="22" rx="5"/><rect x="225" y="245" width="22" height="22" rx="5"/><rect x="265" y="245" width="22" height="22" rx="5"/><rect x="185" y="280" width="22" height="15" rx="4"/><rect x="225" y="280" width="22" height="15" rx="4"/><rect x="265" y="280" width="22" height="15" rx="4"/></g>',
+    '<g transform="scale(1.3020833)" fill="#090604"><path d="M126 136 Q122 140 122 150 V229 Q122 242 136 245 H235 Q249 245 249 229 V144 Q249 134 239 132 L223 130 L221 119 Q217 116 213 118 L208 130 H164 L162 119 Q158 116 154 118 L149 130 H134 Z"/></g>',
+    '<g transform="scale(1.3020833)" fill="#FFF5E8"><rect x="135" y="153" width="101" height="76" rx="5"/></g>',
+    '<g transform="scale(1.3020833)" fill="#090604"><rect x="143" y="164" width="13" height="13" rx="3"/><rect x="174" y="164" width="13" height="13" rx="3"/><rect x="205" y="164" width="13" height="13" rx="3"/><rect x="143" y="190" width="13" height="13" rx="3"/><rect x="174" y="190" width="13" height="13" rx="3"/><rect x="205" y="190" width="13" height="13" rx="3"/><rect x="143" y="214" width="13" height="10" rx="3"/><rect x="174" y="214" width="13" height="10" rx="3"/></g>',
     '<text x="450" y="305" fill="#090604" font-family="' + FONT_FAMILY + '" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">REMINDER</text>',
     '<g fill="#FF7900"><path d="M1680 170 H1740 L1655 325 H1595 Z"/><path d="M1770 170 H1830 L1745 325 H1685 Z"/></g>',
   ].join('');

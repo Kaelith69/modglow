@@ -18,7 +18,7 @@ test('all four templates retain their exact supplied geometry and palettes', () 
 
   for (const svg of [important, notice, announcement, reminder]) {
     assert.match(svg, /viewBox="0 0 2000 [0-9]+"/);
-    assert.match(svg, /M110 65 H1970 V[0-9]+ L1890 [0-9]+ H30 V145 Z/);
+    assert.match(svg, /M466 65 H1970 V[0-9]+ L1890 [0-9]+ H30 V145 L85 65/);
     assert.match(svg, /x="165" y="80"/);
     assert.match(svg, /x="195" y="475"/);
     assert.match(svg, /<rect x="115" y="415" width="16" height="[0-9]+"/);
@@ -39,21 +39,34 @@ test('all four templates retain their exact supplied geometry and palettes', () 
 
   assert.match(announcement, /fill="#050A05"/);
   assert.match(announcement, /stroke="#8CFF00"/);
-  assert.match(announcement, /M135 215 L230 185 L230 285 L135 255 Z/);
+  assert.match(announcement, /M186 139 L166 153 L135 167 L135 185/);
+  assert.match(announcement, /M249 132 L230 146/);
+  assert.match(announcement, /M1835 170 H1895/);
   assert.match(announcement, /textLength="1180"/);
   assert.match(announcement, /ANNOUNCEMENT<\/text>/);
 
   assert.match(reminder, /fill="#090604"/);
   assert.match(reminder, /stroke="#FF7900"/);
-  assert.match(reminder, /<rect x="160" y="185" width="145" height="125" rx="16"/);
+  assert.match(reminder, /M126 136 Q122 140 122 150 V229/);
+  assert.match(reminder, /fill="#FFF5E8"><rect x="135" y="153"/);
   assert.match(reminder, /textLength="1050"/);
   assert.match(reminder, /REMINDER<\/text>/);
+});
+
+
+test('top frame rail leaves the wordmark clear on all four templates', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementSvg('Reference layout check.', flair);
+    assert.match(svg, /M466 65 H1970/);
+    assert.match(svg, /font-size="40" font-weight="bold" letter-spacing="12">MODGLOW<\/text>/);
+    assert.doesNotMatch(svg, /M110 65 H1970/);
+  }
 });
 
 test('two line reference text retains the original 2000 by 760 composition', () => {
   const svg = buildAnnouncementSvg('Please follow the sub rules no religion or\npolitics here', 'IMPORTANT');
   assert.match(svg, /viewBox="0 0 2000 760"/);
-  assert.match(svg, /M110 65 H1970 V610 L1890 690 H30 V145 Z/);
+  assert.match(svg, /M466 65 H1970 V610 L1890 690 H30 V145 L85 65/);
   assert.match(svg, /<tspan x="195" dy="0">/);
   assert.match(svg, /<tspan x="195" dy="100">/);
 });
