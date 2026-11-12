@@ -133,12 +133,12 @@ test('links and images display readable labels rather than external resources', 
 
 test('compact SVG code fences close only with matching fence character and length', () => {
   const svg = buildAnnouncementSvg(
-    '````text\\n``` literal\\n````\\n\\n~~~js\\nconst ready = true;\\n~~~',
+    '````text\n``` literal\n````\n\n~~~js\nconst ready = true;\n~~~',
     'NOTICE',
   );
-  assert.match(svg, />``` literal<\\/tspan>/);
-  assert.match(svg, />const ready = true;<\\/tspan>/);
-  assert.doesNotMatch(svg, />text<\\/tspan>/);
+  assert.match(svg, />``` literal<\/tspan>/);
+  assert.match(svg, />const ready = true;<\/tspan>/);
+  assert.doesNotMatch(svg, />text<\/tspan>/);
 });
 
 test('compact SVG Markdown preserves identifier underscores and balanced link parentheses', () => {
