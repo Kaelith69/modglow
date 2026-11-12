@@ -27,7 +27,7 @@ When the separate body toggle is enabled, Markdown is converted into native Redd
 * Clickable HTTP and HTTPS links.
 * Markdown images are represented by their alt text. ModGlow does not fetch or embed external images.
 
-Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Nested list syntax and Markdown tables are not converted into native structured blocks.
+Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Link URLs support balanced single level parentheses and only HTTP or HTTPS schemes are made clickable. Nested list syntax and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes accept plain text and links rather than formatted text ranges.
 
 When the toggle is off, the existing SVG renderer handles short content inside the image. It supports the same main inline styles and block prefixes, but links are shown as readable labels rather than interactive links.
 
@@ -69,7 +69,7 @@ The composer offers exactly four choices. Each flair retains its own title artwo
 * **ANNOUNCEMENT:** deep green black `#050A05`, lime `#8CFF00`, ivory icon tile and megaphone.
 * **REMINDER:** warm black `#090604`, orange `#FF7900`, ivory icon tile and calendar.
 
-The title only SVG is a fixed 2000 by 600 canvas. The embedded text SVG retains its dynamic height, wrapping, and frame clearance.
+The title only SVG is a fixed 2000 by 600 canvas. The embedded text SVG retains its dynamic height, wrapping, and frame clearance. The maintained vector examples are `assets/branding/svg/announcement-card-sample.svg` for compact mode and `assets/branding/svg/announcement-title-only-sample.svg` for separate body mode.
 
 ## Rendering details
 
