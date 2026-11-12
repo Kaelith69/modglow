@@ -36,7 +36,7 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
   await transaction.multi();
   await transaction.set(key, token);
   await transaction.expire(key, LOCK_TTL_SECONDS);
-  const committed = await transaction.exec();
+  const committed = await transaction.exec() as unknown[] | null;
   return committed === null ? undefined : token;
 }
 
@@ -139,7 +139,6 @@ forms.post('/feature-comment-submit', async (c) => {
       subredditName: comment.subredditName,
       title: `Community spotlight: u/${comment.authorName}`,
       richtext,
-      runAs: 'APP',
     });
 
     await replacementPost.distinguish();
