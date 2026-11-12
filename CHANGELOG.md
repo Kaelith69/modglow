@@ -34,3 +34,10 @@
 - Made deletion trigger cleanup retain its mapping when Reddit cannot confirm post cleanup, allowing retry.
 - Aligned the generated image mark with the official ModGlow aperture logo.
 - Added moderator permission and identifier guard tests.
+
+## Unreleased
+
+- Replaced the comment menu spotlight workflow with a moderator-only post menu announcement composer.
+- Moderator Markdown is rendered into an AMOLED black, smoked, yellow neon image and published as one top-level comment by the ModGlow app account.
+- The app distinguishes and pins the generated comment, then verifies both states.
+- Removed the separate image-post creation and comment removal workflows.
