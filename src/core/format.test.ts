@@ -84,8 +84,10 @@ test('long unbroken tokens split into lines and never exceed the line limit', ()
 
 test('plain announcement body and blockquotes are bold by default', () => {
   const svg = buildAnnouncementSvg('Ordinary announcement text.\n> Quoted announcement text.', 'NOTICE');
-  assert.match(svg, /<tspan font-family="Arial,Helvetica,sans-serif" font-weight="700" font-style="normal" fill="#FFF5E8">Ordinary announcement text\.<\/tspan>/);
-  assert.match(svg, /<tspan font-family="Arial,Helvetica,sans-serif" font-weight="700" font-style="italic" fill="#FFF5E8">Quoted announcement text\.<\/tspan>/);
+  assert.match(svg, /<tspan font-family="IBM Plex Sans" font-weight="700" font-style="normal" fill="#FFF5E8">Ordinary announcement text\.<\/tspan>/);
+  assert.match(svg, /<tspan font-family="IBM Plex Sans" font-weight="700" font-style="italic" fill="#FFF5E8">Quoted announcement text\.<\/tspan>/);
+  assert.match(svg, /font-family="IBM Plex Sans" font-size="76"/);
+  assert.doesNotMatch(svg, /Arial|Helvetica/);
 });
 test('Markdown styles and block prefixes remain supported', () => {
   const svg = buildAnnouncementSvg('# Heading\n> quoted text\n- first item\n2. second item\n**bold** *italic* ***both*** ~~strike~~', 'ANNOUNCEMENT');
