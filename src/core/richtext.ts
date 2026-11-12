@@ -1,5 +1,5 @@
 import { RichTextBuilder } from '@devvit/reddit';
-import { hasMarkdownContent, parseMarkdown, type MarkdownBlock, type MarkdownInline } from './markdown.ts';
+import { hasMarkdownBlocksContent, parseMarkdown, type MarkdownBlock, type MarkdownInline } from './markdown.ts';
 
 type FormatRange = [number, number, number];
 
@@ -83,7 +83,7 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
  */
 export function buildAnnouncementRichText(mediaUrl: string, markdown: string): RichTextBuilder {
   const blocks = parseMarkdown(markdown);
-  if (!hasMarkdownContent(markdown)) throw new Error('Write some Markdown text before publishing.');
+  if (!hasMarkdownBlocksContent(blocks)) throw new Error('Write some Markdown text before publishing.');
 
 
   const builder = new RichTextBuilder();
