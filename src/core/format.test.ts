@@ -21,7 +21,7 @@ test('default announcement uses the solid AMOLED comic template', () => {
   assert.match(svg, /<title>ModGlow announcement<\/title>/);
   assert.match(svg, /fill="#000000"/);
   assert.match(svg, /stroke="#FFE34F"/);
-  assert.match(svg, /M32 90 V59 H90 M352 59 H1504 V510 H32 Z/);
+  assert.match(svg, /M32 65 H90 M32 65 V510 H1504 V59 H352/);
   assert.match(svg, /M72 98 H1464 V500 H72 M72 98 V252 M72 98 H878 L806 252 H72/);
   assert.match(svg, /<text x="104" y="67"/);
   assert.match(svg, /<text x="263" y="207"/);
@@ -39,7 +39,7 @@ test('the four supported flairs use distinct solid comic templates', async () =>
   assert.equal(new Set(cards).size, 4);
   for (const card of cards) {
     assert.match(card, /width="1536" height="585"/);
-    assert.match(card, /M32 90 V59 H90 M352 59 H1504 V510 H32 Z/);
+    assert.match(card, /M32 65 H90 M32 65 V510 H1504 V59 H352/);
     assert.match(card, /M72 98 H1464 V500 H72 M72 98 V252 M72 98 H878 L806 252 H72/);
     assert.match(card, /<text x="104" y="67"/);
     assert.match(card, /<text x="263" y="207"/);
