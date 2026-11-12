@@ -35,7 +35,7 @@ When the toggle is off, the existing SVG renderer handles short content inside t
 
 The current composer uses Devvit's native menu form. Its paragraph field accepts Markdown source but does not expose custom buttons or cursor selection controls. Use the syntax directly:
 
-```md
+````md
 # Main heading
 ## Section heading
 
@@ -56,7 +56,7 @@ const ready = true;
 ```
 
 [Read the rules](https://example.com/rules)
-```
+````
 
 A clickable formatting toolbar requires a custom interactive composer view. The native menu form does not provide a supported way to attach such a toolbar to its paragraph field.
 
