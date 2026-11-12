@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
 import { buildAnnouncementRichText } from '../core/richtext.ts';
-import { countGraphemes, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
+import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
@@ -68,6 +68,9 @@ forms.post('/create-announcement-submit', async (c) => {
   }
   if (!flair) {
     return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
+  }
+  if (bodyBelowSvg && !hasMarkdownContent(announcement)) {
+    return c.json<UiResponse>(toast('Write some Markdown text before publishing.'));
   }
   const announcementLength = countGraphemes(announcement);
   const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
