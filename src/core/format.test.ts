@@ -4,7 +4,7 @@ import { escapeXml, markdownToPlainText, relativeTime, wrapText, wrapTextByWidth
 import { buildCommentSvg } from './render.ts';
 
 test('escapeXml neutralises markup characters', () => {
-  assert.equal(escapeXml(`<tag a="x">Tom & 'Ada'</tag>`), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
+  assert.equal(escapeXml("<tag a=\"x\">Tom & 'Ada'</tag>"), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
 });
 
 test('escapeXml removes XML-invalid control characters', () => {
@@ -41,7 +41,7 @@ test('wrapTextByWidth keeps wide text within the image column', () => {
 });
 
 test('comment card follows the dark pinned moderator comment composition', () => {
-  const svg = buildCommentSvg {
+  const svg = buildCommentSvg({
     subredditName: 'Coconaad',
     authorName: 'Kaelith69',
     body: 'This is an example',
@@ -79,8 +79,8 @@ test('comment card keeps edited metadata compact and handles older timestamps', 
   assert.match(svg, />Pinned</);
 });
 
-test('comment card escapes hostile author and comment content', () => {
-  const svg = buildCommentSvg {
+test('comment card escapes hostile comment content', () => {
+  const svg = buildCommentSvg({
     subredditName: 'safe',
     authorName: 'user_name',
     body: 'A < 8 & 9 > 3',
@@ -91,4 +91,37 @@ test('comment card escapes hostile author and comment content', () => {
   assert.doesNotMatch(svg, /<script>/);
 });
 
-test('embusername overflow'||failure', () => {});
+test('comment card rejects invalid usernames instead of letting the header overflow', () => {
+  assert.throws(() => buildCommentSvg({
+    subredditName: 'Coconaad',
+    authorName: 'this_username_is_far_too_long',
+    body: 'A valid comment.',
+    createdAt: new Date(),
+    edited: false,
+  }), /invalid Reddit username/);
+});
+
+test('comment card grows with multiline text and keeps the action row below it', () => {
+  const svg = buildCommentSvg({
+    subredditName: 'Coconaad',
+    authorName: 'example_user',
+    body: 'A first line with enough words to wrap across the card. '.repeat(8),
+    createdAt: new Date(),
+    edited: false,
+  });
+  const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
+  const actionY = Number(svg.match(/<circle cx="654" cy="(\d+)"/)?.[1]) + 20;
+  assert.ok(height > 410);
+  assert.ok(actionY > 355);
+  assert.ok(actionY < height - 20);
+});
+
+test('spotlight image rejects oversized comments instead of clipping content', () => {
+  assert.throws(() => buildCommentSvg({
+    subredditName: 'Coconaad',
+    authorName: 'example_user',
+    body: 'W'.repeat(3000),
+    createdAt: new Date(),
+    edited: false,
+  }), /too long to feature safely/);
+});
