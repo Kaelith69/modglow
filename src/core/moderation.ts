@@ -47,7 +47,7 @@ export function isNotFoundError(error: unknown): boolean {
     return true;
   }
   if (value.code === 'NOT_FOUND' || value.code === 'RESOURCE_NOT_FOUND') return true;
-  return typeof value.message === 'string' && /\\b(?:post|resource|thing)\\s+(?:was\\s+)?not found\\b/i.test(value.message);
+  return typeof value.message === 'string' && value.message.toLowerCase().includes('not found');
 }
 
 /** Validate a Reddit post fullname before passing it to the typed Reddit API. */
