@@ -11,6 +11,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   const document = JSON.parse(serialized) as {
     document?: Array<{
       e?: string;
+      o?: boolean;
       c?: Array<{ e?: string; mediaUrl?: string; t?: string; u?: string; f?: number[][]; o?: boolean; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
     }>;
   };
