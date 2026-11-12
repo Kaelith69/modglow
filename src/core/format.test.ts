@@ -91,7 +91,7 @@ test('comment card grows with multiline text and keeps comfortable bottom paddin
     edited: false,
   });
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const bodyEndY = 246 + (svg.match(/<tspan /g)?.length ?? 1 - 1) * 72 + 58;
+  const bodyEndY = 246 + ((svg.match(/<tspan /g)?.length ?? 1) - 1) * 72 + 58;
   assert.ok(height > 410);
   assert.ok(height >= bodyEndY + 106);
   assert.doesNotMatch(svg, /Reply|Vote|cx="654"/);
