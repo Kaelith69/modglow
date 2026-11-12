@@ -276,20 +276,20 @@ const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
 
 function flairIcon(flair: AnnouncementFlair, color: string): string {
   const icons: Record<AnnouncementFlair, string> = {
-    IMPORTANT: '<path d="M153 143 V181 M153 196 V198" stroke="' + color + '" stroke-width="12" stroke-linecap="round"/>',
-    NOTICE: '<circle cx="153" cy="174" r="39" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M153 168 V196 M153 148 V150" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
-    REMINDER: '<rect x="116" y="143" width="74" height="68" rx="10" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M135 133 V151 M171 133 V151 M116 164 H190" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
-    ANNOUNCEMENT: '<path d="M116 165 L185 143 V203 L116 181 Z" fill="none" stroke="' + color + '" stroke-width="10" stroke-linejoin="round"/><path d="M132 185 L143 211 H162 L151 190 M197 158 L211 150 M198 187 L212 194" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
+    IMPORTANT: '<path d="M170 143 V181 M170 196 V198" stroke="' + color + '" stroke-width="12" stroke-linecap="round"/>',
+    NOTICE: '<circle cx="170" cy="174" r="39" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M170 168 V196 M170 148 V150" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
+    REMINDER: '<rect x="133" y="143" width="74" height="68" rx="10" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M152 133 V151 M188 133 V151 M133 164 H207" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
+    ANNOUNCEMENT: '<path d="M133 165 L202 143 V203 L133 181 Z" fill="none" stroke="' + color + '" stroke-width="10" stroke-linejoin="round"/><path d="M149 185 L160 211 H179 L168 190 M214 158 L228 150 M215 187 L229 194" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
   };
   return '<g>' + icons[flair] + '</g>';
 }
 
 function flairHeader(flair: AnnouncementFlair, accent: string, frameBottom: number, innerBottom: number): string {
   const title = flair;
-  const titleSize = flair === 'ANNOUNCEMENT' ? 76 : 88;
+  const titleSize = flair === 'ANNOUNCEMENT' ? 64 : 88;
   return [
     '<text x="104" y="67" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F2F0E8">MODGLOW</text>',
-    `<path d="M32 90 V59 H90 M352 59 H1504 V${frameBottom} H32 Z" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
+    `<path d="M32 65 H90 M32 65 M352 59 H1504 V${frameBottom} H32 Z" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
     `<path d="M72 98 H1464 V${innerBottom} H72 M72 98 V252 M72 98 H878 L806 252 H72" fill="none" stroke="${accent}" stroke-width="8" stroke-linejoin="miter"/>`,
     flairIcon(flair, accent),
     '<text x="263" y="207" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" letter-spacing="2" fill="#F2F0E8">' + title + '</text>',
