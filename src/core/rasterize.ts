@@ -38,7 +38,7 @@ export async function renderCommentPng(svg: string): Promise<Uint8Array> {
   await ensureRenderer();
   const renderer = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
-    background: '#101B2E',
+    background: '#000000',
     font: {
       fontBuffers: [
         decodeDataUrl(regularFontDataUrl),
