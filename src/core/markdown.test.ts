@@ -82,6 +82,14 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
     'const answer = 42;',
     '```',
     '',
+    '````bash',
+    'echo "literal ``` fence"',
+    '````',
+    '',
+    '~~~python',
+    'print("tilde fence")',
+    '~~~',
+    '',
     '---',
   ].join('\n'));
 
@@ -98,7 +106,12 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
   ]);
   assert.ok(blocks.some((block) => block.type === 'paragraph' && block.content.map((node) => node.text).join(' ') === 'First paragraph continued on the next source line.'));
   assert.ok(blocks.some((block) => block.type === 'blockquote' && block.paragraphs.length === 1));
-  assert.ok(blocks.some((block) => block.type === 'code' && block.language === 'typescript' && block.text === 'const answer = 42;'));
+  const codeBlocks = blocks.filter((block) => block.type === 'code');
+  assert.deepEqual(codeBlocks.map((block) => block.type === 'code' ? [block.language, block.text] : []), [
+    ['typescript', 'const answer = 42;'],
+    ['bash', 'echo "literal ``` fence"'],
+    ['python', 'print("tilde fence")'],
+  ]);
   assert.ok(blocks.some((block) => block.type === 'hr'));
 
   const nested = parseMarkdown('- parent\n  - nested child');
