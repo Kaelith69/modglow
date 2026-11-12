@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.2
+
+- Fixed stale comment feature locks by moving to a new lock namespace so orphaned v3 locks no longer block features.
+- Reduced temporary lock lifetime from 180 seconds to 45 seconds, above Devvit Web's 30 second request limit.
+- Replaced the misleading duplicate feature toast with a message explaining an active or timed out request and clarifying that the lock message does not prove a post was published.
+
+
 ## 0.2.1
 
 - Fixed Windows production builds by embedding the Resvg WebAssembly binary through a Vite virtual module instead of importing the WASM file with `?inline`.
