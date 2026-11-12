@@ -4,52 +4,40 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { buildCommentSvg } from '../core/render.ts';
+import { buildAnnouncementSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
-type FeatureFormValues = {
-  permissionConfirmed?: boolean;
+type AnnouncementFormValues = {
+  announcement?: string;
 };
 
 export const forms = new Hono();
 
-// v5 bypasses stale v4 locks left by requests terminated before cleanup.
-const LOCK_PREFIX = 'modglow:v5:lock:';
+const LOCK_PREFIX = 'modglow:v1:announcement-lock:';
 const LOCK_TTL_SECONDS = 45;
-const CONVERSION_HASH = 'modglow:v2:features';
-const POST_SOURCE_HASH = 'modglow:v1:feature-post-sources';
-const DELETED_COMMENT_PREFIX = 'modglow:v1:deleted:';
-const DELETED_COMMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_ANNOUNCEMENT_CHARS = 2600;
 
 function toast(message: string): UiResponse {
   return { showToast: message };
 }
 
-async function acquireCommentLock(commentId: string): Promise<string | undefined> {
-  const key = `${LOCK_PREFIX}${commentId}`;
+async function acquirePostLock(postId: string): Promise<string | undefined> {
+  const key = `${LOCK_PREFIX}${postId}`;
   const token = `${Date.now()}:${randomUUID()}`;
 
-  // SET NX with an expiry is atomic. The subsequent readback verifies the unique token.
   await redis.set(key, token, {
     nx: true,
     expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
   });
 
-  // SET NX return values are not a reliable ownership signal in Devvit Redis.
   return (await redis.get(key)) === token ? token : undefined;
 }
 
-async function releaseCommentLock(commentId: string, token: string): Promise<void> {
-  const key = `${LOCK_PREFIX}${commentId}`;
-  // Devvit requests have a 30 second execution limit; the 45 second lease
-  // cannot expire during a live request. Compare before deleting so a stale
-  // request never removes a later request's lock.
-  if ((await redis.get(key)) === token) {
-    await redis.del(key);
-  }
+async function releasePostLock(postId: string, token: string): Promise<void> {
+  const key = `${LOCK_PREFIX}${postId}`;
+  if ((await redis.get(key)) === token) await redis.del(key);
 }
-
 
 async function verifyModerator(subredditName: string, userId: `t2_${string}`): Promise<boolean> {
   const moderator = await reddit.getUserById(userId);
@@ -58,230 +46,91 @@ async function verifyModerator(subredditName: string, userId: `t2_${string}`): P
   return hasCommentModerationPermission(permissions);
 }
 
-async function isDeletionRecorded(commentId: string): Promise<boolean> {
-  return (await redis.get(`${DELETED_COMMENT_PREFIX}${commentId}`)) === '1';
-}
+forms.post('/create-announcement-submit', async (c) => {
+  const values = await c.req.json<AnnouncementFormValues>().catch(() => ({} as AnnouncementFormValues));
+  const postId = context.postId ?? '';
+  const announcement = typeof values.announcement === 'string' ? values.announcement.trim() : '';
 
-forms.post('/feature-comment-submit', async (c) => {
-  const values = await c.req.json<FeatureFormValues>().catch(() => ({} as FeatureFormValues));
-  const commentId = context.commentId ?? '';
-
-  if (values?.permissionConfirmed !== true) {
-    return c.json<UiResponse>(toast('You must confirm that the comment author has explicitly permitted this feature.'));
+  if (!announcement) {
+    return c.json<UiResponse>(toast('Write an announcement before publishing.'));
   }
-
-  if (!isCommentId(commentId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
-    return c.json<UiResponse>(toast('The selected comment or moderator context is invalid. Reopen the comment menu and try again.'));
+  if (announcement.length > MAX_ANNOUNCEMENT_CHARS) {
+    return c.json<UiResponse>(toast(`The announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters.`));
+  }
+  if (!isPostId(postId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
+    return c.json<UiResponse>(toast('The post or moderator context is invalid. Reopen ModGlow from the post menu and try again.'));
   }
 
   let lockToken: string | undefined;
-  let replacementPost: Awaited<ReturnType<typeof reddit.submitPost>> | undefined;
-  let featureRecordSaved = false;
-  let transactionComplete = false;
+  let publishedComment: Awaited<ReturnType<typeof reddit.submitComment>> | undefined;
+  let pinnedAndVerified = false;
 
   try {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
       return c.json<UiResponse>(toast('This action requires post moderation permission in this subreddit.'));
     }
 
-    lockToken = await acquireCommentLock(commentId);
-    if (!lockToken) return c.json<UiResponse>(toast('A ModGlow action for this comment is already running. Wait briefly and retry.'));
-    if (await isDeletionRecorded(commentId)) {
-      return c.json<UiResponse>(toast('This comment was recently deleted or removed and cannot be featured.'));
+    lockToken = await acquirePostLock(postId);
+    if (!lockToken) {
+      return c.json<UiResponse>(toast('A ModGlow announcement is already being generated for this post. Wait briefly and retry.'));
     }
 
-    const comment = await reddit.getCommentById(commentId);
-    if (!belongsToSubreddit(comment.subredditName, context.subredditName) || !belongsToSubredditId(comment.subredditId, context.subredditId)) {
-      return c.json<UiResponse>(toast('The selected comment does not belong to this subreddit.'));
+    const post = await reddit.getPostById(postId);
+    if (!belongsToSubreddit(post.subredditName, context.subredditName) || !belongsToSubredditId(post.subredditId, context.subredditId)) {
+      return c.json<UiResponse>(toast('The selected post does not belong to this subreddit.'));
     }
-    if (!hasCommentContentAvailable(comment.body, comment.authorName, comment.removed)) {
-      return c.json<UiResponse>(toast('This comment is removed, deleted, or has no available text.'));
-    }
-    if (comment.body.length > 2600) {
-      return c.json<UiResponse>(toast('This comment is too long to feature safely. The limit is 2,600 characters.'));
+    if (post.removed) {
+      return c.json<UiResponse>(toast('This post has been removed and cannot receive a ModGlow announcement.'));
     }
 
-    if (await isDeletionRecorded(commentId)) {
-      return c.json<UiResponse>(toast('This comment was recently deleted or removed and cannot be featured.'));
-    }
-
-    const existingPostId = await redis.hGet(CONVERSION_HASH, comment.id);
-    if (existingPostId && isPostId(existingPostId)) {
-      // Backfill the reverse index for highlights created before this index existed.
-      await redis.hSet(POST_SOURCE_HASH, { [existingPostId]: comment.id });
-      return c.json<UiResponse>(toast('This comment already has a ModGlow highlight.'));
-    }
-    if (existingPostId) {
-      // Discard malformed metadata instead of blocking a valid feature action forever.
-      await redis.hDel(CONVERSION_HASH, [comment.id]);
-    }
-
-    // Community highlights and subreddit sticky slots are different Reddit features.
-    // sticky() below is authoritative; a failure triggers rollback without changing the source.
-
-    const svg = buildCommentSvg({
-      subredditName: comment.subredditName,
-      body: comment.body,
-      createdAt: comment.createdAt,
-      edited: comment.edited,
-    });
-
+    const svg = buildAnnouncementSvg(announcement);
     const png = await renderCommentPng(svg);
-    if (await isDeletionRecorded(commentId)) throw new Error('The source comment was deleted while rendering.');
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
-    const richtext = new RichTextBuilder()
-      .paragraph((paragraph) => {
-        paragraph.image({
-          mediaUrl: uploaded.mediaUrl,
-          caption: `Moderator selected community spotlight from r/${comment.subredditName}. Original author: u/${comment.authorName}.`,
-        });
-      })
-      .paragraph((paragraph) => {
-        paragraph.text({ text: `Original discussion: https://www.reddit.com${comment.permalink}` });
-      })
-      ;
+    const richtext = new RichTextBuilder().paragraph((paragraph) => {
+      paragraph.image({
+        mediaUrl: uploaded.mediaUrl,
+        caption: 'ModGlow moderator announcement',
+      });
+    });
 
-    replacementPost = await reddit.submitPost({
-      subredditName: comment.subredditName,
-      title: `Community spotlight: u/${comment.authorName}`,
+    publishedComment = await reddit.submitComment({
+      id: postId,
       richtext,
       runAs: 'APP',
     });
 
-    await replacementPost.distinguish();
-    await replacementPost.sticky();
+    await publishedComment.distinguish(true);
 
-    const verifiedPost = await reddit.getPostById(replacementPost.id);
-    if (!verifiedPost.stickied || verifiedPost.distinguishedBy !== 'moderator') {
-      throw new Error('Reddit did not confirm that the highlight is both pinned and moderator distinguished.');
+    const verifiedComment = await reddit.getCommentById(publishedComment.id);
+    if (!verifiedComment.stickied || verifiedComment.distinguishedBy !== 'moderator') {
+      throw new Error('Reddit did not confirm that the ModGlow comment is both pinned and moderator distinguished.');
     }
 
-    // Keep a reverse index so manual spotlight deletion can release the source mapping.
-    await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: comment.id });
-    await redis.hSet(CONVERSION_HASH, { [comment.id]: replacementPost.id });
-    featureRecordSaved = true;
-
-    // Close the race where the source is deleted while rendering or publishing.
-    const latestOriginal = await reddit.getCommentById(comment.id);
-    if (await isDeletionRecorded(commentId) || !hasCommentContentAvailable(latestOriginal.body, latestOriginal.authorName, latestOriginal.removed)) {
-      throw new Error('The source comment was deleted or removed during publishing.');
-    }
-    transactionComplete = true;
-
-    console.info(`[ModGlow] Featured ${comment.id} as ${replacementPost.id} in r/${comment.subredditName}.`);
-    return c.json<UiResponse>(toast('Highlight published, moderator distinguished, and pinned. The original comment remains unchanged.'));
+    pinnedAndVerified = true;
+    console.info(`[ModGlow] Published and pinned announcement ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
+    return c.json<UiResponse>(toast('ModGlow announcement published by the app and pinned as a moderator comment.'));
   } catch (error) {
-    console.error('[ModGlow] Feature action failed.', error);
+    console.error('[ModGlow] Announcement publishing failed.', error);
 
-    if (replacementPost && !transactionComplete) {
-      let postDeletionConfirmed = false;
+    if (publishedComment && !pinnedAndVerified) {
       try {
-        await replacementPost.delete();
-        postDeletionConfirmed = true;
+        await publishedComment.delete();
       } catch (cleanupError) {
-        if (isNotFoundError(cleanupError)) {
-          postDeletionConfirmed = true;
-        } else {
-          console.error('[ModGlow] Failed to remove an incomplete highlight post.', cleanupError);
-          try {
-            // Preserve both directions when Reddit cannot confirm cleanup. This
-            // prevents duplicate publication and lets onPostDelete reconcile it.
-            await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: commentId });
-            await redis.hSet(CONVERSION_HASH, { [commentId]: replacementPost.id });
-            featureRecordSaved = true;
-            console.error('[ModGlow] Preserved an orphan mapping to prevent duplicate publication.');
-          } catch (mappingError) {
-            console.error('[ModGlow] Could not record the incomplete highlight post.', mappingError);
-          }
-        }
-      }
-
-      if (postDeletionConfirmed) {
-        try {
-          if (featureRecordSaved) await redis.hDel(CONVERSION_HASH, [commentId]);
-          await redis.hDel(POST_SOURCE_HASH, [replacementPost.id]);
-          featureRecordSaved = false;
-        } catch (mappingCleanupError) {
-          // Do not recreate an orphan mapping after Reddit confirmed deletion.
-          // The PostDelete trigger can reconcile metadata if its event is pending.
-          console.error('[ModGlow] Could not clear the rolled back highlight mapping.', mappingCleanupError);
+        if (!isNotFoundError(cleanupError)) {
+          console.error('[ModGlow] Could not remove an announcement that failed pin verification.', cleanupError);
         }
       }
     }
 
-    return c.json<UiResponse>(toast('Could not complete the highlight. The original comment was not changed. Check the comment, author permission, and available sticky slots, then try again.'));
+    return c.json<UiResponse>(toast('Could not publish and pin the ModGlow announcement. Check the post, moderator permissions, and Reddit comment availability, then try again.'));
   } finally {
     if (lockToken) {
       try {
-        await releaseCommentLock(commentId, lockToken);
+        await releasePostLock(postId, lockToken);
       } catch (error) {
-        console.error('[ModGlow] Could not release the feature lock.', error);
-      }
-    }
-  }
-});
-
-
-type RemoveCommentFormValues = {
-  confirmRemoval?: boolean;
-};
-
-forms.post('/remove-comment-submit', async (c) => {
-  const values = await c.req.json<RemoveCommentFormValues>().catch(() => ({} as RemoveCommentFormValues));
-  const commentId = context.commentId ?? '';
-
-  if (values?.confirmRemoval !== true) {
-    return c.json<UiResponse>(toast('Confirm the removal before continuing.'));
-  }
-  if (!isCommentId(commentId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
-    return c.json<UiResponse>(toast('The selected comment or moderator context is invalid. Reopen the comment menu and try again.'));
-  }
-
-  let lockToken: string | undefined;
-  try {
-    if (!(await verifyModerator(context.subredditName, context.userId))) {
-      return c.json<UiResponse>(toast('This action requires post moderation permission in this subreddit.'));
-    }
-
-    lockToken = await acquireCommentLock(commentId);
-    if (!lockToken) return c.json<UiResponse>(toast('A ModGlow action for this comment is already running. Wait briefly and retry.'));
-    if (await isDeletionRecorded(commentId)) {
-      return c.json<UiResponse>(toast('This comment was already deleted or removed.'));
-    }
-
-    const comment = await reddit.getCommentById(commentId);
-    if (!belongsToSubreddit(comment.subredditName, context.subredditName) || !belongsToSubredditId(comment.subredditId, context.subredditId)) {
-      return c.json<UiResponse>(toast('The selected comment does not belong to this subreddit.'));
-    }
-    if (!hasCommentContentAvailable(comment.body, comment.authorName, comment.removed)) {
-      return c.json<UiResponse>(toast('This comment is already removed, deleted, or unavailable.'));
-    }
-
-    // Moderators remove another user's comment; they cannot hard delete it.
-    // The CommentDelete trigger removes any associated copied spotlight post.
-    await comment.remove(false);
-    if (!comment.removed) throw new Error('Reddit did not confirm the comment removal.');
-    try {
-      await redis.set(`${DELETED_COMMENT_PREFIX}${commentId}`, '1', {
-        expiration: new Date(Date.now() + DELETED_COMMENT_TTL_MS),
-      });
-    } catch (tombstoneError) {
-      console.error('[ModGlow] Could not persist the removal tombstone; the CommentDelete trigger remains the cleanup path.', tombstoneError);
-    }
-
-    console.info(`[ModGlow] Moderator ${context.userId} removed ${commentId} from r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast('Comment removed. Any linked ModGlow spotlight will also be removed under Reddit’s content deletion rules.'));
-  } catch (error) {
-    console.error('[ModGlow] Comment removal failed.', error);
-    return c.json<UiResponse>(toast('Could not verify the comment removal. Check moderator permissions and the comment state, then try again.'));
-  } finally {
-    if (lockToken) {
-      try {
-        await releaseCommentLock(commentId, lockToken);
-      } catch (error) {
-        console.error('[ModGlow] Could not release the removal lock.', error);
+        console.error('[ModGlow] Could not release the announcement lock.', error);
       }
     }
   }
