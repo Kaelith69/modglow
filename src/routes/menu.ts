@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import type { MenuItemRequest, UiResponse } from '@devvit/web/shared';
 import type { FormField } from '@devvit/shared-types/shared/form.js';
 import { context } from '@devvit/web/server';
+import { isCommentId } from '../core/moderation.ts';
 
 export const menu = new Hono();
 
@@ -16,10 +17,10 @@ const permissionFields = (): FormField[] => [
 ];
 
 menu.post('/feature-comment', async (c) => {
-  const request = await c.req.json<MenuItemRequest>();
-  const commentId = context.commentId ?? request.targetId;
+  const request = await c.req.json<MenuItemRequest>().catch(() => ({} as MenuItemRequest));
+  const commentId = context.commentId;
 
-  if (!commentId || !context.userId || !context.subredditName) {
+  if (!isCommentId(commentId) || (request.targetId && request.targetId !== commentId) || !context.userId || !context.subredditName) {
     return c.json<UiResponse>({
       showToast: 'Open this action from a comment in a subreddit you moderate.',
     });
@@ -41,10 +42,10 @@ menu.post('/feature-comment', async (c) => {
 
 
 menu.post('/remove-comment', async (c) => {
-  const request = await c.req.json<MenuItemRequest>();
-  const commentId = context.commentId ?? request.targetId;
+  const request = await c.req.json<MenuItemRequest>().catch(() => ({} as MenuItemRequest));
+  const commentId = context.commentId;
 
-  if (!commentId || !/^t1_[a-z0-9]+$/i.test(commentId) || !context.userId || !context.subredditName) {
+  if (!isCommentId(commentId) || (request.targetId && request.targetId !== commentId) || !context.userId || !context.subredditName) {
     return c.json<UiResponse>({
       showToast: 'Open this action from a comment in a subreddit you moderate.',
     });
