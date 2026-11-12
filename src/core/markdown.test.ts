@@ -111,6 +111,8 @@ test('empty Markdown yields no blocks and grapheme limits count visible characte
   assert.equal(hasMarkdownContent('---'), false);
   assert.equal(hasMarkdownContent('**real announcement**'), true);
   assert.equal(countGraphemes('a👨‍👩‍👧‍👦b'), 3);
+  assert.equal(countGraphemes('abcdefgh', 3), 4);
+  assert.equal(countGraphemes('abc', 3), 3);
   assert.equal(MAX_ANNOUNCEMENT_BODY_CHARS, 9000);
   assert.equal(countGraphemes('👨‍👩‍👧‍👦'.repeat(9001)), 9001);
 });
