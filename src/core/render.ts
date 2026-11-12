@@ -5,7 +5,7 @@ const BODY_X = 195;
 const BODY_START_Y = 475;
 const BODY_FONT = 76;
 const LINE_HEIGHT = 100;
-const BODY_WIDTH = 1600;
+const BODY_WIDTH = 1660;
 const MAX_LINES = 24;
 const FRAME_BOTTOM_GAP = 115;
 const CANVAS_BOTTOM_GAP = 70;
@@ -80,16 +80,16 @@ function glyphWidth(character: string, fontSize: number, style: RunStyle): numbe
   if (/\p{Mark}/u.test(character) || character === '\u200d') return 0;
 
   let width: number;
-  if (/\s/u.test(character)) width = fontSize * 0.34;
-  else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.38;
-  else if (/[mw@%&#]/u.test(character)) width = fontSize * 0.82;
-  else if (/[MW]/u.test(character)) width = fontSize * 0.90;
-  else if (/[A-Z]/u.test(character)) width = fontSize * 0.68;
-  else if (/[0-9]/u.test(character)) width = fontSize * 0.62;
+  if (/\s/u.test(character)) width = fontSize * 0.30;
+  else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.32;
+  else if (/[mw@%&#]/u.test(character)) width = fontSize * 0.78;
+  else if (/[MW]/u.test(character)) width = fontSize * 0.88;
+  else if (/[A-Z]/u.test(character)) width = fontSize * 0.66;
+  else if (/[0-9]/u.test(character)) width = fontSize * 0.58;
   else if (character.codePointAt(0)! > 0xffff) width = fontSize;
   else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.92;
-  else if (/[frt]/u.test(character)) width = fontSize * 0.48;
-  else width = fontSize * 0.57;
+  else if (/[frt]/u.test(character)) width = fontSize * 0.43;
+  else width = fontSize * 0.54;
 
   return width * (style.bold ? 1.12 : 1.10);
 }
@@ -331,7 +331,7 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="auto" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
     '<title>MODGLOW ' + flair.toLowerCase() + '</title>',
     '<rect width="' + WIDTH + '" height="' + height + '" fill="' + theme.background + '"/>',
     frameSvg(theme.accent, height),
