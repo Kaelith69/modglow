@@ -28,35 +28,8 @@ The menu declaration uses `location: "post"` and `forUserType: "moderator"`. The
 
 The renderer supports bold, italic, bold italic, strikethrough, headings, blockquotes, ordered and unordered lists, inline code, fenced code blocks, link labels, and image alt text. Raw HTML is not interpreted. Markdown links and image URLs are not embedded as external resources.
 
-The renderer produces a 1536px-wide SVG with a 584px minimum height. All four flairs use the supplied reference composition: a chamfered outer frame, top left MODGLOW wordmark, slanted icon tile, slanted title panel, three diagonal accent slashes, and a vertical message marker. The outer frame starts at x=22 and y=50, with its top horizontal segment beginning at x=350 and its right edge at x=1512. The wordmark is at x=112 and y=62. The header spans y=98 to y=270. The title begins at x=366 with baseline y=229. Message text begins at x=145 with baseline y=350, 64px type, and 78px line spacing. The vertical marker begins at x=96 and y=306. The message wraps to a conservative 1300px text width using wider estimates for lowercase m and w, uppercase glyphs, and non Latin characters. SVG height is calculated from the rendered line count, preserving at least 33px between the final line bounds and the inner bottom frame edge. The marker ends 28px below the final baseline. The accent colours are red (#F20D24), blue (#087CFF), orange (#FF7900), and lime green (#7CFF00). IMPORTANT and NOTICE use warm cream (#F5F0E6) title panels with dark text. REMINDER and ANNOUNCEMENT use their accent colours for the title panels with dark text. The solid near black backgrounds are IMPORTANT (#050000), NOTICE (#02091B), REMINDER (#070300), and ANNOUNCEMENT (#010703). No gradients, opacity, filters, glow, or drop shadows are rendered.
+The renderer produces a 2000px wide SVG using the supplied four individual reference designs. IMPORTANT uses background #080605, red #FF2525, an ivory title panel and a warning triangle. NOTICE uses background #050D1C, blue #078BFF, an ivory title panel and an information icon. ANNOUNCEMENT uses background #050A05, lime #8CFF00, an ivory icon tile and a megaphone. REMINDER uses background #090604, orange #FF7900, an ivory icon tile and a calendar. Each header preserves its own supplied panel coordinates, icon geometry, title size and textLength.
 
-## Failure handling
+Body text begins at x=195 and baseline y=475, uses 76px type and 100px line spacing, and wraps within a 1660px safe width. The renderer uses conservative glyph estimates, splits long unbroken tokens, escapes XML and retains supported Markdown styles. The final baseline determines the frame bottom, with 115px below the baseline and 70px between the frame and canvas edge. The vertical marker begins at y=415 and ends 35px below the final baseline. The intrinsic SVG height is calculated from the final rendered line count. Inputs above 2600 characters or 24 rendered lines are rejected rather than clipped.
 
-- A per-post lock prevents concurrent requests from racing through image upload and comment creation.
-- Post ownership is checked against both subreddit name and subreddit ID.
-- Failed validation, rendering, or media upload exits before a comment is submitted.
-- Failed comment submission exits without creating a Reddit post.
-- Failed pin verification triggers best-effort deletion of the app-authored comment.
-- Lock release checks the unique token before deleting the key. The 45-second lease exceeds Devvit's 30-second request limit so a live request cannot normally outlast its lease.
-- Redis stores only the short-lived lock, not announcement content.
-
-## Platform constraints
-
-The generated image is embedded in a Reddit comment using RTJSON via `RichTextBuilder`. The image is hosted on Reddit media storage so Reddit can render it inline. Devvit's `Comment.distinguish(true)` distinguishes the comment as a moderator and pins it. Reddit pins top-level comments, which is why ModGlow submits the image comment directly to the post rather than as a reply.
-
-## Required playtest matrix
-
-- Moderator with `posts` permission.
-- Moderator with `all` permission.
-- Moderator without post permissions.
-- Ordinary user attempting to invoke the endpoint directly.
-- Valid post, removed post, and cross-subreddit context.
-- Bold, italic, bold italic, strikethrough, headings, quotes, lists, inline code, fenced code, links, and images.
-- Emoji, XML-sensitive characters, control characters, Malayalam, and Tamil.
-- Empty, markup-only, over-limit, and over-height announcements.
-- Duplicate and concurrent requests on one post.
-- Requests on different posts.
-- Media upload failure.
-- Comment submission failure.
-- Distinguish or sticky failure and cleanup failure.
-- Reddit mobile and desktop.
+The SVG has explicit intrinsic width and calculated height with a matching viewBox. This provides deterministic dimensions to the server rasterizer and proportional scaling in the image display. The templates use solid fills only, with no gradients, opacity, filters, external assets or embedded raster images.
