@@ -100,7 +100,7 @@ Also test a moderator without post permissions, a removed comment, a deleted aut
 
 ## Feature request locking
 
-Feature publication uses a per comment Redis lock to prevent concurrent duplicate posts. Locks use a versioned namespace and a 45 second expiry. The expiry is shorter than the previous 180 second lease and allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a spotlight post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+Feature publication uses a per comment Redis lock to prevent concurrent duplicate posts. Acquisition uses atomic Redis `SET NX` with a 45 second expiry. Release uses a watched compare and delete. The earlier implementation incorrectly read through `TxClientLike.get()`, which queues a GET and returns the transaction handle rather than the stored string, causing every feature request to be rejected as already in progress. The expiry is shorter than the previous 180 second lease and allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a spotlight post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
 
 ## Validation and publishing
 
