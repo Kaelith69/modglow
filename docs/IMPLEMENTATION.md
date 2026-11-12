@@ -2,17 +2,16 @@
 
 ## Feature flow
 
-1. Reddit exposes the comment menu action only to moderators.
-2. The menu endpoint requires a valid comment context and opens an author permission attestation form.
-3. The submit endpoint verifies the caller's moderator identity and `posts` or `all` permission.
-4. It fetches the comment and checks both subreddit name and immutable subreddit ID, content availability, author attribution, and the 2,600 character limit.
-5. It claims a per comment lock with atomic Redis `SET NX`, then reads the key back and proceeds only if its unique token is present.
-6. It checks the deletion tombstone and completed feature mapping before rendering.
-7. It converts a restricted Markdown subset to plain text, removes XML-invalid characters, escapes XML, renders the editorial SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
-8. It submits the post explicitly as `APP`, distinguishes it, calls `sticky()`, and re-fetches it to verify both states.
-9. It saves the source comment to post mapping and rechecks the tombstone and current source comment before committing the workflow as complete.
-10. The original comment is never edited or removed by the feature action.
-11. A reverse Redis hash indexes generated post IDs to source comment IDs so `onPostDelete` can clear stale mappings when a moderator removes a spotlight post.
+1. Reddit exposes the action only to moderators and the server verifies the caller's moderator identity and `posts` or `all` permission.
+2. The endpoint validates the source comment, subreddit identity, available content, author permission attestation, and the parent submission ID.
+3. A per comment Redis lock prevents concurrent requests.
+4. ModGlow renders the source comment into a minimal AMOLED black SVG with green text, a MOD tag, and the source comment's date and time. It rasterises the SVG to PNG and uploads it to Reddit media hosting.
+5. ModGlow publishes the image as a comment under the exact original parent submission using `reddit.submitComment({ id: comment.postId, ... runAs: 'APP' })`. It never creates a new submission.
+6. The replacement comment ID is stored immediately. A retry reuses that exact comment instead of publishing a duplicate.
+7. ModGlow distinguishes the replacement comment as a moderator, then re-fetches it and verifies both its parent submission and moderator distinction.
+8. Only after the replacement comment is verified does ModGlow call `sourceComment.remove(true)`, marking the original comment as spam. It verifies both `removed` and `spam` before reporting success.
+9. If publishing or moderator distinction fails, the original comment is left untouched. If the replacement was already published, its ID remains indexed so a retry can safely resume without creating another reply.
+10. A seven day deletion tombstone and Reddit's `CommentDelete` trigger provide additional race protection and cleanup.
 
 ## Comment removal flow
 
@@ -65,7 +64,7 @@ The tombstone closes an important race: a deletion event may arrive before an in
 
 ## Image rendering
 
-The server builds a custom editorial SVG using XML-safe escaped comment text and a restricted Markdown to plain text conversion. Text wrapping rejects invalid width arguments and oversized content rather than looping or silently clipping. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
+The server builds a minimal SVG containing only an AMOLED black background, green comment text, the source comment date and time, and a highlighted MOD tag. XML escaping and width based wrapping keep special characters and long comments inside the image. `@resvg/resvg-wasm` rasterises the SVG to PNG for Reddit media hosting.
 
 ## Required playtest matrix
 
