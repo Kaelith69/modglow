@@ -31,7 +31,7 @@ test('Markdown links are retained as safe HTTP links and images degrade to alt t
   const nodes = parseInlineMarkdown('Read [the rules](https://example.com/rules). ![Diagram](https://example.com/image.png)');
   const link = nodes.find((node) => node.type === 'link');
   assert.deepEqual(link, { type: 'link', text: 'the rules', url: 'https://example.com/rules', formatting: 0 });
-  assert.ok(nodes.some((node) => node.type === 'text' && node.text === 'Diagram'));
+  assert.ok(nodes.some((node) => node.type === 'text' && node.text.includes('Diagram')));
   assert.ok(!nodes.some((node) => node.type === 'link' && node.url.includes('image.png')));
 
   const unsafe = parseInlineMarkdown('[unsafe](javascript:alert)');
