@@ -6,6 +6,7 @@
 - Keep the SVG image first in the same Reddit rich text comment in both publishing modes.
 - Avoid deleting a potentially successful comment when Reddit pin verification cannot be read; only clean up after an explicit persisted state mismatch.
 - Warn moderators when Reddit comment submission returns an ambiguous failure without a comment ID, preventing unsafe blind retries.
+- Retain the per post retry lock until its short lease expires when comment publication, pin verification, or cleanup has an ambiguous result.
 - Improve Markdown parsing for balanced link URL parentheses and prevent underscores inside identifiers from being treated as emphasis.
 - Dispose Resvg WebAssembly objects after rendering and cache decoded font buffers between announcements.
 - Reject archived posts before rendering or media upload while preserving moderator comments on locked posts.
