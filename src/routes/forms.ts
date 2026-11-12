@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildAnnouncementSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
