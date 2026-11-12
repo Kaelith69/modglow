@@ -17,10 +17,11 @@ const MAX_LINES = 38;
 
 function brandMark(): string {
   return `
-    <path d="M88 54 L122 74 V114 L88 134 L54 114 V74 Z" fill="#E9B86C"/>
-    <path d="M88 68 L110 81 V107 L88 120 L66 107 V81 Z" fill="#17243B"/>
-    <path d="M88 78 L101 86 V102 L88 110 L75 102 V86 Z" fill="none" stroke="#F8E8C8" stroke-width="4"/>
-    <circle cx="88" cy="94" r="4.5" fill="#E9B86C"/>
+    <path d="M88 58 L119 76 V112 L88 130 L57 112 V76 Z" fill="#E9B86C"/>
+    <path d="M88 68 L111 81 V107 L88 120 L65 107 V81 Z" fill="#17243B"/>
+    <path d="M88 76 L104 85 V103 L88 112 L72 103 V85 Z" fill="none" stroke="#F8E8C8" stroke-width="3"/>
+    <path d="M77 96 Q88 83 99 96" fill="none" stroke="#E9B86C" stroke-width="4" stroke-linecap="round"/>
+    <circle cx="88" cy="101" r="3.5" fill="#F8E8C8"/>
   `;
 }
 
