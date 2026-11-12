@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { escapeXml, markdownToPlainText, relativeTime, wrapText, wrapTextByWidth } from './format.ts';
-import { buildCommentSvg } from './render.ts';
+import { buildAnnouncementSvg, buildCommentSvg } from './render.ts';
 
 test('escapeXml neutralises markup characters', () => {
   assert.equal(escapeXml("<tag a=\"x\">Tom & 'Ada'</tag>"), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
@@ -50,7 +50,7 @@ test('comment card uses the ModGlow identity and a clean pinned comment layout',
   assert.match(svg, /width="1536" height="438" viewBox="0 0 1536 438"/);
   assert.match(svg, /#000000/);
   assert.match(svg, /#FFE45C/);
-  assert.match(svg, /#91A3AF/);
+  assert.match(svg, /#C9C5B5/);
   assert.match(svg, /#FFE45C/);
   assert.match(svg, /Pinned/);
   assert.match(svg, />Mod</);
@@ -103,7 +103,8 @@ test('comment card grows with multiline text and keeps comfortable bottom paddin
     edited: false,
   });
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const bodyEndY = 252 + ((svg.match(/<tspan /g)?.length ?? 1) - 1) * 82 + 64;
+  const lineCount = svg.match(/<tspan x="76" dy="/g)?.length ?? 1;
+  const bodyEndY = 252 + (lineCount - 1) * 82 + 64;
   assert.ok(height > 410);
   assert.ok(height >= bodyEndY + 112);
   assert.doesNotMatch(svg, /Reply|Vote|cx="654"/);
@@ -116,4 +117,25 @@ test('spotlight image rejects oversized comments instead of clipping content', (
     createdAt: new Date(),
     edited: false,
   }), /too long to feature safely/);
+});
+
+test('announcement card renders moderator-authored Markdown as a pinned image comment', () => {
+  const svg = buildAnnouncementSvg('## Important update\n\nA **bold** and *italic* and ***bold italic*** announcement.');
+  assert.match(svg, /ModGlow moderator announcement/);
+  assert.match(svg, />INFO</);
+  assert.match(svg, />Pinned</);
+  assert.match(svg, /font-weight="700" font-style="normal">bold</);
+  assert.match(svg, /font-weight="400" font-style="italic">italic</);
+  assert.match(svg, /font-weight="700" font-style="italic">bold italic</);
+  assert.match(svg, /fill="#000000"/);
+  assert.match(svg, /url\(#yellowSmoke\)/);
+  assert.match(svg, /url\(#neonEdge\)/);
+});
+
+test('announcement Markdown emphasis survives wrapping across multiple SVG lines', () => {
+  const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
+  const boldLines = [...svg.matchAll(/<tspan font-weight="700" font-style="normal">/g)];
+  const italicLines = [...svg.matchAll(/<tspan font-weight="400" font-style="italic">/g)];
+  assert.ok(boldLines.length >= 2);
+  assert.ok(italicLines.length >= 2);
 });

@@ -3,7 +3,7 @@
   "version": "0.2.3",
   "private": true,
   "type": "module",
-  "description": "A moderator only Devvit tool for publishing attributed community spotlight images from manually selected comments.",
+  "description": "A moderator-only Devvit tool for publishing Markdown announcements as pinned image comments.",
   "license": "MIT",
   "engines": {
     "node": ">=24.18.0"

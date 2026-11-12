@@ -8,28 +8,16 @@
   "menu": {
     "items": [
       {
-        "label": "Feature with ModGlow",
-        "description": "Create an attributed community spotlight image from this comment. Moderator action only.",
-        "location": "comment",
+        "label": "Create ModGlow announcement",
+        "description": "Write a Markdown announcement and publish it as a pinned ModGlow image comment. Moderator action only.",
+        "location": "post",
         "forUserType": "moderator",
-        "endpoint": "/internal/menu/feature-comment"
-      },
-      {
-        "label": "Remove comment",
-        "description": "Remove this comment using Reddit moderation tools. Any linked ModGlow feature is removed too. Moderator action only.",
-        "location": "comment",
-        "forUserType": "moderator",
-        "endpoint": "/internal/menu/remove-comment"
+        "endpoint": "/internal/menu/create-announcement"
       }
     ]
   },
   "forms": {
-    "featureComment": "/internal/form/feature-comment-submit",
-    "removeComment": "/internal/form/remove-comment-submit"
-  },
-  "triggers": {
-    "onCommentDelete": "/internal/triggers/comment-delete",
-    "onPostDelete": "/internal/triggers/post-delete"
+    "createAnnouncement": "/internal/form/create-announcement-submit"
   },
   "scripts": {
     "build": "vite build",
