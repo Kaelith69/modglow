@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildCommentSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isPostId, isUserId } from '../core/moderation.ts';
 
 type FeatureFormValues = {
   permissionConfirmed?: boolean;
@@ -77,7 +77,6 @@ forms.post('/feature-comment-submit', async (c) => {
 
   let lockToken: string | undefined;
   let replacementComment: Awaited<ReturnType<typeof reddit.submitComment>> | undefined;
-  let featureRecordSaved = false;
   let transactionComplete = false;
 
   try {
