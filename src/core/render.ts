@@ -264,16 +264,17 @@ export type AnnouncementFlair = typeof ANNOUNCEMENT_FLAIRS[number];
 
 type FlairTheme = {
   accent: string;
+  background: string;
   iconColor: string;
   titlePanel: string;
   titleColor: string;
 };
 
 const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
-  IMPORTANT: { accent: '#F20D24', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
-  NOTICE: { accent: '#087CFF', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
-  REMINDER: { accent: '#FF7900', iconColor: '#080808', titlePanel: '#FF7900', titleColor: '#050505' },
-  ANNOUNCEMENT: { accent: '#7CFF00', iconColor: '#174B0A', titlePanel: '#7CFF00', titleColor: '#050505' },
+  IMPORTANT: { accent: '#F20D24', background: '#050000', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
+  NOTICE: { accent: '#087CFF', background: '#02091B', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
+  REMINDER: { accent: '#FF7900', background: '#070300', iconColor: '#080808', titlePanel: '#FF7900', titleColor: '#050505' },
+  ANNOUNCEMENT: { accent: '#7CFF00', background: '#010703', iconColor: '#174B0A', titlePanel: '#7CFF00', titleColor: '#050505' },
 };
 
 const BODY_START_Y = 350;
@@ -343,7 +344,7 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
     '<title>ModGlow ' + flair.toLowerCase() + '</title>',
-    '<rect width="' + WIDTH + '" height="' + height + '" fill="#050505"/>',
+    '<rect width="' + WIDTH + '" height="' + height + '" fill="' + theme.background + '"/>',
     frame,
     header,
     bodyMarker,
