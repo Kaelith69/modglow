@@ -4,7 +4,7 @@ const WIDTH = 2000;
 const BODY_X = 195;
 const BODY_START_Y = 475;
 const BODY_FONT = 76;
-const FONT_FAMILY = 'IBM Plex Sans';
+const FONT_FAMILY = 'Arial, Helvetica, sans-serif';
 const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
 function graphemes(value: string): string[] {
@@ -82,7 +82,8 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
 }
 
 /**
- * Conservative estimates for the bundled IBM Plex Sans face. These are not
+ * Conservative estimates for the bundled IBM Plex Sans raster fallback used
+ * when Arial and Helvetica are unavailable. These are not
  * font metrics: keep a right margin and cover wide glyphs, punctuation,
  * combining marks and unbroken tokens with regression tests.
  */
