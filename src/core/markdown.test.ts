@@ -90,6 +90,10 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
     'print("tilde fence")',
     '~~~',
     '',
+    '~~~c#',
+    'int answer = 42;',
+    '~~~',
+    '',
     '---',
   ].join('\n'));
 
@@ -111,6 +115,7 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
     ['typescript', 'const answer = 42;'],
     ['bash', 'echo "literal ``` fence"'],
     ['python', 'print("tilde fence")'],
+    ['c#', 'int answer = 42;'],
   ]);
   assert.ok(blocks.some((block) => block.type === 'hr'));
 
