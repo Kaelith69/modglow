@@ -8,7 +8,7 @@ import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, 
 import { buildAnnouncementRichText } from '../core/richtext.ts';
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
@@ -106,8 +106,12 @@ forms.post('/create-announcement-submit', async (c) => {
     if (!belongsToSubreddit(post.subredditName, context.subredditName) || !belongsToSubredditId(post.subredditId, context.subredditId)) {
       return c.json<UiResponse>(toast('The selected post does not belong to this subreddit.'));
     }
-    if (post.removed) {
-      return c.json<UiResponse>(toast('This post has been removed and cannot receive a ModGlow announcement.'));
+    if (!canModeratorCommentOnPost(post)) {
+      return c.json<UiResponse>(toast(
+        post.removed
+          ? 'This post has been removed and cannot receive a ModGlow announcement.'
+          : 'This post is archived and cannot receive new comments. Choose an active post.',
+      ));
     }
 
     const svg = bodyBelowSvg
