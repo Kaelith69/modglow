@@ -88,6 +88,8 @@ forms.post('/create-announcement-submit', async (c) => {
   let lockToken: string | undefined;
   let publishedComment: Awaited<ReturnType<typeof reddit.submitComment>> | undefined;
   let pinnedAndVerified = false;
+  let pinMismatchConfirmed = false;
+  let cleanupFailed = false;
 
   try {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
@@ -129,11 +131,18 @@ forms.post('/create-announcement-submit', async (c) => {
       runAs: 'APP',
     });
 
-    await publishedComment.distinguish(true);
+    try {
+      await publishedComment.distinguish(true);
+    } catch (error) {
+      // The request may have succeeded remotely even if its response failed.
+      // Read back the persisted comment before deciding whether cleanup is safe.
+      console.error('[ModGlow] Pin request returned an error; checking the comment state.', error);
+    }
 
     const verifiedComment = await reddit.getCommentById(publishedComment.id);
     if (!verifiedComment.stickied || verifiedComment.distinguishedBy !== 'moderator') {
-      throw new Error('Reddit did not confirm that the ModGlow comment is both pinned and moderator distinguished.');
+      pinMismatchConfirmed = true;
+      throw new Error('Reddit confirmed that the ModGlow comment is not both pinned and moderator distinguished.');
     }
 
     pinnedAndVerified = true;
@@ -142,14 +151,26 @@ forms.post('/create-announcement-submit', async (c) => {
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
-    if (publishedComment && !pinnedAndVerified) {
+    if (publishedComment && pinMismatchConfirmed) {
       try {
         await publishedComment.delete();
       } catch (cleanupError) {
         if (!isNotFoundError(cleanupError)) {
+          cleanupFailed = true;
           console.error('[ModGlow] Could not remove an announcement that failed pin verification.', cleanupError);
         }
       }
+    }
+
+    if (publishedComment && !pinnedAndVerified && !pinMismatchConfirmed) {
+      return c.json<UiResponse>(toast(
+        'A ModGlow comment may have been published, but Reddit could not confirm its pin status. Check the post before retrying to avoid duplicate announcements.',
+      ));
+    }
+    if (cleanupFailed) {
+      return c.json<UiResponse>(toast(
+        'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying.',
+      ));
     }
 
     return c.json<UiResponse>(toast('Could not publish and pin the ModGlow announcement. Check the post, moderator permissions, and Reddit comment availability, then try again.'));
