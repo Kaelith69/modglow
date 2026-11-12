@@ -10,7 +10,7 @@
     ],
     "spotlight_card": [
       1536,
-      410
+      438
     ],
     "promo_panels": [
       1080,
@@ -18,15 +18,14 @@
     ]
   },
   "layout_rules": [
-    "The featured comment card uses a 1536px wide dark composition and grows vertically with wrapped comment text.",
-    "The header uses the ModGlow app icon and ModGlow name only, followed by the moderator badge, timestamp, and pinned marker.",
-    "The original commenter's username and avatar are omitted from the image; the generated post body and caption preserve source attribution and the original discussion link.",
-    "The card contains no overflow menu, reply control, vote label, upvote arrow, or downvote arrow.",
-    "The bottom of the card keeps 106px of breathing room after the final comment text baseline.",
-    "A restrained neon yellow green glow accents the dark surface and edge without changing the ModGlow green wordmark or moderator badge.",
-    "The body uses a fixed 58px font scale and 72px line height on the 1536px canvas.",
-    "SVG text is XML escaped and oversized content is rejected rather than clipped.",
+    "The featured comment uses a 1536px wide true AMOLED black canvas with a smoked charcoal surface.",
+    "A restrained warm yellow haze, fine illuminated edge, and soft shadows provide depth without washing out the black background.",
+    "Header includes ModGlow icon and name, moderator badge, timestamp, and pinned marker.",
+    "Comment text uses 64px IBM Plex Sans with 82px line height, larger than typical Reddit comment text.",
+    "Bold, italic, and bold italic Markdown runs are retained in the SVG.",
+    "The card grows vertically with wrapped text and keeps 112px of bottom breathing room.",
+    "SVG text is escaped and oversized content is rejected rather than clipped.",
     "Promo panels remain marketing artwork, not screenshots of a live app."
   ],
-  "note": "The card uses ModGlow's existing vector app icon and original vector branding. The action row is intentionally omitted."
+  "note": "AMOLED black and warm neon yellow smoked glass visual system. Renderer is the source of truth for actual output dimensions."
 }
