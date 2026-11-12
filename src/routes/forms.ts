@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildCommentSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isUserId } from '../core/moderation.ts';
 
 type FeatureFormValues = {
   permissionConfirmed?: boolean;
@@ -41,22 +41,16 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
 
 async function releaseCommentLock(commentId: string, token: string): Promise<void> {
   const key = `${LOCK_PREFIX}${commentId}`;
-  const transaction = await redis.watch(key);
-  // Read through the root client. TxClientLike.get() queues a command and
-  // returns the transaction handle, not the stored string value.
-  const current = await transaction.get(key);
-  if (current !== token) {
-    await transaction.unwatch();
-    return;
+  // Devvit requests have a 30 second execution limit; the 45 second lease
+  // cannot expire during a live request. Compare before deleting so a stale
+  // request never removes a later request's lock.
+  if ((await redis.get(key)) === token) {
+    await redis.del(key);
   }
-
-  await transaction.multi();
-  await transaction.del(key);
-  await transaction.exec();
 }
 
 
-async function verifyModerator(subredditName: string, userId: string): Promise<boolean> {
+async function verifyModerator(subredditName: string, userId: `t2_${string}`): Promise<boolean> {
   const moderator = await reddit.getUserById(userId);
   if (!moderator) return false;
   const permissions = await moderator.getModPermissionsForSubreddit(subredditName);
@@ -75,7 +69,7 @@ forms.post('/feature-comment-submit', async (c) => {
     return c.json<UiResponse>(toast('You must confirm that the comment author has explicitly permitted this feature.'));
   }
 
-  if (!isCommentId(commentId) || !context.userId || !context.subredditName || !context.subredditId) {
+  if (!isCommentId(commentId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
     return c.json<UiResponse>(toast('The selected comment or moderator context is invalid. Reopen the comment menu and try again.'));
   }
 
