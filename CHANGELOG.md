@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2
+
+- Rebuilt all four flair cards to match the supplied comic reference artwork.
+- Added the angular frame, slanted icon and title panels, three accent slashes, and vertical body marker.
+- Applied the reference red, blue, orange, and lime palettes with cream title panels where shown.
+- Recalculated card height and lower frame from wrapped body lines, with conservative text width and bottom clearance.
+- Added regression coverage for layout consistency, colour palettes, wrapping, and dynamic height.
+
 ## 0.4.1
 
 - Matched the supplied reference layout across all four announcement flairs.

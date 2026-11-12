@@ -1,14 +1,14 @@
 import { escapeXml } from './format.ts';
 
 const WIDTH = 1536;
-const BODY_X = 88;
+const BODY_X = 145;
 const BODY_FONT = 64;
 const LINE_HEIGHT = 78;
 export const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
-const MIN_HEIGHT = 585;
-const BOTTOM_PADDING = 28;
-const BODY_WIDTH = 1360;
+const MIN_HEIGHT = 584;
+const BOTTOM_PADDING = 97;
+const BODY_WIDTH = 1300;
 
 type InlineRun = {
   text: string;
@@ -98,7 +98,7 @@ function glyphWidth(character: string, fontSize: number, style: RunStyle): numbe
   else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.76;
   else width = fontSize * 0.52;
 
-  return width * (style.bold ? 1.045 : 1);
+  return width * (style.bold ? 1.12 : 1.08);
 }
 
 function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): InlineRun[][] {
@@ -258,42 +258,62 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
 }
 
 
+
 export const ANNOUNCEMENT_FLAIRS = ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT'] as const;
 export type AnnouncementFlair = typeof ANNOUNCEMENT_FLAIRS[number];
 
-
 type FlairTheme = {
   accent: string;
-  accentText: string;
+  background: string;
+  iconColor: string;
+  titlePanel: string;
+  titleColor: string;
 };
 
 const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
-  IMPORTANT: { accent: '#FF4055', accentText: '#FF9AA6' },
-  NOTICE: { accent: '#32B8FF', accentText: '#9CDEFF' },
-  REMINDER: { accent: '#FF9900', accentText: '#FFC266' },
-  ANNOUNCEMENT: { accent: '#FFE34F', accentText: '#FFF0A0' },
+  IMPORTANT: { accent: '#F20D24', background: '#050000', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
+  NOTICE: { accent: '#087CFF', background: '#02091B', iconColor: '#F5F0E6', titlePanel: '#F5F0E6', titleColor: '#050505' },
+  REMINDER: { accent: '#FF7900', background: '#070300', iconColor: '#080808', titlePanel: '#FF7900', titleColor: '#050505' },
+  ANNOUNCEMENT: { accent: '#7CFF00', background: '#010703', iconColor: '#174B0A', titlePanel: '#7CFF00', titleColor: '#050505' },
 };
+
+const BODY_START_Y = 350;
+const FRAME_BOTTOM_INSET = 60;
 
 function flairIcon(flair: AnnouncementFlair, color: string): string {
   const icons: Record<AnnouncementFlair, string> = {
-    IMPORTANT: '<path d="M170 143 V181 M170 196 V198" stroke="' + color + '" stroke-width="12" stroke-linecap="round"/>',
-    NOTICE: '<circle cx="170" cy="174" r="39" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M170 168 V196 M170 148 V150" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
-    REMINDER: '<rect x="133" y="143" width="74" height="68" rx="10" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M152 133 V151 M188 133 V151 M133 164 H207" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
-    ANNOUNCEMENT: '<path d="M133 165 L202 143 V203 L133 181 Z" fill="none" stroke="' + color + '" stroke-width="10" stroke-linejoin="round"/><path d="M149 185 L160 211 H179 L168 190 M214 158 L228 150 M215 187 L229 194" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
+    IMPORTANT: '<path d="M170 126 L235 238 H105 Z" fill="none" stroke="' + color + '" stroke-width="13" stroke-linejoin="round"/><path d="M170 158 V196 M170 216 V218" fill="none" stroke="' + color + '" stroke-width="13" stroke-linecap="round"/>',
+    NOTICE: '<circle cx="170" cy="182" r="57" fill="none" stroke="' + color + '" stroke-width="13"/><path d="M170 174 V215 M170 146 V149" fill="none" stroke="' + color + '" stroke-width="14" stroke-linecap="round"/>',
+    REMINDER: '<rect x="111" y="132" width="118" height="112" rx="15" fill="none" stroke="' + color + '" stroke-width="13"/><path d="M137 119 V151 M203 119 V151 M111 166 H229 M145 188 H160 M183 188 H198 M145 216 H160 M183 216 H198" fill="none" stroke="' + color + '" stroke-width="13" stroke-linecap="round"/>',
+    ANNOUNCEMENT: '<path d="M108 160 H155 L218 132 V220 L155 192 H108 Z" fill="none" stroke="' + color + '" stroke-width="13" stroke-linejoin="round"/><path d="M128 195 L145 239 H177 L162 196 M236 151 L255 138 M239 178 H263 M236 205 L255 218" fill="none" stroke="' + color + '" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>',
   };
   return '<g>' + icons[flair] + '</g>';
 }
 
-function flairHeader(flair: AnnouncementFlair, accent: string, frameBottom: number, innerBottom: number): string {
-  const title = flair;
-  const titleSize = flair === 'ANNOUNCEMENT' ? 64 : 88;
-  return [
-    '<text x="104" y="67" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F2F0E8">MODGLOW</text>',
-    `<path d="M32 65 H90 M32 65 V${frameBottom} H1504 V59 H352" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
-    `<path d="M72 98 H1464 V${innerBottom} H72 M72 98 V252 M72 98 H878 L806 252 H72" fill="none" stroke="${accent}" stroke-width="8" stroke-linejoin="miter"/>`,
-    flairIcon(flair, accent),
-    '<text x="263" y="207" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" letter-spacing="2" fill="#F2F0E8">' + title + '</text>',
+function flairHeader(flair: AnnouncementFlair, theme: FlairTheme): string {
+  const iconTile = '<path d="M56 98 H348 L264 270 H56 Z" fill="' + (flair === 'IMPORTANT' || flair === 'NOTICE' ? theme.accent : '#F5F0E6') + '"/>';
+  const titlePanel = '<path d="M362 98 H1318 L1234 270 H278 Z" fill="' + theme.titlePanel + '"/>';
+  const titleSize = flair === 'ANNOUNCEMENT' ? 76 : 88;
+  const title = '<text x="366" y="229" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" font-style="italic" letter-spacing="1" fill="' + theme.titleColor + '">' + flair + '</text>';
+  const slashes = [
+    '<path d="M1290 128 H1350 L1285 260 H1225 Z" fill="' + theme.accent + '"/>',
+    '<path d="M1365 128 H1425 L1360 260 H1300 Z" fill="' + theme.accent + '"/>',
+    '<path d="M1440 128 H1500 L1435 260 H1375 Z" fill="' + theme.accent + '"/>',
   ].join('');
+  return [
+    '<text x="112" y="62" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F5F0E6">MODGLOW</text>',
+    iconTile,
+    titlePanel,
+    flairIcon(flair, theme.iconColor),
+    title,
+    slashes,
+  ].join('');
+}
+
+function frameSvg(accent: string, height: number): string {
+  const bottom = height - FRAME_BOTTOM_INSET;
+  const rightChamfer = 62;
+  return '<path d="M350 57 H1512 V' + (bottom - rightChamfer) + ' L' + (1512 - rightChamfer) + ' ' + bottom + ' H22 V112 L82 50" fill="none" stroke="' + accent + '" stroke-width="14" stroke-linecap="butt" stroke-linejoin="miter"/>';
 }
 
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
@@ -305,7 +325,7 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
   }
 
   const theme = FLAIR_THEMES[flair];
-  const rendered = renderBody(markdown, theme.accentText);
+  const rendered = renderBody(markdown, theme.accent);
   if (rendered.visibleCharacters === 0) {
     throw new Error('The announcement has no renderable text.');
   }
@@ -313,20 +333,22 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     throw new Error('The announcement needs more than ' + MAX_LINES + ' rendered lines. Shorten it to keep the image readable.');
   }
 
-  const bodyStartY = 340;
-  const bodyEndY = bodyStartY + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + BODY_FONT;
-  const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING + 75);
-  const frameBottom = height - 75;
-  const innerBottom = height - 85;
-  const svgHeader = flairHeader(flair, theme.accent, frameBottom, innerBottom);
+  const bodyEndY = BODY_START_Y + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + BODY_FONT;
+  const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING);
+  const bodyMarkerBottom = BODY_START_Y + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + 28;
+  const bodyMarker = '<path d="M96 306 V' + bodyMarkerBottom + '" stroke="' + theme.accent + '" stroke-width="14" stroke-linecap="square"/>';
+  const header = flairHeader(flair, theme);
+  const frame = frameSvg(theme.accent, height);
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
     '<title>ModGlow ' + flair.toLowerCase() + '</title>',
-    '<rect width="' + WIDTH + '" height="' + height + '" fill="#000000"/>',
-    svgHeader,
-    '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8">' + rendered.markup + '</text>',
+    '<rect width="' + WIDTH + '" height="' + height + '" fill="' + theme.background + '"/>',
+    frame,
+    header,
+    bodyMarker,
+    '<text x="' + BODY_X + '" y="' + BODY_START_Y + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F5F0E6">' + rendered.markup + '</text>',
     '</svg>',
   ].join('\n');
 }

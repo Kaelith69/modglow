@@ -27,14 +27,9 @@ Raw HTML is not rendered. Links and images are represented as readable text in t
 
 ## Four announcement flairs
 
-The composer offers exactly four choices: **IMPORTANT**, **NOTICE**, **REMINDER**, and **ANNOUNCEMENT**. Each choice selects a distinct comic book layout and colour system:
+The composer offers exactly four choices: **IMPORTANT**, **NOTICE**, **REMINDER**, and **ANNOUNCEMENT**. Each uses the supplied reference composition: a clipped angular frame, MODGLOW wordmark, slanted icon tile and title panel, three diagonal accent slashes, and a vertical message marker. All geometry and padding remain consistent across the four flairs. The palette is red for IMPORTANT, blue for NOTICE, orange for REMINDER, and lime green for ANNOUNCEMENT. IMPORTANT and NOTICE use warm cream title panels, while REMINDER and ANNOUNCEMENT use their accent colour.
 
-- **IMPORTANT:** vivid red angular title panel.
-- **NOTICE:** electric blue framed editorial panel.
-- **REMINDER:** solid orange calendar inspired panel.
-- **ANNOUNCEMENT:** high contrast yellow poster panel.
-
-All four share the exact same reference layout, including frame geometry, diagonal header panel, wordmark, icon placement, title baseline, body inset, and padding. Only the flair accent colour, title, and matching line icon change. The canvas is pure AMOLED black with solid strokes and fills only. There are no gradients, blended colours, transparency, glow, or drop shadows. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped text while preserving the reference layout and rejects text that would exceed its readability limits rather than clipping it.
+The message wraps to the available width. SVG height, lower frame, and message marker expand from the rendered line count. The renderer uses solid near black, cream, and flair accent fills only. No gradients, blends, opacity, filters, glow, or shadows are used.
 
 ## Permissions and safety
 
