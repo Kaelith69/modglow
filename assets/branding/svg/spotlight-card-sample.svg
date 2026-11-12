@@ -16,7 +16,7 @@
       </radialGradient>
     </defs>
 
-    <rect width="1536" height="410" fill="#0E1012"/>
+    <rect width="1536" height="410" fill="#101113"/>
     <rect x="10" y="10" width="1516" height="390" rx="24" fill="url(#surface)" stroke="#293138" stroke-width="2"/>
     <ellipse cx="1160" cy="104" rx="500" ry="210" fill="url(#highlight)"/>
     <rect x="10" y="10" width="5" height="390" rx="2.5" fill="#2B8A45" opacity=".72"/>
@@ -27,13 +27,13 @@
     <circle cx="132" cy="124" r="45" fill="none" stroke="#E9B86C" stroke-width="1.5" opacity=".48"/>
     <text x="132" y="141" text-anchor="middle" font-family="IBM Plex Sans" font-size="48" font-weight="700" fill="#F1E7D5">K</text>
 
-    <text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#24C84A">Kaelith69</text>
+    <text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#5FBD47">Kaelith69</text>
     <circle cx="496" cy="111" r="4" fill="#8C9EAA"/>
     
-    <rect x="518" y="84" width="194" height="68" rx="34" fill="#123D1E" stroke="#1A6A2B" stroke-width="1.5"/>
-    <path d="M543 103 L561 97 L579 103 V123 Q561 140 561 140 Q543 132 543 123 Z" fill="#16D94B"/>
+    <rect x="518" y="84" width="194" height="68" rx="34" fill="#17380D" stroke="#285A16" stroke-width="1.5"/>
+    <path d="M543 103 L561 97 L579 103 V123 Q561 140 561 140 Q543 132 543 123 Z" fill="#23B82F"/>
     <path d="M550 106 L561 102 L572 106 V122 Q561 132 561 132 Q550 126 550 122 Z" fill="none" stroke="#0D6C2B" stroke-width="2"/>
-    <text x="596" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="500" fill="#2BCB50">Mod</text>
+    <text x="596" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="500" fill="#61C64B">Mod</text>
   
     <circle cx="732" cy="111" r="4" fill="#8C9EAA"/>
     <text x="758" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="400" fill="#91A3AF">Now</text>
