@@ -1,10 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeXml, markdownToPlainText, wrapText, wrapTextByWidth } from './format.ts';
+import { escapeXml, markdownToPlainText, relativeTime, wrapText, wrapTextByWidth } from './format.ts';
 import { buildCommentSvg } from './render.ts';
 
 test('escapeXml neutralises markup characters', () => {
   assert.equal(escapeXml(`<tag a="x">Tom & 'Ada'</tag>`), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
+});
+
+test('escapeXml removes XML-invalid control characters', () => {
+  assert.equal(escapeXml('safe\\u0000text\\u0008 and valid\\nline'), 'safetext and valid\\nline');
 });
 
 test('markdownToPlainText keeps readable content and strips formatting syntax', () => {
@@ -17,6 +21,16 @@ test('wrapText wraps long lines and keeps all content', () => {
   const lines = wrapText(source, 12);
   assert.deepEqual(lines, ['alpha beta', 'gamma delta', 'epsilon zeta']);
   assert.equal(lines.join(' '), source);
+});
+
+test('wrapping helpers reject invalid limits instead of looping forever', () => {
+  assert.throws(() => wrapText('abc', 0), /positive integer/);
+  assert.throws(() => wrapTextByWidth('abc', 0, 12), /positive finite number/);
+  assert.throws(() => wrapTextByWidth('abc', 100, Number.NaN), /positive finite number/);
+});
+
+test('relativeTime handles invalid dates without exposing Invalid Date', () => {
+  assert.equal(relativeTime(new Date(Number.NaN)), 'date unavailable');
 });
 
 test('wrapTextByWidth keeps wide text within the image column', () => {
