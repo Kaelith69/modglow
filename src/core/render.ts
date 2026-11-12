@@ -212,5 +212,5 @@ export function buildAnnouncementSvg(markdown: string): string {
     edited: false,
   });
   return svg
-    .replace('ModGlow featured community comment', 'ModGlow moderator announcement')
+    .replace('ModGlow moderator authored image comment', 'ModGlow moderator announcement')
     .replace('>Now</text>', '>INFO</text>');
