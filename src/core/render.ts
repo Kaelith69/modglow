@@ -29,7 +29,7 @@ type RenderedBody = {
 type RunStyle = Omit<InlineRun, 'text'>;
 
 const PLAIN_STYLE: RunStyle = {
-  bold: false,
+  bold: true,
   italic: false,
   strike: false,
   code: false,
@@ -222,7 +222,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
         const style = run.italic ? 'italic' : 'normal';
         const fill = run.accent ? accentColor : '#FFF5E8';
         const decoration = run.strike ? ' text-decoration="line-through"' : '';
-        return '<tspan font-family="Arial,sans-serif" font-weight="' + weight + '" font-style="' + style + '" fill="' + fill + '"' + decoration + '>' + escapeXml(run.text) + '</tspan>';
+        return '<tspan font-family="Arial,Helvetica,sans-serif" font-weight="' + weight + '" font-style="' + style + '" fill="' + fill + '"' + decoration + '>' + escapeXml(run.text) + '</tspan>';
       }).join('');
 
       renderedLines.push('<tspan x="' + BODY_X + '" dy="' + (renderedLines.length === 0 ? 0 : LINE_HEIGHT) + '">' + content + '</tspan>');
@@ -256,46 +256,46 @@ function frameSvg(accent: string, height: number): string {
 
 function importantHeader(): string {
   return [
-    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
+    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 120 H510 L390 360 H70 Z" fill="#FF2525"/>',
     '<path d="M530 135 H1720 L1600 345 H420 Z" fill="#FFF5E8"/>',
     '<g fill="none" stroke="#FFF5E8" stroke-width="16" stroke-linejoin="round"><path d="M270 155 L375 320 H165 Z"/><path d="M270 205 V260 M270 290 V292"/></g>',
-    '<text x="570" y="300" fill="#080605" font-family="Arial,sans-serif" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">IMPORTANT</text>',
+    '<text x="570" y="300" fill="#080605" font-family="Arial,Helvetica,sans-serif" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">IMPORTANT</text>',
     '<g fill="#FF2525"><path d="M1750 170 L1810 170 L1725 325 H1665 Z"/><path d="M1840 170 L1900 170 L1815 325 H1755 Z"/></g>',
   ].join('');
 }
 
 function noticeHeader(): string {
   return [
-    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
+    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 130 H435 L330 350 H70 Z" fill="#078BFF"/>',
     '<path d="M455 140 H1330 L1215 355 H350 Z" fill="#FFF5E8"/>',
     '<circle cx="245" cy="240" r="75" fill="none" stroke="#FFF5E8" stroke-width="15"/><circle cx="245" cy="195" r="10" fill="#FFF5E8"/><rect x="230" y="220" width="30" height="75" rx="12" fill="#FFF5E8"/>',
-    '<text x="480" y="305" fill="#050D1C" font-family="Arial,sans-serif" font-size="150" font-weight="900" font-style="italic" textLength="720" lengthAdjust="spacingAndGlyphs">NOTICE</text>',
+    '<text x="480" y="305" fill="#050D1C" font-family="Arial,Helvetica,sans-serif" font-size="150" font-weight="900" font-style="italic" textLength="720" lengthAdjust="spacingAndGlyphs">NOTICE</text>',
     '<g fill="#078BFF"><path d="M1370 140 H1430 L1315 345 H1255 Z"/><path d="M1460 140 H1520 L1405 345 H1345 Z"/></g>',
   ].join('');
 }
 
 function announcementHeader(): string {
   return [
-    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
+    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>',
     '<path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>',
     '<g fill="#126B18" stroke="#126B18" stroke-width="12" stroke-linejoin="round"><path d="M135 215 L230 185 L230 285 L135 255 Z"/><path d="M230 185 L280 165 V305 L230 285 Z"/><path d="M165 260 L200 320 L230 310 L205 255 Z"/></g>',
     '<g stroke="#126B18" stroke-width="12" stroke-linecap="round"><path d="M295 190 L330 165"/><path d="M305 235 H350"/><path d="M295 280 L330 305"/></g>',
-    '<text x="460" y="295" fill="#050A05" font-family="Arial,sans-serif" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>',
+    '<text x="460" y="295" fill="#050A05" font-family="Arial,Helvetica,sans-serif" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>',
     '<g fill="#8CFF00"><path d="M1750 170 H1810 L1725 325 H1665 Z"/><path d="M1840 170 H1900 L1815 325 H1755 Z"/></g>',
   ].join('');
 }
 
 function reminderHeader(): string {
   return [
-    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
+    '<text x="165" y="80" fill="#FFF5E8" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>',
     '<path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>',
     '<path d="M455 130 H1635 L1515 355 H350 Z" fill="#FF7900"/>',
     '<g fill="none" stroke="#090604" stroke-width="15" stroke-linejoin="round"><rect x="160" y="185" width="145" height="125" rx="16"/><path d="M190 165 V200 M275 165 V200"/><path d="M160 225 H305"/></g>',
     '<g fill="#090604"><rect x="185" y="245" width="22" height="22" rx="5"/><rect x="225" y="245" width="22" height="22" rx="5"/><rect x="265" y="245" width="22" height="22" rx="5"/><rect x="185" y="280" width="22" height="15" rx="4"/><rect x="225" y="280" width="22" height="15" rx="4"/><rect x="265" y="280" width="22" height="15" rx="4"/></g>',
-    '<text x="450" y="305" fill="#090604" font-family="Arial,sans-serif" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">REMINDER</text>',
+    '<text x="450" y="305" fill="#090604" font-family="Arial,Helvetica,sans-serif" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">REMINDER</text>',
     '<g fill="#FF7900"><path d="M1680 170 H1740 L1655 325 H1595 Z"/><path d="M1770 170 H1830 L1745 325 H1685 Z"/></g>',
   ].join('');
 }
@@ -337,7 +337,7 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     frameSvg(theme.accent, height),
     flairHeader(flair),
     '<rect x="115" y="415" width="16" height="' + (markerBottom - 415) + '" fill="' + theme.accent + '"/>',
-    '<text x="' + BODY_X + '" y="' + BODY_START_Y + '" font-family="Arial,sans-serif" font-size="' + BODY_FONT + '" fill="#FFF5E8">' + rendered.markup + '</text>',
+    '<text x="' + BODY_X + '" y="' + BODY_START_Y + '" font-family="Arial,Helvetica,sans-serif" font-size="' + BODY_FONT + '" fill="#FFF5E8">' + rendered.markup + '</text>',
     '</svg>',
   ].join('\n');
 }
