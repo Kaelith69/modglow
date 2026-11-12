@@ -1,19 +1,19 @@
 # ModGlow brand guide
 
-## Shared announcement layout
+## Reference comic announcement layout
 
-All four announcement flairs use the same reference composition and exact coordinate system. Only the accent colour, flair title, and matching line icon change.
+All four announcement flairs use the supplied reference composition: a clipped angular outer frame, MODGLOW wordmark in the top left, a two part slanted header with a dedicated icon tile, a large italic title, three diagonal accent slashes, and a vertical accent marker beside the message.
 
-- Canvas: 1536px wide, 585px minimum height, pure black.
-- Outer frame: 12px stroke, left edge at x=32, top edge at y=59, right edge at x=1504, 75px bottom inset.
-- Inner frame: 8px stroke, x=72 to x=1464, top at y=98, 85px bottom inset.
-- Header panel: same top edge as the inner frame, left edge at x=72, horizontal lower edge at y=252, diagonal cut from x=878 at the top to x=806 at the bottom.
-- Wordmark: x=104, y=67.
-- Flair icon: centered at x=170, within the left side of the header.
-- Flair title: x=263, baseline y=207.
-- Announcement body: x=88, first baseline y=340, 64px type, 78px line spacing.
+- Canvas: 1536px wide, 584px minimum height, solid near black.
+- Outer frame: 14px accent stroke, top edge starts at x=350 and y=57, left edge at x=22, right edge at x=1512. The lower right corner is chamfered.
+- Wordmark: x=112, baseline y=62.
+- Header: y=98 to y=270. The icon tile and title panel have matching diagonal cuts and a 14px separation.
+- Title: x=366, baseline y=229, bold italic IBM Plex Sans.
+- Three solid diagonal accent slashes sit to the right of the title panel.
+- Message: x=145, first baseline y=350, 64px type, 78px line spacing.
+- Message marker: x=96, begins at y=306 and ends 28px below the final baseline.
 
-The frame and body retain these positions for every flair. Longer announcements extend the frame downward without changing the header or body padding.
+The four templates share these coordinates. Only the accent colour, title panel fill, icon tile fill, icon and title change. The bottom frame edge and marker are calculated from the wrapped message height. The frame keeps at least 32px of clear space below the text.
 
 ## Flair accents
 
