@@ -103,14 +103,14 @@ test('plain announcement body and blockquotes are bold by default', () => {
   assert.match(svg, /font-family="Arial, Helvetica, sans-serif"/);
 });
 
-test('every flair uses the embedded font family and bold default body style', () => {
+test('every flair declares the Arial font stack and bold default body style', () => {
   for (const flair of ANNOUNCEMENT_FLAIRS) {
     const svg = buildAnnouncementSvg('Plain body text.', flair);
     const fontFamilies = [...svg.matchAll(/font-family="([^"]+)"/g)].map((match) => match[1]);
     assert.ok(fontFamilies.length > 0);
     assert.ok(fontFamilies.every((family) => family === 'Arial, Helvetica, sans-serif'));
     assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Plain body text\.<\/tspan>/);
-    assert.doesNotMatch(svg, /Arial|Helvetica/);
+    assert.match(svg, /font-family="Arial, Helvetica, sans-serif"/);
   }
 });
 
