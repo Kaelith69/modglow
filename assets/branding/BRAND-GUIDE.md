@@ -1,41 +1,56 @@
-# ModGlow brand guide
+# MODGLOW announcement template guide
 
-## Reference comic announcement layout
+## Source of truth
 
-All four announcement flairs use the supplied reference composition: a clipped angular outer frame, MODGLOW wordmark in the top left, a two part slanted header with a dedicated icon tile, a large italic title, three diagonal accent slashes, and a vertical accent marker beside the message.
+The four announcement SVG templates reproduce the supplied IMPORTANT, NOTICE, ANNOUNCEMENT and REMINDER artwork. They are intentionally different compositions, not one generic card recoloured four times.
 
-- Canvas: 1536px wide, 584px minimum height, solid near black.
-- Outer frame: 14px accent stroke, top edge starts at x=350 and y=57, left edge at x=22, right edge at x=1512. The lower right corner is chamfered.
-- Wordmark: x=112, baseline y=62.
-- Header: y=98 to y=270. The icon tile and title panel have matching diagonal cuts and a 14px separation.
-- Title: x=366, baseline y=229, bold italic IBM Plex Sans.
-- Three solid diagonal accent slashes sit to the right of the title panel.
-- Message: x=145, first baseline y=350, 64px type, 78px line spacing.
-- Message marker: x=96, begins at y=306 and ends 28px below the final baseline.
+All templates use a 2000px wide SVG viewBox, editable vector shapes and text, solid fills, and no external assets, gradients, filters, transparency or raster artwork. The intrinsic SVG height is calculated from the final body line. The viewBox preserves its aspect ratio when scaled to fit a Reddit image display.
 
-The four templates share these coordinates. Only the accent colour, title panel fill, icon tile fill, icon and title change. The bottom frame edge and marker are calculated from the wrapped message height. The inner bottom edge of the frame keeps at least 32px of clear space below the text.
+## IMPORTANT
 
-## Flair accents
+- Background: `#080605`
+- Frame and accents: `#FF2525`
+- Ivory: `#FFF5E8`
+- Red left panel with ivory warning triangle.
+- Ivory title panel, dark italic IMPORTANT title, two red diagonal accents.
+- Title uses 145px type and a 1050px textLength.
 
-| Flair | Accent |
-| --- | --- |
-| IMPORTANT | `#F20D24` |
-| NOTICE | `#087CFF` |
-| REMINDER | `#FF7900` |
-| ANNOUNCEMENT | `#7CFF00` |
+## NOTICE
 
-## Shared visual rules
+- Background: `#050D1C`
+- Frame and accents: `#078BFF`
+- Ivory: `#FFF5E8`
+- Blue left panel with ivory information icon.
+- Ivory title panel, dark italic NOTICE title, two blue diagonal accents.
+- Title uses 150px type and a 720px textLength.
 
-- Solid near black tinted canvases: IMPORTANT `#050000`, NOTICE `#02091B`, REMINDER `#070300`, ANNOUNCEMENT `#010703`.
-- Solid fills and strokes only. No gradients, blended colours, transparency, glow, or drop shadows.
-- Warm cream: `#F5F0E6`. Body text and wordmark use warm cream. IMPORTANT and NOTICE use cream title panels with dark italic titles. REMINDER and ANNOUNCEMENT use accent title panels with dark italic titles.
-- One matching line icon per flair, placed at the same coordinates.
-- No extra badges, labels, decorative panels, textures, or visual effects.
+## ANNOUNCEMENT
 
-## Typography
+- Background: `#050A05`
+- Frame and accents: `#8CFF00`
+- Ivory: `#FFF5E8`
+- Ivory left panel with dark green megaphone icon.
+- Green title panel, dark italic ANNOUNCEMENT title, two green diagonal accents.
+- Title uses 130px type and a 1180px textLength.
 
-IBM Plex Sans regular, italic, bold, and bold italic faces are bundled for Latin glyphs. Noto Sans Malayalam and Noto Sans Tamil remain bundled for those scripts. Body text uses 64px on a 1536px-wide canvas with 78px line spacing. The card grows vertically with wrapped text and rejects content that exceeds the readability limit instead of clipping it.
+## REMINDER
 
-## Listing assets
+- Background: `#090604`
+- Frame and accents: `#FF7900`
+- Ivory: `#FFF5E8`
+- Ivory left panel with a dark calendar icon.
+- Orange title panel, dark italic REMINDER title, two orange diagonal accents.
+- Title uses 145px type and a 1050px textLength.
 
-The app icon, banner, and wordmarks are listing artwork. They are not screenshots of the live app.
+## Dynamic body layout and bounds
+
+- Body starts at x=195 with 76px text and 100px baseline spacing.
+- The body uses conservative per glyph width estimates and wraps words before they reach the safe right margin. Long unbroken tokens are split.
+- Body content is limited to 24 rendered lines and 2600 input characters. Content beyond either limit is rejected rather than clipped.
+- The last text baseline determines the bottom frame position. The frame keeps 115px below the baseline, and the canvas keeps a further 70px below the frame.
+- The vertical accent marker starts at y=415 and ends 35px below the last text baseline.
+- The root SVG has explicit intrinsic width and calculated height with a matching viewBox. This keeps the rasterizer dimensions deterministic while allowing the image to scale proportionally in the client.
+
+## Typography and text safety
+
+The SVG source uses Arial with a sans-serif fallback to match the supplied artwork. The server rasterizer uses bundled IBM Plex Sans as its deterministic sans-serif fallback, with bundled Malayalam and Tamil fonts. All user supplied text is XML escaped. Markdown links and images are represented by their readable labels, not fetched or embedded as external resources.

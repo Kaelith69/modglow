@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0
+
+- Replaced the approximate shared flair card with the four exact supplied IMPORTANT, NOTICE, ANNOUNCEMENT and REMINDER SVG compositions.
+- Restored each template's individual geometry, icon, title sizing, solid background and exact palette.
+- Rebuilt the body layout at 2000px width with 76px type, 100px line spacing, conservative wrapping and long token splitting.
+- Calculate the frame and intrinsic SVG height from the final body line with fixed text and canvas clearance.
+- Reject content above 24 rendered lines or 2600 characters rather than clipping or overflowing.
+- Updated sample artwork, regression tests, implementation notes and brand documentation.
+
 ## 0.4.3
 
 - Replaced the stale smoked announcement sample with the current solid reference template.

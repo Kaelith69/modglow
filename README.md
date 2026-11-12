@@ -27,72 +27,15 @@ Raw HTML is not rendered. Links and images are represented as readable text in t
 
 ## Four announcement flairs
 
-The composer offers exactly four choices: **IMPORTANT**, **NOTICE**, **REMINDER**, and **ANNOUNCEMENT**. Each uses the supplied reference composition: a clipped angular frame, MODGLOW wordmark, slanted icon tile and title panel, three diagonal accent slashes, and a vertical message marker. All geometry and padding remain consistent across the four flairs. The palette is red for IMPORTANT, blue for NOTICE, orange for REMINDER, and lime green for ANNOUNCEMENT. IMPORTANT and NOTICE use warm cream title panels, while REMINDER and ANNOUNCEMENT use their accent colour.
+The composer offers exactly four choices, each reproducing its own supplied SVG artwork rather than recolouring one shared layout.
 
-The message wraps to the available width. SVG height, lower frame, and message marker expand from the rendered line count. The renderer uses solid near black, cream, and flair accent fills only. No gradients, blends, opacity, filters, glow, or shadows are used.
+- **IMPORTANT:** near black `#080605`, red `#FF2525`, ivory warning triangle and ivory title panel.
+- **NOTICE:** midnight navy `#050D1C`, blue `#078BFF`, ivory information symbol and ivory title panel.
+- **ANNOUNCEMENT:** deep green black `#050A05`, lime `#8CFF00`, dark green megaphone on an ivory tile and lime title panel.
+- **REMINDER:** warm black `#090604`, orange `#FF7900`, dark calendar on an ivory tile and orange title panel.
 
-## Permissions and safety
+Each template uses its own exact header geometry, title size, title width, icon, accent slashes and palette from the supplied SVG references. The SVG uses a 2000px wide viewBox and an intrinsic height calculated from the final wrapped text line.
 
-- The post menu action is visible only to moderators.
-- The server independently verifies the user's moderator permissions before publishing.
-- The target post ID, subreddit name, and immutable subreddit ID are checked before content is generated.
-- A short-lived Redis lock prevents simultaneous submissions for the same post.
-- The app publishes one top-level image comment per successful submission.
-- The app calls the comment's moderator distinction method with sticky enabled, then fetches the comment again to verify both states.
-- If pinning fails, ModGlow attempts to delete the incomplete app-authored comment rather than leave an unpinned announcement behind.
-- The app does not store announcement text in Redis and makes no external HTTP or AI service requests.
+Body text begins at x=195 with 76px type and 100px line spacing. Text is wrapped using conservative glyph width estimates inside a 1660px safe width. Long unbroken tokens are split. The bottom frame and canvas grow with the final line, preserving fixed clearance below the text and frame. Content exceeding 24 rendered lines or 2600 input characters is rejected rather than clipped.
 
-## Requirements
-
-- Node.js **24.18.0 or newer**
-- npm
-- Reddit Developer Platform account
-- A test subreddit where you have moderator permissions
-
-## Local setup
-
-```bash
-npm ci
-npx devvit login
-npx devvit whoami
-npm run check
-```
-
-## Playtest
-
-```bash
-npm run dev
-```
-
-In a test subreddit, open a post as a moderator and select **Create ModGlow announcement**. Test every supported Markdown block and inline style, long text, emoji, XML characters, Malayalam, Tamil, duplicate and concurrent requests, a moderator without post permissions, a removed post, media upload failure, comment submission failure, and pin failure.
-
-Verify that:
-- The comment appears directly under the selected post.
-- The comment author is the ModGlow app account.
-- The comment contains the generated image.
-- Reddit marks the comment as moderator-distinguished and stickied.
-- No separate post is created.
-- No existing comment is edited, selected, or removed.
-
-## Validation and publishing
-
-```bash
-npm run check
-npm run deploy
-```
-
-For public distribution to moderators of other communities:
-
-```bash
-npx devvit publish --public
-```
-
-Public distribution requires Reddit approval. Review the current [launch guide](https://developers.reddit.com/docs/guides/launch/launch-guide) and [Devvit Rules](https://developers.reddit.com/docs/devvit_rules) before submission.
-
-## GitHub
-
-Repository: [Kaelith69/modglow](https://github.com/Kaelith69/modglow).
-
-## License
-
-ModGlow source code is MIT licensed. Third-party assets and notices are documented in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+The source is editable vector SVG. The server rasterizes it to a proportional PNG for Reddit media upload. No gradients, filters, transparency, external assets or raster artwork are used in the templates.
