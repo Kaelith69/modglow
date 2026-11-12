@@ -5,7 +5,7 @@ import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildAnnouncementSvg } from '../core/render.ts';
-import { renderCommentPng } from '../core/rasterize.ts';
+import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
@@ -84,7 +84,7 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     const svg = buildAnnouncementSvg(announcement);
-    const png = await renderCommentPng(svg);
+    const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
