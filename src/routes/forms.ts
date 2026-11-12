@@ -43,7 +43,7 @@ async function verifyModerator(subredditName: string, userId: `t2_${string}`): P
   const moderator = await reddit.getUserById(userId);
   if (!moderator) return false;
   const permissions = await moderator.getModPermissionsForSubreddit(subredditName);
-  return hasCommentModerationPermission(permissions);
+  return hasPostModerationPermission(permissions);
 }
 
 forms.post('/create-announcement-submit', async (c) => {
