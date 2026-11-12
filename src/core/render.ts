@@ -69,7 +69,7 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
   if (baseStyle.code) return [{ text: value, ...baseStyle }];
 
   const runs: InlineRun[] = [];
-  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
+  const pattern = /\\([\\\`*_{}()#+.!>])|\`([^\`]+)\`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|(?<![\p{L}\p{N}])__(.+?)__(?![\p{L}\p{N}])|\*(.+?)\*|(?<![\p{L}\p{N}])_(.+?)_(?![\p{L}\p{N}])/gu;
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
@@ -171,8 +171,8 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
 
 function normalizeInlineMarkdown(line: string): string {
   return line
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1')
+    .replace(/!\[([^\]]*)\]\((?:[^\s()]|\([^()\s]*\))+\)/gu, '$1')
+    .replace(/\[([^\]]+)\]\(https?:\/\/(?:[^\s()]|\([^()\s]*\))+\)/gu, '$1')
     .replace(/<https?:\/\/([^>]+)>/g, 'https://$1')
     .replace(/<\/?[A-Za-z][^>]*>/g, '')
     .replace(/[ \t]+$/g, '');
