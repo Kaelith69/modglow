@@ -10,6 +10,7 @@ import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, 
 
 type AnnouncementFormValues = {
   announcement?: string;
+  flair?: string | string[];
 };
 
 export const forms = new Hono();
@@ -55,9 +56,14 @@ forms.post('/create-announcement-submit', async (c) => {
   const announcement = values && typeof values === 'object' && typeof values.announcement === 'string'
     ? values.announcement.trim()
     : '';
+  const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
+  const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair) as AnnouncementFlair | undefined;
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Write an announcement before publishing.'));
+  }
+  if (!flair) {
+    return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
   }
   if (announcement.length > MAX_ANNOUNCEMENT_CHARS) {
     return c.json<UiResponse>(toast(`The announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters.`));
@@ -115,7 +121,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
     pinnedAndVerified = true;
     console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast('ModGlow ${flair} published by the app and pinned as a moderator comment.'));
+    return c.json<UiResponse>(toast(`ModGlow ${flair} published by the app and pinned as a moderator comment.`));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
