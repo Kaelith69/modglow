@@ -1,4 +1,4 @@
-import { escapeXml, relativeTime, wrapTextByWidth } from './format.ts';
+import { escapeXml, relativeTime } from './format.ts';
 
 export type CommentCardInput = {
   subredditName: string;
@@ -93,10 +93,6 @@ function parseInlineRuns(value: string): InlineRun[] {
   }
   if (cursor < value.length) runs.push({ text: value.slice(cursor), bold: false, italic: false });
   return runs.length ? runs : [{ text: value, bold: false, italic: false }];
-}
-
-function plainText(value: string): string {
-  return value.replace(/\*{1,3}|_{1,3}/g, '');
 }
 
 function glyphWidth(character: string, fontSize: number): number {
