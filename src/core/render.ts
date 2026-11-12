@@ -197,3 +197,20 @@ export function buildCommentSvg(input: CommentCardInput): string {
     '</svg>',
   ].join('\n');
 }
+
+/**
+ * Render moderator-authored Markdown as the visual payload of a top-level
+ * ModGlow image comment. The underlying renderer supplies the smoked AMOLED
+ * surface, yellow neon edge, readable type scale, shadows, and Markdown
+ * emphasis. The neutral INFO label replaces the source-comment timestamp.
+ */
+export function buildAnnouncementSvg(markdown: string): string {
+  const svg = buildCommentSvg({
+    subredditName: '',
+    body: markdown,
+    createdAt: new Date(),
+    edited: false,
+  });
+  return svg
+    .replace('ModGlow featured community comment', 'ModGlow moderator announcement')
+    .replace('>Now</text>', '>INFO</text>');
