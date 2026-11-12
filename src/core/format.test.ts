@@ -49,10 +49,10 @@ test('the four supported flairs use distinct solid comic templates', async () =>
     assert.match(card, /fill="#000000"/);
     assert.doesNotMatch(card, /linearGradient|radialGradient|filter=|opacity=/);
   }
-  assert.match(cards[0], /fill="#FF4055"/);
+  assert.match(cards[0], /stroke="#FF4055"/);
   assert.match(cards[1], /stroke="#32B8FF"/);
   assert.match(cards[2], /stroke="#FF9D28"/);
-  assert.match(cards[3], /fill="#FFE34F"/);
+  assert.match(cards[3], /stroke="#FFE34F"/);
 });
 
 test('unsupported flair values are rejected', () => {
@@ -128,7 +128,7 @@ test('long Markdown runs wrap across lines without losing emphasis', () => {
 test('the card grows with wrapped text and preserves bottom breathing room', () => {
   const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const lineCount = svg.match(/<tspan x="76" dy="/g)?.length ?? 1;
+  const lineCount = svg.match(/<tspan x="88" dy="/g)?.length ?? 1;
   const bodyEndY = 340 + (lineCount - 1) * 78 + 64;
   assert.ok(height > 438);
   assert.ok(height >= bodyEndY + 103);
