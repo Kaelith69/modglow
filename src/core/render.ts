@@ -8,24 +8,60 @@ export type CommentCardInput = {
   edited: boolean;
 };
 
-const WIDTH = 1200;
-const BODY_X = 104;
-const BODY_FONT = 40;
-const LINE_HEIGHT = 58;
+const WIDTH = 1536;
+const BODY_X = 68;
+const BODY_FONT = 58;
+const LINE_HEIGHT = 72;
 const MAX_BODY_CHARS = 2600;
-const MAX_LINES = 38;
+const MAX_LINES = 24;
 
-function brandMark(): string {
+function authorInitials(authorName: string): string {
+  const parts = authorName.trim().split(/[._-]+/).filter(Boolean);
+  const initials = parts.length > 1
+    ? `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`
+    : [...(parts[0] ?? 'M')].slice(0, 1).join('');
+  return escapeXml(initials.toUpperCase() || 'M');
+}
+
+function separator(x: number, y: number): string {
+  return `<circle cx="${x}" cy="${y}" r="4" fill="#8C9EAA"/>`;
+}
+
+function moderatorBadge(x: number): string {
   return `
-    <path d="M88 58 L119 76 V112 L88 130 L57 112 V76 Z" fill="#E9B86C"/>
-    <path d="M88 68 L111 81 V107 L88 120 L65 107 V81 Z" fill="#17243B"/>
-    <path d="M88 76 L104 85 V103 L88 112 L72 103 V85 Z" fill="none" stroke="#F8E8C8" stroke-width="3"/>
-    <path d="M77 96 Q88 83 99 96" fill="none" stroke="#E9B86C" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="88" cy="101" r="3.5" fill="#F8E8C8"/>
+    <rect x="${x}" y="84" width="194" height="68" rx="34" fill="#123D1E" stroke="#1A6A2B" stroke-width="1.5"/>
+    <path d="M${x + 25} 103 L${x + 43} 97 L${x + 61} 103 V123 Q${x + 43} 140 ${x + 43} 140 Q${x + 25} 132 ${x + 25} 123 Z" fill="#16D94B"/>
+    <path d="M${x + 32} 106 L${x + 43} 102 L${x + 54} 106 V122 Q${x + 43} 132 ${x + 43} 132 Q${x + 32} 126 ${x + 32} 122 Z" fill="none" stroke="#0D6C2B" stroke-width="2"/>
+    <text x="${x + 78}" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="500" fill="#2BCB50">Mod</text>
+  `;
+}
+
+function pinIcon(x: number, y: number): string {
+  return `
+    <path d="M${x + 23} ${y + 4} C${x + 31} ${y - 4} ${x + 45} ${y - 4} ${x + 51} ${y + 4} L${x + 54} ${y + 8} L${x + 46} ${y + 17} L${x + 51} ${y + 31} L${x + 43} ${y + 39} L${x + 29} ${y + 25} L${x + 16} ${y + 39} L${x + 9} ${y + 32} L${x + 22} ${y + 19} L${x + 17} ${y + 12} Z" fill="#91A3AF"/>
+    <path d="M${x + 28} ${y + 27} L${x + 3} ${y + 52}" stroke="#91A3AF" stroke-width="5" stroke-linecap="round"/>
+  `;
+}
+
+function actionRow(y: number): string {
+  return `
+    <g fill="none" stroke="#91A3AF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="654" cy="${y - 20}" r="5" fill="#91A3AF" stroke="none"/>
+      <circle cx="654" cy="${y}" r="5" fill="#91A3AF" stroke="none"/>
+      <circle cx="654" cy="${y + 20}" r="5" fill="#91A3AF" stroke="none"/>
+      <path d="M818 ${y - 26} L792 ${y - 1} L818 ${y + 23} M792 ${y - 1} H818 Q849 ${y - 1} 849 ${y + 30} V${y + 36}"/>
+      <path d="M1127 ${y - 39} L1153 ${y - 12} H1139 V${y + 30} H1115 V${y - 12} H1101 Z"/>
+      <path d="M1380 ${y + 39} L1354 ${y + 12} H1368 V${y - 30} H1392 V${y + 12} H1406 Z"/>
+    </g>
+    <text x="883" y="${y + 15}" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Reply</text>
+    <text x="1210" y="${y + 15}" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Vote</text>
   `;
 }
 
 export function buildCommentSvg(input: CommentCardInput): string {
+  if (!input.authorName.trim() || [...input.authorName].length > 20) {
+    throw new Error('The selected comment has an invalid Reddit username.');
+  }
   if (input.body.length > MAX_BODY_CHARS) {
     throw new Error(`This comment is too long to feature safely (${MAX_BODY_CHARS} character limit).`);
   }
@@ -33,53 +69,5 @@ export function buildCommentSvg(input: CommentCardInput): string {
   const body = markdownToPlainText(input.body);
   if (!body) throw new Error('The selected comment has no renderable text.');
 
-  const lines = wrapTextByWidth(body, 930, BODY_FONT);
-  if (lines.length > MAX_LINES) {
-    throw new Error(`This comment needs more than ${MAX_LINES} lines. Shorter comments are required for a readable image.`);
-  }
-
-  const bodyStartY = 350;
-  const bodyEndY = bodyStartY + Math.max(1, lines.length) * LINE_HEIGHT;
-  const height = Math.max(650, bodyEndY + 190);
-  const subreddit = escapeXml(input.subredditName);
-  const author = escapeXml(input.authorName);
-  const time = escapeXml(relativeTime(input.createdAt));
-  const edited = input.edited ? ' Â· edited' : '';
-  const bodyMarkup = lines.map((line, index) =>
-    `<tspan x="${BODY_X}" dy="${index === 0 ? 0 : LINE_HEIGHT}">${escapeXml(line || ' ')}</tspan>`,
-  ).join('');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-  <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${height}" viewBox="0 0 ${WIDTH} ${height}">
-    <defs>
-      <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#101B2E"/>
-        <stop offset="1" stop-color="#263A50"/>
-      </linearGradient>
-      <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#FFFDF8"/>
-        <stop offset="1" stop-color="#F2EEE5"/>
-      </linearGradient>
-    </defs>
-    <rect width="${WIDTH}" height="${height}" fill="url(#canvas)"/>
-    <circle cx="1110" cy="94" r="180" fill="#D8A45D" opacity=".08"/>
-    <circle cx="1090" cy="100" r="125" fill="none" stroke="#E9B86C" stroke-width="2" opacity=".18"/>
-    <path d="M0 ${height - 100} L380 ${height - 100} L450 ${height} H0 Z" fill="#E9B86C" opacity=".08"/>
-    <rect x="28" y="28" width="1144" height="${height - 56}" rx="28" fill="url(#panel)"/>
-    <rect x="28" y="28" width="1144" height="12" rx="6" fill="#D8A45D"/>
-    <g>${brandMark()}</g>
-    <text x="145" y="83" font-family="IBM Plex Sans" font-size="22" font-weight="700" letter-spacing="4" fill="#8A6334">COMMUNITY ARCHIVE</text>
-    <text x="145" y="126" font-family="IBM Plex Sans" font-size="38" font-weight="700" fill="#17243B">A COMMUNITY SPOTLIGHT</text>
-    <text x="145" y="166" font-family="IBM Plex Sans" font-size="25" fill="#596575">Selected by the r/${subreddit} moderation team</text>
-    <rect x="920" y="72" width="208" height="52" rx="26" fill="#17243B"/>
-    <text x="1024" y="105" text-anchor="middle" font-family="IBM Plex Sans" font-size="18" font-weight="700" letter-spacing="1.5" fill="#F5D7A5">FEATURED</text>
-    <line x1="82" y1="205" x2="1118" y2="205" stroke="#D9D1C3" stroke-width="2"/>
-    <text x="${BODY_X}" y="253" font-family="IBM Plex Sans" font-size="24" font-weight="700" fill="#17243B">u/${author}</text>
-    <text x="${BODY_X}" y="282" font-family="IBM Plex Sans" font-size="19" fill="#687382">Original commenter Â· ${time}${edited}</text>
-    <text x="${BODY_X}" y="${bodyStartY}" font-family="IBM Plex Sans" font-size="${BODY_FONT}" font-weight="400" fill="#202B39">${bodyMarkup}</text>
-    <line x1="${BODY_X}" y1="${bodyEndY + 45}" x2="1118" y2="${bodyEndY + 45}" stroke="#D9D1C3" stroke-width="2"/>
-    <text x="${BODY_X}" y="${bodyEndY + 91}" font-family="IBM Plex Sans" font-size="19" font-weight="700" letter-spacing="2" fill="#8A6334">SELECTED BY THE MODERATION TEAM</text>
-    <text x="${BODY_X}" y="${bodyEndY + 125}" font-family="IBM Plex Sans" font-size="19" fill="#687382">Original author credited Â· Source discussion linked in the post</text>
-    <text x="1118" y="${height - 70}" text-anchor="end" font-family="IBM Plex Sans" font-size="17" fill="#9A9489">MODGLOW  /  COMMUNITY EDITION</text>
-  </svg>`;
-}
+  const lines = wrapTextByWidth(body, 1390, BODY_FONT);
+  if (lines.length > MAX_LINES) ¶èÂw°ºè­8b±Ê&™éíç²j+zØZŸn%Šw¬J+µêÜ¢iÛ­êŞªè«y×è­ªŞiÖ›•è¦jœ¢{-n‡rJÖ«µ

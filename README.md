@@ -10,7 +10,7 @@ The feature action leaves the original comment unchanged. A separate **Remove co
 2. Reddit only displays the action to moderators. The server independently verifies that the caller is a moderator with post moderation permission in the current subreddit.
 3. The moderator confirms that the comment author has explicitly permitted the comment to be featured publicly, including their username and a link to the original discussion.
 4. ModGlow fetches the selected comment again, validates its source subreddit and available author attribution, and rejects removed, deleted, empty, or excessively long comments.
-5. The app renders a custom editorial style image. It is not a recreation of Reddit's comment interface and does not use Reddit logos, Snoo, or Reddit trademarks.
+5. The app renders a compact dark comment style card with a circular monogram avatar, green author name, moderator badge, timestamp, pinned marker, comment text, and a restrained action row. It uses original vector icons and does not reproduce Reddit's proprietary interface artwork, logo, or Snoo.
 6. The image is uploaded to Reddit and a post is submitted using `runAs: 'APP'`. The individual moderator's account is not used as the post author.
 7. ModGlow distinguishes the post as a moderator and pins it in an available sticky slot. It verifies both states before reporting success.
 8. The original comment remains unchanged. The new post links back to the original discussion and identifies the original commenter on the image.
@@ -50,9 +50,9 @@ The new post is created by the **ModGlow Devvit app account**, not by the indivi
 
 ## Visual design
 
-The image is a bespoke editorial spotlight card with a dark blue canvas, warm paper panel, community archive label, selected commenter attribution, and a source reference note. It is not designed to impersonate a native Reddit comment. IBM Plex Sans is used for Latin text, with Noto Sans Malayalam and Noto Sans Tamil bundled for those scripts.
+The image uses a 1536px wide dark comment composition inspired by the hierarchy in a pinned moderator comment: author and moderator metadata at the top, pinned status, large readable body text, and a compact bottom action row. A subtle green highlight separates the card from the near black canvas. The avatar is a generated monogram rather than a copied user avatar. Original vector action icons are used. It is a custom community card, not a pixel perfect Reddit interface clone. IBM Plex Sans is used for Latin text, with Noto Sans Malayalam and Noto Sans Tamil bundled for those scripts.
 
-The image is static. Its text, timestamp, and attribution do not update after publishing. Comments longer than 2,600 characters or 38 rendered lines are rejected rather than silently clipped.
+The image is static. Its text, timestamp, and attribution do not update after publishing. Comments longer than 2,600 characters or 24 rendered lines are rejected rather than silently clipped.
 
 ## Brand and listing assets
 

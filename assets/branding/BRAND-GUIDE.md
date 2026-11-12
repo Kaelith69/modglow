@@ -1,9 +1,22 @@
 # ModGlow brand guide
 
-Original geometric aperture identity. No Reddit logo, Snoo artwork, or copied Reddit interface.
+## Featured comment card
+The generated image uses a compact dark comment composition inspired by the supplied pinned moderator comment reference. It places an original circular monogram avatar and green author name on the first row, followed by a green moderator badge, muted timestamp, pinned marker, large comment text, and a restrained action row. The background is near black with a subtle green highlight.
 
-Palette: midnight `#101B2E`, slate `#1D2B43`, warm paper `#F6F1E7`, white paper `#FFFDF8`, spotlight gold `#E9B86C`, deep gold `#8D602D`, soft mint `#B9D7C9`, ink `#202B39`.
+The layout is 1536px wide and grows vertically to fit wrapped text. The avatar uses the author's initials rather than copying a Reddit avatar. Action icons are original vector paths. The image preserves author attribution without reproducing Reddit's proprietary interface artwork, logo, or Snoo.
 
-Assets: 1024 x 1024 icon, 1600 x 700 banner, 1200 x 900 spotlight sample, 1080 x 1920 promotional panels. Editable SVG masters are included.
+## Palette
+- Near black: `#0E1012`
+- Surface: `#171B1F`
+- Highlight green: `#24C84A`
+- Moderator green: `#123D1E`
+- Muted blue grey: `#91A3AF`
+- Comment text: `#A9B9C4`
+- Avatar slate: `#335A66`
+- ModGlow gold detail: `#E9B86C`
 
-All promotional text is intentionally line broken and constrained to safe margins. The icon and dark wordmark use opaque backgrounds to avoid black corner artifacts. Promo panels are marketing artwork, not real app screenshots.
+## Typography
+IBM Plex Sans is bundled for Latin glyphs. Noto Sans Malayalam and Noto Sans Tamil remain bundled for those scripts. Header metadata uses a 49px scale on the 1536px canvas. Comment text uses 58px with 72px line height.
+
+## Other listing assets
+The app icon, banner, wordmarks, and promotional panels remain unchanged. Promotional panels are marketing artwork, not screenshots of the live app.

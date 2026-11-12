@@ -8,7 +8,7 @@
 4. It fetches the comment and checks both subreddit name and immutable subreddit ID, content availability, author attribution, and the 2,600 character limit.
 5. It claims a per comment lock with atomic Redis `SET NX`, then reads the key back and proceeds only if its unique token is present.
 6. It checks the deletion tombstone and completed feature mapping before rendering.
-7. It converts a restricted Markdown subset to plain text, removes XML-invalid characters, escapes XML, renders the editorial SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
+7. It converts a restricted Markdown subset to plain text, removes XML-invalid characters, escapes XML, renders the dark comment style SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
 8. It submits the post explicitly as `APP`, distinguishes it, calls `sticky()`, and re-fetches it to verify both states.
 9. It saves the source comment to post mapping and rechecks the tombstone and current source comment before committing the workflow as complete.
 10. The original comment is never edited or removed by the feature action.
@@ -87,3 +87,8 @@ The server builds a custom editorial SVG using XML-safe escaped comment text and
 - Repeated deletion event delivery and transient Reddit API failures.
 - Moderator removal confirmation and verification.
 - Reddit mobile and desktop.
+
+
+## Comment card layout
+
+The generated image uses a 1536px wide canvas with a compact header row, author monogram avatar, green author name, moderator badge, relative timestamp, pinned marker, comment body, and a bottom action row. It uses near black surfaces with a subtle green highlight and muted blue grey metadata. The layout grows vertically as wrapped comment text requires. The renderer validates Reddit username length, escapes XML content, and rejects text that would exceed the readable line limit. The card uses original vector icon paths and a monogram avatar rather than reproducing Reddit's proprietary UI artwork or a user's avatar.

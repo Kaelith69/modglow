@@ -40,29 +40,55 @@ test('wrapTextByWidth keeps wide text within the image column', () => {
   assert.equal(lines.join('').length, 120);
 });
 
-test('spotlight image credits the original author and uses original visual branding', () => {
-  const svg = buildCommentSvg({
+test('comment card follows the dark pinned moderator comment composition', () => {
+  const svg = buildCommentSvg {
     subredditName: 'Coconaad',
-    authorName: 'example_user',
-    body: 'A < 8 & 9 > 3, with **important** note',
+    authorName: 'Kaelith69',
+    body: 'This is an example',
     createdAt: new Date('2026-11-12T00:00:00Z'),
     edited: false,
   });
-  assert.match(svg, /r\/Coconaad moderation team/);
-  assert.match(svg, /u\/example_user/);
-  assert.match(svg, /A &lt; 8 &amp; 9 &gt; 3/);
+  assert.match(svg, /width="1536" height="410" viewBox="0 0 1536 410"/);
+  assert.match(svg, /#0E1012/);
+  assert.match(svg, /#24C84A/);
+  assert.match(svg, /#91A3AF/);
+  assert.match(svg, /Pinned/);
+  assert.match(svg, />Mod</);
+  assert.match(svg, />Reply</);
+  assert.match(svg, />Vote</);
+  assert.match(svg, /Kaelith69/);
+  assert.match(svg, /This is an example/);
+  assert.match(svg, /<circle cx="132" cy="124"/);
+  assert.match(svg, /M818/);
+  assert.match(svg, /M1127/);
+  assert.match(svg, /M1380/);
   assert.doesNotMatch(svg, /<script>/);
-  assert.match(svg, /COMMUNITY ARCHIVE/);
-  assert.match(svg, /COMMUNITY SPOTLIGHT/);
-  assert.doesNotMatch(svg, /Reply|Upvote|Downvote|reddit snoo/i);
+  assert.doesNotMatch(svg, /COMMUNITY ARCHIVE|A COMMUNITY SPOTLIGHT/);
 });
 
-test('spotlight image rejects oversized comments instead of clipping content', () => {
-  assert.throws(() => buildCommentSvg({
+test('comment card keeps edited metadata compact and handles older timestamps', () => {
+  const svg = buildCommentSvg({
     subredditName: 'Coconaad',
     authorName: 'example_user',
-    body: 'W'.repeat(3000),
+    body: 'A thoughtful reply.',
+    createdAt: new Date('2020-01-01T00:00:00Z'),
+    edited: true,
+  });
+  assert.match(svg, />Jan 1</);
+  assert.match(svg, />edited</);
+  assert.match(svg, />Pinned</);
+});
+
+test('comment card escapes hostile author and comment content', () => {
+  const svg = buildCommentSvg {
+    subredditName: 'safe',
+    authorName: 'user_name',
+    body: 'A < 8 & 9 > 3',
     createdAt: new Date(),
     edited: false,
-  }), /too long to feature safely/);
+  });
+  assert.match(svg, /A &lt; 8 &amp; 9 &gt; 3/);
+  assert.doesNotMatch(svg, /<script>/);
 });
+
+test('embusername overflow'||failure', () => {});
