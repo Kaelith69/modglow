@@ -98,11 +98,11 @@ function isHeading(line: string): RegExpMatchArray | null {
 }
 
 function isUnorderedItem(line: string): RegExpMatchArray | null {
-  return line.match(/^\s*[-*+]\s+(.+)$/u);
+  return line.match(/^[-*+]\s+(.+)$/u);
 }
 
 function isOrderedItem(line: string): RegExpMatchArray | null {
-  return line.match(/^\s*\d+[.)]\s+(.+)$/u);
+  return line.match(/^\d+[.)]\s+(.+)$/u);
 }
 
 function isHorizontalRule(line: string): boolean {
