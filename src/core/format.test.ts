@@ -40,29 +40,41 @@ test('wrapTextByWidth keeps wide text within the image column', () => {
   assert.equal(lines.join('').length, 120);
 });
 
-test('spotlight image credits the original author and uses original visual branding', () => {
+test('spotlight SVG is minimal AMOLED black with green comment, date, time, and MOD tag', () => {
   const svg = buildCommentSvg({
-    subredditName: 'Coconaad',
-    authorName: 'example_user',
     body: 'A < 8 & 9 > 3, with **important** note',
     createdAt: new Date('2026-11-12T00:00:00Z'),
-    edited: false,
   });
-  assert.match(svg, /r\/Coconaad moderation team/);
-  assert.match(svg, /u\/example_user/);
-  assert.match(svg, /A &lt; 8 &amp; 9 &gt; 3/);
-  assert.doesNotMatch(svg, /<script>/);
-  assert.match(svg, /COMMUNITY ARCHIVE/);
-  assert.match(svg, /COMMUNITY SPOTLIGHT/);
-  assert.doesNotMatch(svg, /Reply|Upvote|Downvote|reddit snoo/i);
+  assert.match(svg, /fill="#000000"/);
+  assert.match(svg, /fill="#39E879"/);
+  assert.match(svg, /font-weight="700" font-style="italic"/);
+  assert.match(svg, />MOD</);
+  assert.match(svg, /12 Nov 2026/);
+  assert.match(svg, /A &lt; 8 &amp; 9 &gt; 3, with important note/);
+  assert.doesNotMatch(svg, /COMMUNITY|SPOTLIGHT|MODGLOW|u\/|r\//i);
+  assert.doesNotMatch(svg, /<script>|linearGradient|circle|image|foreignObject/i);
 });
 
+test('spotlight SVG preserves multiline comments and escapes special characters', () => {
+  const svg = buildCommentSvg({
+    body: 'First line\nSecond line with <tag> & "quotes"\nThird line',
+    createdAt: new Date('2026-11-12T00:00:00Z'),
+  });
+  assert.match(svg, /First line/);
+  assert.match(svg, /Second line with &lt;tag&gt; &amp; &quot;quotes&quot;/);
+  assert.match(svg, /Third line/);
+  assert.match(svg, /height="530"/);
+});
+
+test('spotlight SVG wraps long comments without clipping', () => {
+  const body = 'Readable comment content '.repeat(75);
+  const svg = buildCommentSvg({ body, createdAt: new Date('2026-11-12T00:00:00Z') });
+  assert.ok(Number(svg.match(/height="(\d+)"/)?.[1]) > 1000);
+  assert.match(svg, /Readable comment content/);
+});
 test('spotlight image rejects oversized comments instead of clipping content', () => {
   assert.throws(() => buildCommentSvg({
-    subredditName: 'Coconaad',
-    authorName: 'example_user',
     body: 'W'.repeat(3000),
     createdAt: new Date(),
-    edited: false,
   }), /too long to feature safely/);
 });
