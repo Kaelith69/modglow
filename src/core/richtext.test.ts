@@ -6,7 +6,7 @@ import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 test('the SVG image is the first comment node and Markdown follows it', () => {
   const builder = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
-    '# Release update\n\n**Bold notice** with [the rules](https://example.com/rules).\n\n- First item\n- Second item',
+    '# Release update\n\n**Bold notice** with [the rules](https://example.com/rules), ~~old~~, and `code`.\n\n- First item\n- Second item',
   );
   const serialized = builder.build();
   const document = JSON.parse(serialized) as {
