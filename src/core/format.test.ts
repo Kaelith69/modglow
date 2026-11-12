@@ -82,6 +82,12 @@ test('long unbroken tokens split into lines and never exceed the line limit', ()
   assert.throws(() => buildAnnouncementSvg('W '.repeat(1300), 'IMPORTANT'), /more than 24 rendered lines/);
 });
 
+test('plain announcement body and blockquotes are bold by default', () => {
+  const svg = buildAnnouncementSvg('Ordinary announcement text.\\n> Quoted announcement text.', 'NOTICE');
+  assert.match(svg, /font-weight="700"[^>]*>Ordinary announcement text\\./);
+  assert.match(svg, /font-weight="700" font-style="italic"[^>]*>Quoted announcement text\\./);
+});
+
 test('Markdown styles and block prefixes remain supported', () => {
   const svg = buildAnnouncementSvg('# Heading\n> quoted text\n- first item\n2. second item\n**bold** *italic* ***both*** ~~strike~~', 'ANNOUNCEMENT');
   assert.match(svg, /font-weight="700"/);
