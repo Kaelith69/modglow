@@ -322,6 +322,28 @@ function flairHeader(flair: AnnouncementFlair): string {
   }
 }
 
+/** Build the fixed-height title banner used when the Markdown body is separate. */
+export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
+  if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {
+    throw new Error('Choose one of the four supported announcement flairs.');
+  }
+
+  const width = WIDTH;
+  const height = 600;
+  const theme = FLAIR_THEMES[flair];
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">',
+    '<title>MODGLOW ' + flair.toLowerCase() + '</title>',
+    '<rect width="' + width + '" height="' + height + '" fill="' + theme.background + '"/>',
+    frameSvg(theme.accent, height),
+    flairHeader(flair),
+    '<rect x="115" y="415" width="16" height="95" fill="' + theme.accent + '"/>',
+    '</svg>',
+  ].join('\\n');
+}
+
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
   if (typeof markdown !== 'string' || graphemes(markdown).length > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
