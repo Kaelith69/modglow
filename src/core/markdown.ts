@@ -122,7 +122,7 @@ function isSpecialBlockStart(line: string): boolean {
     || isUnorderedItem(line)
     || isOrderedItem(line)
     || isHorizontalRule(line)
-    || /^\s*```/u.test(line),
+    || /^\s*(?:`{3,}|~{3,})/u.test(line),
   );
 }
 
@@ -172,7 +172,7 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
       blocks.push({
         type: 'code',
         ...(fence[2] ? { language: fence[2] } : {}),
-        text: codeLines.join('\\n'),
+        text: codeLines.join('\n'),
       });
       continue;
     }
