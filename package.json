@@ -1,6 +1,6 @@
 {
   "name": "modglow",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "A moderator only Devvit tool for publishing attributed community spotlight images from manually selected comments.",
