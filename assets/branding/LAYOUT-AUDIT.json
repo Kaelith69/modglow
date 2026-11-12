@@ -8,26 +8,60 @@
       1600,
       700
     ],
-    "announcement_card_minimum": [
-      1536,
-      584
+    "announcement_card_reference": [
+      2000,
+      760
     ]
   },
-  "layout_rules": [
-    "All four announcement cards use the supplied angular comic reference composition.",
-    "Each card uses a solid near black tinted background: IMPORTANT #050000, NOTICE #02091B, REMINDER #070300, ANNOUNCEMENT #010703.",
-    "The 14px outer accent frame has clipped upper left and lower right corners and grows with the rendered message.",
-    "The top left MODGLOW wordmark, two slanted header panels, icon tile, title and three accent slashes share fixed geometry across all four flairs.",
-    "IMPORTANT uses red #F20D24, NOTICE uses blue #087CFF, REMINDER uses orange #FF7900, and ANNOUNCEMENT uses lime #7CFF00.",
-    "IMPORTANT and NOTICE use cream title panels. REMINDER and ANNOUNCEMENT use their accent colour for the title panel.",
-    "Body text begins at x=145 and y=350 with 64px IBM Plex Sans and 78px line spacing.",
-    "The body marker begins at x=96 and tracks the final wrapped line.",
-    "Wrapping uses conservative glyph width estimates, including wider lowercase m and w, and splits oversized unbroken tokens.",
-    "SVG height is derived from the final rendered line count and preserves at least 32px between the text bounds and the inner bottom edge of the frame.",
-    "The renderer rejects empty content, content above 2600 characters, and content above 24 rendered lines.",
-    "All fills and strokes are solid. No gradients, blends, opacity, filters, glow, shadows, textures or extra badges are used.",
-    "XML text is escaped and fonts are bundled. System fonts are disabled during rasterization.",
-    "Listing artwork is not presented as a screenshot of the live app."
-  ],
-  "note": "The live SVG renderer is the source of truth. The reference sample SVG is kept in sync with its fixed geometry, palettes and minimum canvas size."
-}
+  "templates": {
+    "IMPORTANT": {
+      "background": "#080605",
+      "accent": "#FF2525",
+      "panel": "#FFF5E8",
+      "icon": "ivory warning triangle",
+      "title_text_length": 1050
+    },
+    "NOTICE": {
+      "background": "#050D1C",
+      "accent": "#078BFF",
+      "panel": "#FFF5E8",
+      "icon": "ivory information symbol",
+      "title_text_length": 720
+    },
+    "ANNOUNCEMENT": {
+      "background": "#050A05",
+      "accent": "#8CFF00",
+      "panel": "#8CFF00",
+      "icon": "dark green megaphone on ivory tile",
+      "title_text_length": 1180
+    },
+    "REMINDER": {
+      "background": "#090604",
+      "accent": "#FF7900",
+      "panel": "#FF7900",
+      "icon": "dark calendar on ivory tile",
+      "title_text_length": 1050
+    }
+  },
+  "body_layout": {
+    "x": 195,
+    "first_baseline": 475,
+    "font_size": 76,
+    "line_spacing": 100,
+    "max_width": 1660,
+    "max_lines": 24,
+    "max_characters": 2600,
+    "frame_gap_below_last_baseline": 115,
+    "canvas_gap_below_frame": 70,
+    "marker_start_y": 415,
+    "marker_end_offset_from_last_baseline": 35,
+    "wrapping": "Conservative glyph estimates, word wrapping and long token splitting. Reject over limit content rather than clipping."
+  },
+  "rendering_rules": [
+    "Each flair has its own supplied vector composition and exact palette.",
+    "The outer frame and canvas height are derived from the final wrapped body line.",
+    "The SVG has explicit intrinsic width and height with a matching viewBox so server rasterization is deterministic.",
+    "No gradients, raster images, external dependencies, filters, transparency or clipping masks.",
+    "All user supplied text is XML escaped."
+  ]
+}\n
