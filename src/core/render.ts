@@ -54,7 +54,7 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
   if (baseStyle.code) return [{ text: value, ...baseStyle }];
 
   const runs: InlineRun[] = [];
-  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|__(.+?)__|\\*(.+?)\\*|_(.+?)_/g;
+  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
@@ -77,10 +77,10 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
 
 /** Conservative width estimates deliberately leave unused space at the right edge. */
 function glyphWidth(character: string, fontSize: number, style: RunStyle): number {
-  if (/\\p{Mark}/u.test(character) || character === '\\u200d') return 0;
+  if (/\p{Mark}/u.test(character) || character === '\u200d') return 0;
 
   let width: number;
-  if (/\\s/u.test(character)) width = fontSize * 0.34;
+  if (/\s/u.test(character)) width = fontSize * 0.34;
   else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.38;
   else if (/[mw@%&#]/u.test(character)) width = fontSize * 0.82;
   else if (/[MW]/u.test(character)) width = fontSize * 0.90;
@@ -116,10 +116,10 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
       code: run.code,
       accent: run.accent,
     };
-    const tokens = run.text.match(/\\s+|[^\\s]+/gu) ?? [];
+    const tokens = run.text.match(/\s+|[^\s]+/gu) ?? [];
 
     for (const token of tokens) {
-      if (/^\\s+$/u.test(token)) {
+      if (/^\s+$/u.test(token)) {
         const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize, style), 0);
         if (lineWidth > 0 && lineWidth + width > maxWidth) nextLine();
         else if (lineWidth > 0) {
@@ -151,21 +151,21 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
 
 function normalizeInlineMarkdown(line: string): string {
   return line
-    .replace(/!\\[([^\\]]*)\\]\\([^)]*\\)/g, '$1')
-    .replace(/\\[([^\\]]+)\\]\\(https?:\\/\\/[^)]+\\)/g, '$1')
-    .replace(/<https?:\\/\\/([^>]+)>/g, 'https://$1')
-    .replace(/<\\/?[A-Za-z][^>]*>/g, '')
-    .replace(/[ \\t]+$/g, '');
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1')
+    .replace(/<https?:\/\/([^>]+)>/g, 'https://$1')
+    .replace(/<\/?[A-Za-z][^>]*>/g, '')
+    .replace(/[ \t]+$/g, '');
 }
 
 function renderBody(markdown: string, accentColor: string): RenderedBody {
-  const source = markdown.replace(/\\r\\n?/g, '\\n').replace(/\\n{3,}/g, '\\n\\n').trim();
+  const source = markdown.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   const renderedLines: string[] = [];
   let inCodeBlock = false;
   let visibleCharacters = 0;
 
-  for (const originalLine of source.split('\\n')) {
-    if (/^\\s*```/.test(originalLine)) {
+  for (const originalLine of source.split('\n')) {
+    if (/^\s*```/.test(originalLine)) {
       inCodeBlock = !inCodeBlock;
       continue;
     }
@@ -175,10 +175,10 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
     let prefix = '';
 
     if (!inCodeBlock) {
-      const heading = line.match(/^\\s{0,3}(#{1,6})\\s+(.+)$/);
-      const quote = line.match(/^\\s{0,3}>\\s?(.*)$/);
-      const unordered = line.match(/^\\s*[-*+]\\s+(.+)$/);
-      const ordered = line.match(/^\\s*(\\d+[.)])\\s+(.+)$/);
+      const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+)$/);
+      const quote = line.match(/^\s{0,3}>\s?(.*)$/);
+      const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
+      const ordered = line.match(/^\s*(\d+[.)])\s+(.+)$/);
 
       if (heading) {
         line = heading[2];
@@ -226,7 +226,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
       }).join('');
 
       renderedLines.push('<tspan x="' + BODY_X + '" dy="' + (renderedLines.length === 0 ? 0 : LINE_HEIGHT) + '">' + content + '</tspan>');
-      visibleCharacters += wrappedLine.reduce((sum, run) => sum + [...run.text].filter((character) => !/\\s/u.test(character)).length, 0);
+      visibleCharacters += wrappedLine.reduce((sum, run) => sum + [...run.text].filter((character) => !/\s/u.test(character)).length, 0);
     }
   }
 
@@ -339,5 +339,5 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     '<rect x="115" y="415" width="16" height="' + (markerBottom - 415) + '" fill="' + theme.accent + '"/>',
     '<text x="' + BODY_X + '" y="' + BODY_START_Y + '" font-family="Arial,sans-serif" font-size="' + BODY_FONT + '" fill="#FFF5E8">' + rendered.markup + '</text>',
     '</svg>',
-  ].join('\\n');
+  ].join('\n');
 }
