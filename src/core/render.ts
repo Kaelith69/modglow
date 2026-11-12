@@ -281,14 +281,14 @@ const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
     accent: '#32B8FF',
     accentText: '#9CDEFF',
     panel: '#061522',
-    titleText: '#000000',
+    titleText: '#F2F0E8',
     header: '<rect x="76" y="58" width="1384" height="142" fill="#061522" stroke="#32B8FF" stroke-width="8"/><rect x="76" y="58" width="28" height="142" fill="#32B8FF"/><rect x="126" y="86" width="8" height="86" fill="#32B8FF"/>',
   },
   REMINDER: {
     accent: '#FF9D28',
     accentText: '#FFD09A',
     panel: '#1C1004',
-    titleText: '#000000',
+    titleText: '#F2F0E8',
     header: '<rect x="76" y="58" width="1384" height="142" fill="#1C1004" stroke="#FF9D28" stroke-width="8"/><path d="M76 94 H1460" stroke="#FF9D28" stroke-width="8"/><rect x="112" y="42" width="34" height="44" fill="#FF9D28"/><rect x="1388" y="42" width="34" height="44" fill="#FF9D28"/>',
   },
   ANNOUNCEMENT: {
@@ -341,5 +341,5 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     flairHeader(flair, theme),
     '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8">' + rendered.markup + '</text>',
     '</svg>',
-  ].join('\\n');
+  ].join('\n');
 }
