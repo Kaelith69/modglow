@@ -155,20 +155,24 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
       continue;
     }
 
-    const fence = line.match(/^\s*```([A-Za-z0-9_+-]{0,24})\s*$/u);
+    const fence = line.match(/^\s*(`{3,}|~{3,})([A-Za-z0-9_+-]{0,24})\s*$/u);
     if (fence) {
       flushParagraph();
       const codeLines: string[] = [];
+      const fenceCharacter = fence[1][0];
+      const fenceLength = fence[1].length;
       index += 1;
-      while (index < lines.length && !/^\s*```\s*$/u.test(lines[index])) {
+      while (index < lines.length) {
+        const closingFence = lines[index].match(/^\s*(`{3,}|~{3,})\s*$/u);
+        if (closingFence && closingFence[1][0] === fenceCharacter && closingFence[1].length >= fenceLength) break;
         codeLines.push(lines[index]);
         index += 1;
       }
       if (index < lines.length) index += 1;
       blocks.push({
         type: 'code',
-        ...(fence[1] ? { language: fence[1] } : {}),
-        text: codeLines.join('\n'),
+        ...(fence[2] ? { language: fence[2] } : {}),
+        text: codeLines.join('\\n'),
       });
       continue;
     }
