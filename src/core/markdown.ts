@@ -24,8 +24,8 @@ const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'graphem
 /** Count grapheme clusters, optionally stopping once the supplied limit is exceeded. */
 export function countGraphemes(value: string, stopAfter = Number.POSITIVE_INFINITY): number {
   let count = 0;
-  for (const _segment of GRAPHEME_SEGMENTER.segment(value)) {
-    count += 1;
+  for (const segment of GRAPHEME_SEGMENTER.segment(value)) {
+    if (segment.segment.length > 0) count += 1;
     if (count > stopAfter) return count;
   }
   return count;
