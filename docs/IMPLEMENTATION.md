@@ -1,97 +1,63 @@
-# Implementation and safety notes
+# ModGlow implementation notes
 
-## Feature flow
+## Moderator announcement flow
 
-1. Reddit exposes the comment menu action only to moderators.
-2. The menu endpoint requires a valid comment context and opens an author permission attestation form.
-3. The submit endpoint verifies the caller's moderator identity and `posts` or `all` permission.
-4. It fetches the comment and checks both subreddit name and immutable subreddit ID, content availability, author attribution, and the 2,600 character limit.
-5. It claims a per comment lock with atomic Redis `SET NX`, then reads the key back and proceeds only if its unique token is present.
-6. It checks the deletion tombstone and completed feature mapping before rendering.
-7. It converts a restricted Markdown subset to plain text, removes XML-invalid characters, escapes XML, renders the dark comment style SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
-8. It submits the post explicitly as `APP`, distinguishes it, calls `sticky()`, and re-fetches it to verify both states.
-9. It saves the source comment to post mapping and rechecks the tombstone and current source comment before committing the workflow as complete.
-10. The original comment is never edited or removed by the feature action.
-11. A reverse Redis hash indexes generated post IDs to source comment IDs so `onPostDelete` can clear stale mappings when a moderator removes a spotlight post.
+1. Reddit exposes **Create ModGlow announcement** in the post menu only to moderators.
+2. The menu handler requires a valid post context, user ID, subreddit name, and subreddit ID.
+3. The handler opens a multiline Markdown paragraph field.
+4. The submission handler validates the announcement length and independently verifies the moderator's `posts` or `all` permission.
+5. The handler acquires a per-post Redis lock using atomic `SET NX` with a 45-second expiry and token readback.
+6. It fetches the post and verifies its subreddit name, immutable subreddit ID, and removal state.
+7. The Markdown is rendered to an SVG card and rasterised to PNG using bundled WebAssembly and fonts.
+8. The PNG is uploaded through Devvit's Reddit media capability.
+9. The app submits one top-level comment to the original post using `reddit.submitComment({ id: postId, richtext, runAs: 'APP' })`.
+10. The returned comment is distinguished with sticky enabled. ModGlow fetches it again and verifies `stickied === true` and `distinguishedBy === 'moderator'`.
+11. If publication succeeds but pin verification fails, ModGlow attempts to delete the incomplete app-authored comment.
+12. The lock is released only when its token still belongs to the current request.
 
-## Comment removal flow
+## Identity and scope
 
-1. Reddit exposes a separate Remove comment menu action only to moderators.
-2. The action opens a confirmation form. The server independently verifies moderator identity, `posts` or `all` permission, subreddit name, subreddit ID, and comment availability.
-3. The remove action acquires the same per comment lock as the feature action to prevent a publish and remove race.
-4. It calls `comment.remove(false)`, verifies the updated `removed` state, and writes a seven day deletion tombstone as an additional race safeguard.
-5. Reddit's `CommentDelete` trigger removes any linked spotlight post. This is moderator removal, not hard deletion of the comment author's account content.
+The comment author is the **ModGlow Devvit app account**, not the moderator who invoked the menu and not the subreddit account. The comment is top-level under the selected post. ModGlow does not submit a separate Reddit post, reply to an existing comment, copy another user's comment, or remove existing content.
 
-## Content permission and attribution
+## Permissions
 
-Reddit's rules require compliance with the Developer Terms and content owner rights when copying existing user content. ModGlow requires the moderator to attest that explicit author permission has already been obtained. The app credits the original author on the image and links to the source discussion. This attestation is a product safeguard, not a substitute for any permission Reddit or the content owner requires.
-
-## Moderator access
-
-Both menu declarations use `forUserType: "moderator"`. Both form handlers independently resolve the current user and call `getModPermissionsForSubreddit()`. Both require `posts` or `all` permission. No individual moderator identity is placed in the image or used as the post author.
-
-## Identity
-
-`runAs: 'APP'` is explicit. The generated post author is the Devvit app account. The card uses the ModGlow app icon and name only in its header. The original commenter is attributed in the generated post caption and source link.
-
-## Locking and duplicate protection
-
-- Feature and removal actions share a per comment Redis lock key with a 45 second expiry.
-- Acquisition uses atomic `SET NX`, then reads back the unique token. The SET return value alone is not trusted as proof of lock ownership.
-- Release reads the key and deletes it only if the stored token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its token check and delete.
-- The short lease recovers when a Devvit Web request is terminated before cleanup can run. It is longer than the platform's 30 second request limit.
-- Redis hash `modglow:v2:features` stores the source comment to generated post mapping.
-- A completed mapping blocks duplicate feature posts.
-
-## Dependency security
-
-The lockfile overrides vulnerable transitive packages used by the Devvit CLI and lint toolchain: `isomorphic-git` 1.38.6, `tmp` 0.2.7, and `minimatch` 11.0.8. These overrides retain the Devvit 0.15.3 SDK. CI enforces `npm audit --audit-level=moderate`.
-
-CI still reports upstream deprecation notices for transitive `inflight`, `glob@7`, `http-call`, and `whatwg-encoding` packages, plus Node `punycode` and `url.parse` deprecations. These are not current npm audit advisories (`npm audit` reports zero vulnerabilities). They come from the pinned Devvit tooling dependency tree; replacing them independently has not been verified as compatible with Devvit 0.15.3, so they remain documented for a future SDK update.
-
-## Sticky behavior
-
-Community highlights and sticky slots are different Reddit features. ModGlow does not use `subreddit.getHighlightedPosts()` to infer sticky capacity. It calls `post.sticky()` directly. If both sticky slots are occupied or Reddit rejects the pin, the feature transaction attempts to delete the incomplete post and leaves the original comment untouched. It never unpins an existing post to make room.
-
-## Generated post deletion handling
-
-The `onPostDelete` trigger clears the forward comment to post mapping and reverse post to comment mapping when a generated spotlight is deleted or moderator removed. New feature records write both directions. On the first post deletion event after upgrade, the app migrates existing forward mappings to the reverse index. Subsequent events use a single reverse lookup. Repeated or unrelated post deletion events are no ops.
-
-## Source deletion handling
-
-Reddit's `CommentDelete` event covers comment deletion or removal by a user, moderator, or administrator. The trigger first writes a seven day deletion tombstone, then reads the feature mapping. If a mapping exists, it validates the post fullname and deletes the app-authored post even if the post was already moderator removed. It clears the mapping only after the post is deleted or Reddit confirms the post no longer exists. Transient errors return a failure response and retain the mapping so Reddit can retry the event.
-
-The tombstone closes an important race: a deletion event may arrive before an in flight feature request saves its source to post mapping. The feature route checks the tombstone before rendering and after saving the mapping. The manual removal route writes the same tombstone while it still owns the shared comment lock.
+The menu declaration uses `location: "post"` and `forUserType: "moderator"`. The server repeats the permission check using `getModPermissionsForSubreddit()` and requires `posts` or `all`. The app requires Reddit API, media upload, and Redis permissions.
 
 ## Image rendering
 
-The server builds a custom dark comment card SVG using XML-safe escaped comment text and a restricted Markdown to plain text conversion. Text wrapping rejects invalid width arguments and oversized content rather than looping or silently clipping. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
+The renderer produces a 1536px-wide SVG and rasterises it to PNG with `@resvg/resvg-wasm`. The design uses an AMOLED black base, smoked charcoal overlay, low-opacity yellow smoke, yellow neon border accents, soft glow and text shadows, and high-contrast light body text. Body text is 64px before rasterisation, deliberately larger than typical Reddit comment text. Bold, italic, and bold-italic Markdown are rendered with SVG font weight and style attributes. IBM Plex Sans is bundled for Latin text, with Noto Sans Malayalam and Noto Sans Tamil for those scripts.
+
+The card expands vertically as content wraps. Oversized content is rejected rather than clipped. XML text is escaped before insertion into SVG.
+
+## Failure handling
+
+- A per-post lock prevents concurrent requests from racing through image upload and comment creation.
+- Post ownership is checked against both subreddit name and subreddit ID.
+- Failed rendering or media upload exits before a comment is submitted.
+- Failed comment submission exits without a partial Reddit post.
+- Failed pin verification triggers best-effort deletion of the app-authored comment.
+- Lock release checks the unique token before deleting the key.
+- Redis stores only the short-lived lock, not announcement content.
+
+## Platform constraints
+
+The generated image is embedded in a Reddit comment using RTJSON via `RichTextBuilder`. The image must be hosted on Reddit media storage to render inline. Devvit's `Comment.distinguish(true)` both distinguishes the comment as a moderator and pins it. Reddit only pins top-level comments, which is why ModGlow always submits the image comment directly to the post rather than as a reply.
+
+The standard Devvit menu form provides a multiline Markdown input but does not provide an inline generated-image preview step. A dedicated preview interface would require a separate client-side UI workflow.
 
 ## Required playtest matrix
 
 - Moderator with `posts` permission.
-- Moderator without `posts` permission.
-- Ordinary user attempting to access either action.
-- Comment with and without explicit author permission attestation.
-- Deleted, removed, empty, deleted author, and cross subreddit comment cases.
-- Markdown, URLs, emoji, XML characters, Malayalam, and Tamil.
-- Maximum length and over length comments.
-- One free sticky slot and both sticky slots occupied.
+- Moderator with `all` permission.
+- Moderator without post permissions.
+- Ordinary user attempting to invoke the endpoint directly.
+- Valid post, removed post, and cross-subreddit context.
+- Bold, italic, bold-italic, headings, lists, links, code, quotes, and blank lines.
+- Emoji, XML characters, Malayalam, and Tamil.
+- Empty and over-limit announcements.
+- Duplicate and concurrent requests on one post.
+- Requests on different posts.
 - Media upload failure.
-- Post submission failure.
-- Distinction failure.
-- Sticky failure.
-- Duplicate and concurrent feature requests.
-- Concurrent feature and removal requests.
-- Source comment deletion event before, during, and after feature publication.
-- Repeated deletion event delivery and transient Reddit API failures.
-- Moderator removal confirmation and verification.
+- Comment submission failure.
+- Distinguish or sticky failure.
 - Reddit mobile and desktop.
-
-
-## Comment card layout
-
-The generated image uses a 1536px wide canvas with the ModGlow app icon and name, moderator badge, relative timestamp, pinned marker, and comment body. The surface is true AMOLED black with a smoked charcoal overlay, a restrained warm yellow haze, an illuminated edge, and soft shadows. Body text is 64px with 82px line height, slightly larger than typical Reddit comment text. Inline bold, italic, and bold italic Markdown is retained. The card grows vertically with wrapped text and keeps 112px of bottom breathing room after the final baseline. XML text is escaped and oversized content is rejected rather than clipped.
-
-
-The generated image uses a 1536px wide canvas with the ModGlow app icon and name, moderator badge, relative timestamp, pinned marker, and comment body. The original commenter username and avatar are omitted from the image and remain attributed in the post caption and source link. The overflow menu, reply control, vote label, upvote arrow, and downvote arrow are removed. It uses near black surfaces with a restrained neon yellow green glow and muted blue grey metadata. The layout grows vertically as wrapped comment text requires and keeps 106px of bottom breathing room after the final text baseline. The renderer escapes XML content and rejects text that would exceed the readable line limit.
