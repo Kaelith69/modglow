@@ -33,23 +33,19 @@ The replacement comment is created by the **ModGlow Devvit app account**, not by
 - If validation, rendering, media upload, comment submission, distinction, or verification fails, the original comment is not intentionally removed.
 - If a replacement comment was published but a later step failed, its ID remains indexed. A retry reuses that exact reply and resumes the workflow.
 - A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases it only if the token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its ownership check and delete. Feature and removal actions share the lock.
-- Paired Redis hashes map source comments to spotlight posts and posts back to their source comments. They prevent duplicate publication and let deletion events clear stale mappings. Existing mappings are reverse indexed once on the first post deletion event after upgrade.
-- Community highlights and sticky slots are different Reddit features. ModGlow does not use `getHighlightedPosts()` as a sticky capacity check. It calls `post.sticky()` directly; if Reddit reports that no sticky slot is available, the incomplete post is rolled back.
-- Comment and generated post deletion cleanup is idempotent. Repeated and unrelated deletion events do not create additional side effects.
+- A separate Redis mapping records the replacement reply ID for each source comment. A retry reuses the recorded reply.
 
 ## Data handling
 
-- Redis stores the source comment ID to generated post ID mapping, short lived conversion locks, and seven day deletion tombstones. It does not store comment bodies, author profile URLs, avatars, or other profile details.
+- Redis stores source comment to replacement reply IDs, short lived conversion locks, and seven day deletion tombstones. It does not store comment bodies, author profile URLs, avatars, or other profile details.
 - The app does not store the comment body, author profile URL, avatar, or other profile details in Redis.
-- The comment text is processed only to render the requested image and publish the Reddit post.
-- The generated image is uploaded to Reddit media hosting. Reddit's current media API does not expose a separate media asset deletion operation. When a source comment is deleted, ModGlow deletes the Reddit post that embeds the image and clears its own mapping.
+- The comment text is processed only to render the requested image and publish the Reddit comment reply.
+- The generated image is uploaded to Reddit media hosting and embedded in the replacement comment.
 - The app makes no external HTTP requests and does not use an external AI service.
 
 ## Visual design
 
-The image is a bespoke editorial spotlight card with a dark blue canvas, warm paper panel, community archive label, selected commenter attribution, and a source reference note. It is not designed to impersonate a native Reddit comment. IBM Plex Sans is used for Latin text, with Noto Sans Malayalam and Noto Sans Tamil bundled for those scripts.
-
-The image is static. Its text, timestamp, and attribution do not update after publishing. Comments longer than 2,600 characters or 38 rendered lines are rejected rather than silently clipped.
+The image contains only a pure black background, green comment text, the comment's date and time, and a small highlighted MOD tag. Text is wrapped and XML escaped to prevent clipping and markup injection. Comments longer than 2,600 characters or 42 rendered lines are rejected rather than silently clipped.
 
 ## Brand and listing assets
 
@@ -65,7 +61,7 @@ See `assets/branding/BRAND-GUIDE.md` and `assets/branding/UPLOAD-CHECKLIST.md` f
 - npm
 - Reddit Developer Platform account
 - A test subreddit where you have moderator permissions
-- A free sticky slot for the generated post
+- A test submission containing a comment to replace
 
 ## Local setup
 
@@ -84,23 +80,13 @@ Use a test subreddit first:
 npm run dev
 ```
 
-Create a test comment and open its comment menu as a moderator. Confirm the permission attestation, publish the highlight, and verify that:
-
-- The post author is the ModGlow app account.
-- The image credits the original commenter.
-- The post is moderator distinguished and pinned.
-- The original comment remains visible and unchanged after featuring.
-- The separate Remove comment action removes the selected comment only after confirmation.
-- Removing or deleting the source comment causes the associated spotlight post to be removed by the deletion trigger.
-- Ordinary non moderators cannot access or complete the action.
-
-Also test a moderator without post permissions, a removed comment, a deleted author, long content, non Latin scripts, occupied sticky slots, duplicate requests, simulated upload or pin failures, and manually removing a generated spotlight post before featuring its source comment again.
+Create a test comment and open its comment menu as a moderator. Confirm the permission attestation, publish the replacement, and verify that it appears under the same submission, is authored by the Devvit app account, and is moderator distinguished. Confirm the original comment is marked as spam only after the replacement is visible. Retry the action and verify that no duplicate reply is created. Also test upload failure, submission failure, distinction failure, long content, multiline text, XML characters, emoji, Malayalam, and Tamil.
 
 ## Feature request locking
 
-Feature publication and moderator removal share a per comment Redis lock. Acquisition uses atomic Redis `SET NX` with a 45 second expiry, then reads the key back and proceeds only when the unique request token is present. The `SET NX` return value alone is not treated as proof of ownership. Release reads the key and deletes it only when the stored token still belongs to the current request. The lease is longer than Devvit's 30 second request limit, preventing normal live requests from crossing expiry during release. The lease allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a feature post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+Replacement publication and source comment removal share a per comment Redis lock. Acquisition uses atomic Redis `SET NX` with a 45 second expiry, then reads the key back and proceeds only when the unique request token is present. The `SET NX` return value alone is not treated as proof of ownership. Release reads the key and deletes it only when the stored token still belongs to the current request. The lease is longer than Devvit's 30 second request limit, preventing normal live requests from crossing expiry during release. The lease allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a feature post was successfully created. The persistent source comment to replacement reply mapping remains the authoritative duplicate check.
 
-Reddit's `CommentDelete` trigger writes a seven day deletion tombstone before looking up the source to post mapping. This closes the race where deletion is delivered before an in flight feature request saves its mapping. The feature request checks the tombstone before rendering and after saving the mapping. The removal action writes the same tombstone while it still holds the shared lock.
+Reddit's `CommentDelete` trigger writes a seven day deletion tombstone before looking up the source to post mapping. This closes the race where deletion is delivered before an in flight feature request saves its mapping. The replacement request checks the tombstone before rendering and before removing the source comment.
 
 ## Dependency security
 
@@ -167,11 +153,7 @@ modglow/
 
 ## Known limitations
 
-- ModGlow creates an image post, not a native comment with a recoloured background.
-- The post author is the Devvit app account, not the subreddit account and not the invoking moderator.
-- The feature action leaves the original comment unchanged. A separate moderator removal action is available.
-- If the original comment is deleted or removed, Reddit requires the related spotlight content to be removed too.
-- Reddit supports two subreddit sticky slots. Community highlights are a separate feature. ModGlow calls `post.sticky()` directly and will not replace an existing pinned post.
+- Devvit supports `runAs: 'APP'` or `runAs: 'USER'`. It does not provide a generic subreddit identity such as `u/Coconaad`. The replacement is therefore authored by the configured Devvit app account, never by the individual moderator.
 - Reddit app review is required before the app can be listed publicly for other moderators.
 
 ## License
