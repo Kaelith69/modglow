@@ -14,7 +14,9 @@ type FeatureFormValues = {
 
 export const forms = new Hono();
 
-const LOCK_PREFIX = 'modglow:v3:lock:';
+// v4 bypasses stale v3 locks left by requests terminated before cleanup.
+const LOCK_PREFIX = 'modglow:v4:lock:';
+const LOCK_TTL_SECONDS = 45;
 const CONVERSION_HASH = 'modglow:v2:features';
 
 function toast(message: string): UiResponse {
@@ -33,7 +35,7 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
 
   await transaction.multi();
   await transaction.set(key, token);
-  await transaction.expire(key, 180);
+  await transaction.expire(key, LOCK_TTL_SECONDS);
   const committed = await transaction.exec();
   return committed === null ? undefined : token;
 }
@@ -95,7 +97,7 @@ forms.post('/feature-comment-submit', async (c) => {
 
     lockToken = await acquireCommentLock(comment.id);
     if (!lockToken) {
-      return c.json<UiResponse>(toast('This comment is already being featured. Please wait and try again.'));
+      return c.json<UiResponse>(toast('A ModGlow request for this comment is still running, or a previous request timed out. The temporary lock expires within 45 seconds. Wait briefly and try again. This message does not mean a feature post was published.'));
     }
 
     const existingPostId = await redis.hGet(CONVERSION_HASH, comment.id);
