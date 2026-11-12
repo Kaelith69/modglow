@@ -89,6 +89,18 @@ test('plain announcement body and blockquotes are bold by default', () => {
   assert.match(svg, /font-family="IBM Plex Sans" font-size="76"/);
   assert.doesNotMatch(svg, /Arial|Helvetica/);
 });
+
+test('every flair uses the embedded font family and bold default body style', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementSvg('Plain body text.', flair);
+    const fontFamilies = [...svg.matchAll(/font-family="([^"]+)"/g)].map((match) => match[1]);
+    assert.ok(fontFamilies.length > 0);
+    assert.ok(fontFamilies.every((family) => family === 'IBM Plex Sans'));
+    assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Plain body text\.<\/tspan>/);
+    assert.doesNotMatch(svg, /Arial|Helvetica/);
+  }
+});
+
 test('Markdown styles and block prefixes remain supported', () => {
   const svg = buildAnnouncementSvg('# Heading\n> quoted text\n- first item\n2. second item\n**bold** *italic* ***both*** ~~strike~~', 'ANNOUNCEMENT');
   assert.match(svg, /font-weight="700"/);
