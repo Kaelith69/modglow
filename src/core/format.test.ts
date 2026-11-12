@@ -74,11 +74,11 @@ test('canvas and outer frame grow with the final body line', () => {
 });
 
 test('long unbroken tokens split into lines and never exceed the line limit', () => {
-  const svg = buildAnnouncementSvg('W'.repeat(500), 'IMPORTANT');
+  const svg = buildAnnouncementSvg('W'.repeat(600), 'IMPORTANT');
   const lineCount = svg.match(/<tspan x="195" dy="/g)?.length ?? 0;
   assert.ok(lineCount > 1);
   assert.ok(lineCount <= 24);
-  assert.throws(() => buildAnnouncementSvg('W '.repeat(2000), 'IMPORTANT'), /more than 24 rendered lines/);
+  assert.throws(() => buildAnnouncementSvg('W '.repeat(1300), 'IMPORTANT'), /more than 24 rendered lines/);
 });
 
 test('Markdown styles and block prefixes remain supported', () => {
@@ -107,6 +107,6 @@ test('XML sensitive text is escaped and unsupported HTML is not emitted', () => 
 test('empty, overlong and excessively tall announcements are rejected', () => {
   assert.throws(() => buildAnnouncementSvg('   '), /no renderable text/);
   assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
-  assert.throws(() => buildAnnouncementSvg('W '.repeat(2000)), /more than 24 rendered lines/);
+  assert.throws(() => buildAnnouncementSvg('W '.repeat(1300)), /more than 24 rendered lines/);
   assert.throws(() => buildAnnouncementSvg('Not allowed.', 'URGENT' as never), /four supported announcement flairs/);
 });
