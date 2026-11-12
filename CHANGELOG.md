@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Add an optional native Markdown body below a fixed title only SVG while preserving the compact embedded body mode.
+- Keep the SVG image first in the same Reddit rich text comment in both publishing modes.
+- Avoid deleting a potentially successful comment when Reddit pin verification cannot be read; only clean up after an explicit persisted state mismatch.
+- Improve Markdown parsing for balanced link URL parentheses and prevent underscores inside identifiers from being treated as emphasis.
+- Synchronize the vector samples, brand guide, layout audit, and implementation notes with the production renderer.
+
 ## 0.5.0
 
 - Replaced the approximate shared flair card with the four exact supplied IMPORTANT, NOTICE, ANNOUNCEMENT and REMINDER SVG compositions.
