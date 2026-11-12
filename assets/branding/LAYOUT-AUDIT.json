@@ -19,7 +19,7 @@
     "The header contains the ModGlow mark and name, moderator badge, announcement label, and pinned marker.",
     "Body text uses 64px IBM Plex Sans with 82px line height, larger than typical Reddit comment text.",
     "Bold, italic, bold italic, strikethrough, headings, quotes, and list markers are supported in the SVG.",
-    "Code uses a monospace face with a warm yellow tint.",
+    "Inline and fenced code use the bundled IBM Plex Sans face with a warm yellow tint.",
     "The card grows vertically with wrapped text and keeps 112px of bottom breathing room.",
     "XML text is escaped and oversized content is rejected rather than clipped.",
     "Listing artwork is not presented as a screenshot of the live app."
