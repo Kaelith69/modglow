@@ -61,7 +61,7 @@ test('headings, quotes, ordered lists, and unordered lists retain block styling'
   assert.match(svg, /font-style="italic"/);
 });
 
-test('inline and fenced code remain literal and use monospace styling', () => {
+test('inline and fenced code remain literal and use highlighted text styling', () => {
   const svg = buildAnnouncementSvg(
     'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
   );
@@ -75,7 +75,7 @@ test('links preserve their readable label and images preserve their alt text', (
   const svg = buildAnnouncementSvg(
     'Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)',
   );
-  assert.match(svg, />the rules</);
+  assert.match(svg, /Read the rules\\./);
   assert.match(svg, />Diagram</);
   assert.doesNotMatch(svg, /https:\/\/example\.com/);
 });
@@ -88,8 +88,8 @@ test('hostile HTML and SVG content is displayed as safe text or removed as marku
 
 test('long Markdown runs wrap across lines without losing emphasis', () => {
   const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
-  const boldLines = [...svg.matchAll(/<tspan font-weight="700" font-style="normal"/g)];
-  const italicLines = [...svg.matchAll(/<tspan font-weight="400" font-style="italic"/g)];
+  const boldLines = [...svg.matchAll(/font-weight="700" font-style="normal"/g)];
+  const italicLines = [...svg.matchAll(/font-weight="400" font-style="italic"/g)];
   assert.ok(boldLines.length >= 2);
   assert.ok(italicLines.length >= 2);
   assert.match(svg, /height="\d+"/);
