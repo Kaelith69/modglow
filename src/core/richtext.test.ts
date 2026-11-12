@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildAnnouncementRichText } from './richtext.ts';
+import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 
 test('the SVG image is the first comment node and Markdown follows it', () => {
   const builder = buildAnnouncementRichText(
@@ -42,5 +43,15 @@ test('separator only Markdown cannot create an empty body comment', () => {
   assert.throws(
     () => buildAnnouncementRichText('https://reddit.test/media/header.png', '---'),
     /Write some Markdown text/,
+  );
+});
+
+test('rich text builder enforces the Markdown body grapheme limit', () => {
+  assert.throws(
+    () => buildAnnouncementRichText(
+      'https://reddit.test/media/header.png',
+      'x'.repeat(MAX_ANNOUNCEMENT_BODY_CHARS + 1),
+    ),
+    /character limit/,
   );
 });
