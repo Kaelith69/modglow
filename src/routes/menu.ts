@@ -12,8 +12,8 @@ const announcementFields = (): FormField[] => [
     label: 'Announcement (Markdown supported)',
     type: 'paragraph',
     required: true,
-    placeholder: '## Important update\n\nWrite your announcement here. Use **bold**, *italic*, lists, and links.',
-    helpText: 'This text is rendered into a ModGlow image and published as one top level comment by the ModGlow app. Keep formatting readable.',
+    placeholder: '## Important update\n\nWrite your announcement here. Use headings, **bold**, *italic*, lists, quotes, code, and links.',
+    helpText: 'This text is rendered into a ModGlow image and published as one top level comment by the ModGlow app. Supported styles include bold, italic, block formatting, code, and strikethrough. Links render as text.',
   },
 ];
 
