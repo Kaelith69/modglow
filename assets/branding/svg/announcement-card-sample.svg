@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="584" viewBox="0 0 1536 584">
-<title>ModGlow announcement reference layout sample</title>
-<rect width="1536" height="584" fill="#010703"/>
-<path d="M350 57 H1512 V462 L1450 524 H22 V112 L82 50" fill="none" stroke="#7CFF00" stroke-width="14" stroke-linecap="butt" stroke-linejoin="miter"/>
-<text x="112" y="62" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F5F0E6">MODGLOW</text>
-<path d="M56 98 H348 L264 270 H56 Z" fill="#F5F0E6"/>
-<path d="M362 98 H1318 L1234 270 H278 Z" fill="#7CFF00"/>
-<g>
-<path d="M108 160 H155 L218 132 V220 L155 192 H108 Z" fill="none" stroke="#174B0A" stroke-width="13" stroke-linejoin="round"/>
-<path d="M128 195 L145 239 H177 L162 196 M236 151 L255 138 M239 178 H263 M236 205 L255 218" fill="none" stroke="#174B0A" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-<text x="366" y="229" font-family="IBM Plex Sans" font-size="76" font-weight="700" font-style="italic" letter-spacing="1" fill="#050505">ANNOUNCEMENT</text>
-<path d="M1290 128 H1350 L1285 260 H1225 Z" fill="#7CFF00"/>
-<path d="M1365 128 H1425 L1360 260 H1300 Z" fill="#7CFF00"/>
-<path d="M1440 128 H1500 L1435 260 H1375 Z" fill="#7CFF00"/>
-<path d="M96 306 V378" stroke="#7CFF00" stroke-width="14" stroke-linecap="square"/>
-<text x="145" y="350" font-family="IBM Plex Sans" font-size="64" font-weight="400" fill="#F5F0E6"><tspan x="145" dy="0"><tspan font-family="IBM Plex Sans" font-weight="400" font-style="normal" fill="#F2F0E8">Please follow the subreddit rules.</tspan></tspan></text>
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="760" viewBox="0 0 2000 760">
+  <title>MODGLOW Announcement reference template</title>
+  <rect width="2000" height="760" fill="#050A05"/>
+  <path d="M110 65 H1970 V610 L1890 690 H30 V145 Z" fill="none" stroke="#8CFF00" stroke-width="16"/>
+  <text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>
+  <path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>
+  <path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>
+  <g fill="#126B18" stroke="#126B18" stroke-width="12" stroke-linejoin="round">
+    <path d="M135 215 L230 185 L230 285 L135 255 Z"/>
+    <path d="M230 185 L280 165 V305 L230 285 Z"/>
+    <path d="M165 260 L200 320 L230 310 L205 255 Z"/>
+  </g>
+  <g stroke="#126B18" stroke-width="12" stroke-linecap="round">
+    <path d="M295 190 L330 165"/>
+    <path d="M305 235 H350"/>
+    <path d="M295 280 L330 305"/>
+  </g>
+  <text x="460" y="295" fill="#050A05" font-family="Arial,sans-serif" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
+  <g fill="#8CFF00">
+    <path d="M1750 170 H1810 L1725 325 H1665 Z"/>
+    <path d="M1840 170 H1900 L1815 325 H1755 Z"/>
+  </g>
+  <rect x="115" y="415" width="16" height="195" fill="#8CFF00"/>
+  <g fill="#FFF5E8" font-family="Arial,sans-serif" font-size="76">
+    <text x="195" y="475">Please follow the sub rules no religion or</text>
+    <text x="195" y="575">politics here</text>
+  </g>
 </svg>
