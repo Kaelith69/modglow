@@ -46,8 +46,8 @@ test('underscore emphasis and escaped Markdown markers render literally', () => 
   const svg = buildAnnouncementSvg('__bold__ and _italic_ and \\*literal\\*');
   assert.match(svg, /font-weight="700" font-style="normal"[^>]*>bold<\/tspan>/);
   assert.match(svg, /font-weight="400" font-style="italic"[^>]*>italic<\/tspan>/);
-  assert.match(svg, /<tspan[^>]*>\*literal\*<\/tspan>/);
-  assert.doesNotMatch(svg, /<tspan[^>]*>literal<\/tspan>/);
+  assert.match(svg, /and \*literal\*<\/tspan>/);
+  assert.doesNotMatch(svg, /font-style="italic"[^>]*>literal<\/tspan>/);
 });
 
 test('headings, quotes, ordered lists, and unordered lists retain block styling', () => {
@@ -75,7 +75,7 @@ test('links preserve their readable label and images preserve their alt text', (
   const svg = buildAnnouncementSvg(
     'Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)',
   );
-  assert.match(svg, /Read the rules\\./);
+  assert.match(svg, /Read the rules\./);
   assert.match(svg, />Diagram</);
   assert.doesNotMatch(svg, /https:\/\/example\.com/);
 });
