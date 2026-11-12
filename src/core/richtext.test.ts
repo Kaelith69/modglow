@@ -11,7 +11,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   const document = JSON.parse(serialized) as {
     document?: Array<{
       e?: string;
-      c?: Array<{ e?: string; mediaUrl?: string }>;
+      c?: Array<{ e?: string; mediaUrl?: string; t?: string; u?: string; f?: number[][]; o?: boolean; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
     }>;
   };
 
@@ -23,6 +23,18 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('Bold notice'));
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
+
+  const bodyParagraph = document.document.find((node) =>
+    node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
+  );
+  const boldNode = bodyParagraph?.c?.find((child) => child.t === 'Bold notice');
+  assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
+
+  const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
+  assert.equal(linkNode?.u, 'https://example.com/rules');
+
+  const listNode = document.document.find((node) => node.e === 'list');
+  assert.equal(listNode?.o, false);
 });
 
 test('separator only Markdown cannot create an empty body comment', () => {
