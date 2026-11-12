@@ -20,7 +20,7 @@ menu.post('/feature-comment', async (c) => {
   const request = await c.req.json<MenuItemRequest>().catch(() => ({} as MenuItemRequest));
   const commentId = context.commentId;
 
-  if (!isCommentId(commentId) || (request.targetId && request.targetId !== commentId) || !context.userId || !context.subredditName) {
+  if (!isCommentId(commentId) || (request?.targetId && request.targetId !== commentId) || !context.userId || !context.subredditName) {
     return c.json<UiResponse>({
       showToast: 'Open this action from a comment in a subreddit you moderate.',
     });
