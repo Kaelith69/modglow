@@ -1,85 +1,52 @@
-import { escapeXml, markdownToPlainText, relativeTime, wrapTextByWidth } from './format.ts';
+import { escapeXml, markdownToPlainText, wrapTextByWidth } from './format.ts';
 
 export type CommentCardInput = {
-  subredditName: string;
-  authorName: string;
   body: string;
   createdAt: Date;
-  edited: boolean;
 };
 
 const WIDTH = 1200;
-const BODY_X = 104;
-const BODY_FONT = 40;
-const LINE_HEIGHT = 58;
+const SIDE_PADDING = 92;
+const BODY_FONT = 42;
+const LINE_HEIGHT = 62;
 const MAX_BODY_CHARS = 2600;
-const MAX_LINES = 38;
-
-function brandMark(): string {
-  return `
-    <path d="M88 58 L119 76 V112 L88 130 L57 112 V76 Z" fill="#E9B86C"/>
-    <path d="M88 68 L111 81 V107 L88 120 L65 107 V81 Z" fill="#17243B"/>
-    <path d="M88 76 L104 85 V103 L88 112 L72 103 V85 Z" fill="none" stroke="#F8E8C8" stroke-width="3"/>
-    <path d="M77 96 Q88 83 99 96" fill="none" stroke="#E9B86C" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="88" cy="101" r="3.5" fill="#F8E8C8"/>
-  `;
-}
+const MAX_LINES = 42;
+const TEXT_WIDTH = WIDTH - SIDE_PADDING * 2;
 
 export function buildCommentSvg(input: CommentCardInput): string {
   if (input.body.length > MAX_BODY_CHARS) {
-    throw new Error(`This comment is too long to feature safely (${MAX_BODY_CHARS} character limit).`);
+    throw new Error(`This comment is too long to render safely (${MAX_BODY_CHARS} character limit).`);
   }
 
   const body = markdownToPlainText(input.body);
   if (!body) throw new Error('The selected comment has no renderable text.');
 
-  const lines = wrapTextByWidth(body, 930, BODY_FONT);
+  const lines = wrapTextByWidth(body, TEXT_WIDTH, BODY_FONT);
   if (lines.length > MAX_LINES) {
     throw new Error(`This comment needs more than ${MAX_LINES} lines. Shorter comments are required for a readable image.`);
   }
 
-  const bodyStartY = 350;
+  const date = Number.isFinite(input.createdAt.getTime())
+    ? input.createdAt.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Asia/Kolkata' })
+    : 'Date unavailable';
+  const time = Number.isFinite(input.createdAt.getTime())
+    ? input.createdAt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Kolkata' })
+    : 'Time unavailable';
+
+  const badgeX = WIDTH - SIDE_PADDING - 104;
+  const bodyStartY = 178;
   const bodyEndY = bodyStartY + Math.max(1, lines.length) * LINE_HEIGHT;
-  const height = Math.max(650, bodyEndY + 190);
-  const subreddit = escapeXml(input.subredditName);
-  const author = escapeXml(input.authorName);
-  const time = escapeXml(relativeTime(input.createdAt));
-  const edited = input.edited ? ' · edited' : '';
+  const height = Math.max(360, bodyEndY + 104);
   const bodyMarkup = lines.map((line, index) =>
-    `<tspan x="${BODY_X}" dy="${index === 0 ? 0 : LINE_HEIGHT}">${escapeXml(line || ' ')}</tspan>`,
+    `<tspan x="${SIDE_PADDING}" dy="${index === 0 ? 0 : LINE_HEIGHT}">${escapeXml(line || ' ')}</tspan>`,
   ).join('');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-  <svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${height}" viewBox="0 0 ${WIDTH} ${height}">
-    <defs>
-      <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#101B2E"/>
-        <stop offset="1" stop-color="#263A50"/>
-      </linearGradient>
-      <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#FFFDF8"/>
-        <stop offset="1" stop-color="#F2EEE5"/>
-      </linearGradient>
-    </defs>
-    <rect width="${WIDTH}" height="${height}" fill="url(#canvas)"/>
-    <circle cx="1110" cy="94" r="180" fill="#D8A45D" opacity=".08"/>
-    <circle cx="1090" cy="100" r="125" fill="none" stroke="#E9B86C" stroke-width="2" opacity=".18"/>
-    <path d="M0 ${height - 100} L380 ${height - 100} L450 ${height} H0 Z" fill="#E9B86C" opacity=".08"/>
-    <rect x="28" y="28" width="1144" height="${height - 56}" rx="28" fill="url(#panel)"/>
-    <rect x="28" y="28" width="1144" height="12" rx="6" fill="#D8A45D"/>
-    <g>${brandMark()}</g>
-    <text x="145" y="83" font-family="IBM Plex Sans" font-size="22" font-weight="700" letter-spacing="4" fill="#8A6334">COMMUNITY ARCHIVE</text>
-    <text x="145" y="126" font-family="IBM Plex Sans" font-size="38" font-weight="700" fill="#17243B">A COMMUNITY SPOTLIGHT</text>
-    <text x="145" y="166" font-family="IBM Plex Sans" font-size="25" fill="#596575">Selected by the r/${subreddit} moderation team</text>
-    <rect x="920" y="72" width="208" height="52" rx="26" fill="#17243B"/>
-    <text x="1024" y="105" text-anchor="middle" font-family="IBM Plex Sans" font-size="18" font-weight="700" letter-spacing="1.5" fill="#F5D7A5">FEATURED</text>
-    <line x1="82" y1="205" x2="1118" y2="205" stroke="#D9D1C3" stroke-width="2"/>
-    <text x="${BODY_X}" y="253" font-family="IBM Plex Sans" font-size="24" font-weight="700" fill="#17243B">u/${author}</text>
-    <text x="${BODY_X}" y="282" font-family="IBM Plex Sans" font-size="19" fill="#687382">Original commenter · ${time}${edited}</text>
-    <text x="${BODY_X}" y="${bodyStartY}" font-family="IBM Plex Sans" font-size="${BODY_FONT}" font-weight="400" fill="#202B39">${bodyMarkup}</text>
-    <line x1="${BODY_X}" y1="${bodyEndY + 45}" x2="1118" y2="${bodyEndY + 45}" stroke="#D9D1C3" stroke-width="2"/>
-    <text x="${BODY_X}" y="${bodyEndY + 91}" font-family="IBM Plex Sans" font-size="19" font-weight="700" letter-spacing="2" fill="#8A6334">SELECTED BY THE MODERATION TEAM</text>
-    <text x="${BODY_X}" y="${bodyEndY + 125}" font-family="IBM Plex Sans" font-size="19" fill="#687382">Original author credited · Source discussion linked in the post</text>
-    <text x="1118" y="${height - 70}" text-anchor="end" font-family="IBM Plex Sans" font-size="17" fill="#9A9489">MODGLOW  /  COMMUNITY EDITION</text>
-  </svg>`;
+<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${height}" viewBox="0 0 ${WIDTH} ${height}">
+  <rect width="${WIDTH}" height="${height}" fill="#000000"/>
+  <rect x="${badgeX}" y="48" width="104" height="38" rx="8" fill="#073B20"/>
+  <text x="${badgeX + 52}" y="74" text-anchor="middle" font-family="IBM Plex Sans" font-size="20" font-weight="700" letter-spacing="1.4" fill="#69F0A2">MOD</text>
+  <text x="${SIDE_PADDING}" y="76" font-family="IBM Plex Sans" font-size="20" font-weight="600" fill="#69F0A2">${escapeXml(date)}  ·  ${escapeXml(time)}</text>
+  <text x="${SIDE_PADDING}" y="${bodyStartY}" font-family="IBM Plex Sans" font-size="${BODY_FONT}" font-weight="700" font-style="italic" fill="#39E879">${bodyMarkup}</text>
+</svg>`;
 }
