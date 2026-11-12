@@ -26,21 +26,15 @@ function toast(message: string): UiResponse {
 async function acquireCommentLock(commentId: string): Promise<string | undefined> {
   const key = `${LOCK_PREFIX}${commentId}`;
   const token = `${Date.now()}:${randomUUID()}`;
-  const transaction = await redis.watch(key);
-  // TxClientLike.get() only queues a GET and returns the transaction handle.
-  // Read through the root Redis client while the WATCH transaction remains open.
-  const existing = await redis.get(key);
-  if (existing) {
-    await transaction.unwatch();
-    return undefined;
-  }
 
-  await transaction.multi();
-  await transaction.set(key, token);
-  await transaction.expire(key, LOCK_TTL_SECONDS);
-  const committed = await transaction.exec();
-  // A WATCH conflict aborts EXEC and produces no command replies.
-  return committed.length === 2 && committed[0] === 'OK' && committed[1] === 1 ? token : undefined;
+  // SET NX with an expiry is atomic. It avoids reading through TxClientLike,
+  // whose GET method queues a command and returns the transaction handle.
+  const result = await redis.set(key, token, {
+    nx: true,
+    expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
+  });
+
+  return result === 'OK' ? token : undefined;
 }
 
 async function releaseCommentLock(commentId: string, token: string): Promise<void> {
