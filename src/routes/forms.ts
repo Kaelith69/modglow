@@ -4,7 +4,7 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
+import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS, type AnnouncementFlair } from '../core/render.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
@@ -88,7 +88,7 @@ forms.post('/create-announcement-submit', async (c) => {
       return c.json<UiResponse>(toast('This post has been removed and cannot receive a ModGlow announcement.'));
     }
 
-    const svg = buildAnnouncementSvg(announcement);
+    const svg = buildAnnouncementSvg(announcement, flair);
     const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
@@ -114,8 +114,8 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     pinnedAndVerified = true;
-    console.info(`[ModGlow] Published and pinned announcement ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast('ModGlow announcement published by the app and pinned as a moderator comment.'));
+    console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
+    return c.json<UiResponse>(toast('ModGlow ${flair} published by the app and pinned as a moderator comment.'));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
