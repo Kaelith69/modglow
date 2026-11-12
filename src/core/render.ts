@@ -89,6 +89,8 @@ function appendRun(runs: InlineRun[], text: string, style: RunStyle): void {
 
 /** Parse the inline Markdown styles ModGlow renders without interpreting HTML. */
 function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
+  if (baseStyle.code) return [{ text: value, ...baseStyle }];
+
   const runs: InlineRun[] = [];
   const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
   let cursor = 0;
