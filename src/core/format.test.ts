@@ -47,7 +47,7 @@ test('comment card uses the ModGlow identity and a clean pinned comment layout',
     createdAt: new Date('2026-11-12T00:00:00Z'),
     edited: false,
   });
-  assert.match(svg, /width="1536" height="410" viewBox="0 0 1536 410"/);
+  assert.match(svg, /width="1536" height="438" viewBox="0 0 1536 438"/);
   assert.match(svg, /#000000/);
   assert.match(svg, /#FFE45C/);
   assert.match(svg, /#91A3AF/);
@@ -58,6 +58,18 @@ test('comment card uses the ModGlow identity and a clean pinned comment layout',
   assert.match(svg, /<circle cx="132" cy="124"/);
   assert.match(svg, /M512 92 L858 292/);
   assert.doesNotMatch(svg, /Reply|Vote|<script>|cx="654"|M818|M1127|M1380/);
+});
+
+test('comment card preserves bold, italic, and bold italic Markdown', () => {
+  const svg = buildCommentSvg({
+    subredditName: 'Coconaad',
+    body: 'A **bold** and *italic* and ***bold italic*** phrase.',
+    createdAt: new Date(),
+    edited: false,
+  });
+  assert.match(svg, /font-weight="700" font-style="normal">bold</);
+  assert.match(svg, /font-weight="400" font-style="italic">italic</);
+  assert.match(svg, /font-weight="700" font-style="italic">bold italic</);
 });
 
 test('comment card keeps edited metadata compact and handles older timestamps', () => {
@@ -91,9 +103,9 @@ test('comment card grows with multiline text and keeps comfortable bottom paddin
     edited: false,
   });
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const bodyEndY = 246 + ((svg.match(/<tspan /g)?.length ?? 1) - 1) * 72 + 58;
+  const bodyEndY = 252 + ((svg.match(/<tspan /g)?.length ?? 1) - 1) * 82 + 64;
   assert.ok(height > 410);
-  assert.ok(height >= bodyEndY + 106);
+  assert.ok(height >= bodyEndY + 112);
   assert.doesNotMatch(svg, /Reply|Vote|cx="654"/);
 });
 
