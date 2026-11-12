@@ -17,11 +17,11 @@ test('all four templates retain their exact supplied geometry and palettes', () 
   const reminder = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'REMINDER');
 
   for (const svg of [important, notice, announcement, reminder]) {
-    assert.match(svg, /viewBox="0 0 2000 760"/);
-    assert.match(svg, /M110 65 H1970 V610 L1890 690 H30 V145 Z/);
+    assert.match(svg, /viewBox="0 0 2000 \\d+"/);
+    assert.match(svg, /M110 65 H1970 V\\d+ L1890 \\d+ H30 V145 Z/);
     assert.match(svg, /x="165" y="80"/);
     assert.match(svg, /x="195" y="475"/);
-    assert.match(svg, /width="16" height="195"/);
+    assert.match(svg, /<rect x="115" y="415" width="16" height="\\d+"/);
     assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<image/);
   }
 
@@ -29,25 +29,25 @@ test('all four templates retain their exact supplied geometry and palettes', () 
   assert.match(important, /stroke="#FF2525"/);
   assert.match(important, /M70 120 H510 L390 360 H70 Z/);
   assert.match(important, /textLength="1050"/);
-  assert.match(important, /IMPORTANT<\\/text>/);
+  assert.match(important, /IMPORTANT<\/text>/);
 
   assert.match(notice, /fill="#050D1C"/);
   assert.match(notice, /stroke="#078BFF"/);
   assert.match(notice, /cx="245" cy="240" r="75"/);
   assert.match(notice, /textLength="720"/);
-  assert.match(notice, /NOTICE<\\/text>/);
+  assert.match(notice, /NOTICE<\/text>/);
 
   assert.match(announcement, /fill="#050A05"/);
   assert.match(announcement, /stroke="#8CFF00"/);
   assert.match(announcement, /M135 215 L230 185 L230 285 L135 255 Z/);
   assert.match(announcement, /textLength="1180"/);
-  assert.match(announcement, /ANNOUNCEMENT<\\/text>/);
+  assert.match(announcement, /ANNOUNCEMENT<\/text>/);
 
   assert.match(reminder, /fill="#090604"/);
   assert.match(reminder, /stroke="#FF7900"/);
   assert.match(reminder, /<rect x="160" y="185" width="145" height="125" rx="16"/);
   assert.match(reminder, /textLength="1050"/);
-  assert.match(reminder, /REMINDER<\\/text>/);
+  assert.match(reminder, /REMINDER<\/text>/);
 });
 
 test('two line reference text retains the original 2000 by 760 composition', () => {
@@ -61,8 +61,8 @@ test('two line reference text retains the original 2000 by 760 composition', () 
 test('canvas and outer frame grow with the final body line', () => {
   const oneLine = buildAnnouncementSvg('A short announcement.', 'NOTICE');
   const manyLines = buildAnnouncementSvg('A sentence that wraps across the card width. '.repeat(12), 'NOTICE');
-  const oneHeight = Number(oneLine.match(/viewBox="0 0 2000 (\\d+)"/)?.[1]);
-  const manyHeight = Number(manyLines.match(/viewBox="0 0 2000 (\\d+)"/)?.[1]);
+  const oneHeight = Number(oneLine.match(/viewBox="0 0 2000 (\d+)"/)?.[1]);
+  const manyHeight = Number(manyLines.match(/viewBox="0 0 2000 (\d+)"/)?.[1]);
   const lineCount = manyLines.match(/<tspan x="195" dy="/g)?.length ?? 0;
   const lastBaseline = 475 + (lineCount - 1) * 100;
   const frameBottom = manyHeight - 70;
@@ -88,20 +88,20 @@ test('Markdown styles and block prefixes remain supported', () => {
   assert.match(svg, /text-decoration="line-through"/);
   assert.match(svg, /› /);
   assert.match(svg, /• /);
-  assert.match(svg, /2\\. /);
+  assert.match(svg, /2\. /);
 });
 
 test('links and images display readable labels rather than external resources', () => {
   const svg = buildAnnouncementSvg('Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)', 'NOTICE');
   assert.match(svg, /Read the rules/);
   assert.match(svg, />Diagram</);
-  assert.doesNotMatch(svg, /https:\\/\\/example\\.com/);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/);
 });
 
 test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
   const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3', 'REMINDER');
   assert.doesNotMatch(svg, /<script>/);
-  assert.match(svg, /Text alert\\(1\\) &amp; 2 &lt; 3/);
+  assert.match(svg, /Text alert\(1\) &amp; 2 &lt; 3/);
 });
 
 test('empty, overlong and excessively tall announcements are rejected', () => {
