@@ -53,4 +53,6 @@ All templates use a 2000px wide SVG viewBox, editable vector shapes and text, so
 
 ## Typography and text safety
 
-The SVG source uses Arial with a sans-serif fallback to match the supplied artwork. The server rasterizer uses bundled IBM Plex Sans as its deterministic sans-serif fallback, with bundled Malayalam and Tamil fonts. All user supplied text is XML escaped. Markdown links and images are represented by their readable labels, not fetched or embedded as external resources.
+The production SVG and PNG rasterizer both use the bundled IBM Plex Sans family. Body text is bold by default at weight 700. Blockquotes are bold italic. Display headings retain their large italic treatment within each original title panel. The renderer embeds regular, semibold, italic, bold and bold italic IBM Plex Sans faces, plus Malayalam and Tamil font files. All user supplied text is XML escaped. Markdown links and images are represented by their readable labels, not fetched or embedded as external resources.
+
+Text wrapping uses conservative estimated glyph widths rather than exact shaping metrics. The estimate intentionally preserves a right safety margin. Regression tests cover the four flairs, bold defaults, long unbroken tokens and dynamic frame bounds. A visual PNG check in the actual Reddit client remains necessary for final platform verification.
