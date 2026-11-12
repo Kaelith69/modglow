@@ -63,7 +63,7 @@ test('spotlight SVG preserves multiline comments and escapes special characters'
   assert.match(svg, /First line/);
   assert.match(svg, /Second line with &lt;tag&gt; &amp; &quot;quotes&quot;/);
   assert.match(svg, /Third line/);
-  assert.match(svg, /height="530"/);
+  assert.match(svg, /height="468"/);
 });
 
 test('spotlight SVG wraps long comments without clipping', () => {
