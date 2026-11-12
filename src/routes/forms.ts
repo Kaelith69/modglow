@@ -176,20 +176,20 @@ forms.post('/create-announcement-submit', async (c) => {
     if (commentSubmissionStarted && !publishedComment) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'Reddit may have received the comment request, but ModGlow did not receive a confirmation. Check the post before retrying to avoid duplicate announcements.',
+        'Reddit may have received the comment request, but ModGlow did not receive a confirmation. Check the post before retrying to avoid duplicate announcements. A short retry lock remains active for up to 45 seconds.',
       ));
     }
 
     if (publishedComment && !pinnedAndVerified && !pinMismatchConfirmed) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'A ModGlow comment may have been published, but Reddit could not confirm its pin status. Check the post before retrying to avoid duplicate announcements.',
+        'A ModGlow comment may have been published, but Reddit could not confirm its pin status. Check the post before retrying to avoid duplicate announcements. A short retry lock remains active for up to 45 seconds.',
       ));
     }
     if (cleanupFailed) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying.',
+        'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying. A short retry lock remains active for up to 45 seconds.',
       ));
     }
     if (cleanupCompleted) {
