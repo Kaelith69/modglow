@@ -34,7 +34,7 @@ The new post is created by the **ModGlow Devvit app account**, not by the indivi
 
 - If validation, rendering, media upload, post submission, distinction, pinning, or verification fails, the original comment remains unchanged.
 - If a replacement post was created but the transaction did not complete, the app attempts to delete that incomplete post.
-- A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases the lock through a watched compare and delete. Feature and removal actions share the lock.
+- A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases it only if the token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its ownership check and delete. Feature and removal actions share the lock.
 - A Redis mapping prevents duplicate spotlight posts for the same source comment.
 - Community highlights and sticky slots are different Reddit features. ModGlow does not use `getHighlightedPosts()` as a sticky capacity check. It calls `post.sticky()` directly; if Reddit reports that no sticky slot is available, the incomplete post is rolled back.
 - Comment deletion cleanup is idempotent, so repeated deletion events do not create additional side effects.
@@ -72,7 +72,7 @@ See `assets/branding/BRAND-GUIDE.md` and `assets/branding/UPLOAD-CHECKLIST.md` f
 ## Local setup
 
 ```bash
-npm install
+npm ci
 npx devvit login
 npx devvit whoami
 npm run check
@@ -100,9 +100,13 @@ Also test a moderator without post permissions, a removed comment, a deleted aut
 
 ## Feature request locking
 
-Feature publication and moderator removal share a per comment Redis lock. Acquisition uses atomic Redis `SET NX` with a 45 second expiry, then reads the key back and proceeds only when the unique request token is present. The `SET NX` return value alone is not treated as proof of ownership. Release uses `WATCH`, reads through the returned transaction client, and deletes only when the stored token still belongs to the current request. This follows Reddit's documented transaction client behavior. The lease allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a feature post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+Feature publication and moderator removal share a per comment Redis lock. Acquisition uses atomic Redis `SET NX` with a 45 second expiry, then reads the key back and proceeds only when the unique request token is present. The `SET NX` return value alone is not treated as proof of ownership. Release reads the key and deletes it only when the stored token still belongs to the current request. The lease is longer than Devvit's 30 second request limit, preventing normal live requests from crossing expiry during release. The lease allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a feature post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
 
 Reddit's `CommentDelete` trigger writes a seven day deletion tombstone before looking up the source to post mapping. This closes the race where deletion is delivered before an in flight feature request saves its mapping. The feature request checks the tombstone before rendering and after saving the mapping. The removal action writes the same tombstone while it still holds the shared lock.
+
+## Dependency security
+
+The lockfile pins security overrides for vulnerable transitive tooling dependencies: `isomorphic-git` 1.38.6, `tmp` 0.2.7, and `minimatch` 11.0.8. These preserve the Devvit 0.15.3 SDK while addressing the advisories reported in the original dependency tree. CI runs `npm audit --audit-level=moderate` and fails if a moderate or higher advisory is reintroduced.
 
 ## Validation and publishing
 
