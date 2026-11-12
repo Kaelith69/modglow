@@ -341,7 +341,7 @@ export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEM
     flairHeader(flair),
     '<rect x="115" y="415" width="16" height="95" fill="' + theme.accent + '"/>',
     '</svg>',
-  ].join('\\n');
+  ].join('\n');
 }
 
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
