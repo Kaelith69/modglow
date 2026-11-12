@@ -89,6 +89,18 @@ test('plain announcement body and blockquotes are bold by default', () => {
   assert.match(svg, /font-family="IBM Plex Sans" font-size="76"/);
   assert.doesNotMatch(svg, /Arial|Helvetica/);
 });
+
+test('every flair uses the embedded font family and bold default body style', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementSvg('Plain body text.', flair);
+    const fontFamilies = [...svg.matchAll(/font-family="([^"]+)"/g)].map((match) => match[1]);
+    assert.ok(fontFamilies.length > 0);
+    assert.ok(fontFamilies.every((family) => family === 'IBM Plex Sans'));
+    assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Plain body text\.<\/tspan>/);
+    assert.doesNotMatch(svg, /Arial|Helvetica/);
+  }
+});
+
 test('Markdown styles and block prefixes remain supported', () => {
   const svg = buildAnnouncementSvg('# Heading\n> quoted text\n- first item\n2. second item\n**bold** *italic* ***both*** ~~strike~~', 'ANNOUNCEMENT');
   assert.match(svg, /font-weight="700"/);
@@ -110,6 +122,16 @@ test('XML sensitive text is escaped and unsupported HTML is not emitted', () => 
   const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3', 'REMINDER');
   assert.doesNotMatch(svg, /<script>/);
   assert.match(svg, /Text alert\(1\) &amp; 2 &lt; 3/);
+});
+
+
+test('wrapping and input limits preserve Unicode grapheme clusters', () => {
+  const family = '👨‍👩‍👧‍👦';
+  const svg = buildAnnouncementSvg(family.repeat(100), 'NOTICE');
+  assert.ok((svg.match(/<tspan x="195" dy="/g) ?? []).length > 1);
+  assert.match(svg, new RegExp(family));
+  assert.throws(() => buildAnnouncementSvg(family.repeat(2600), 'NOTICE'), /more than 24 rendered lines/);
+  assert.throws(() => buildAnnouncementSvg(family.repeat(2601), 'NOTICE'), /2600 character limit/);
 });
 
 test('empty, overlong and excessively tall announcements are rejected', () => {

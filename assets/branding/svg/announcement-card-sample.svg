@@ -3,7 +3,7 @@
   <title>MODGLOW Announcement reference template</title>
   <rect width="2000" height="760" fill="#050A05"/>
   <path d="M110 65 H1970 V610 L1890 690 H30 V145 Z" fill="none" stroke="#8CFF00" stroke-width="16"/>
-  <text x="165" y="80" fill="#FFF5E8" font-family="Arial,sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>
+  <text x="165" y="80" fill="#FFF5E8" font-family="IBM Plex Sans" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>
   <path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>
   <path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>
   <g fill="#126B18" stroke="#126B18" stroke-width="12" stroke-linejoin="round">
@@ -16,13 +16,13 @@
     <path d="M305 235 H350"/>
     <path d="M295 280 L330 305"/>
   </g>
-  <text x="460" y="295" fill="#050A05" font-family="Arial,sans-serif" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
+  <text x="460" y="295" fill="#050A05" font-family="IBM Plex Sans" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
   <g fill="#8CFF00">
     <path d="M1750 170 H1810 L1725 325 H1665 Z"/>
     <path d="M1840 170 H1900 L1815 325 H1755 Z"/>
   </g>
   <rect x="115" y="415" width="16" height="195" fill="#8CFF00"/>
-  <g fill="#FFF5E8" font-family="Arial,sans-serif" font-size="76">
+  <g fill="#FFF5E8" font-family="IBM Plex Sans" font-size="76" font-weight="700">
     <text x="195" y="475">Please follow the sub rules no religion or</text>
     <text x="195" y="575">politics here</text>
   </g>
