@@ -125,7 +125,6 @@ function glyphWidth(character: string, fontSize: number, style: RunStyle): numbe
 
   let width: number;
   if (/\s/u.test(character)) width = fontSize * 0.28;
-  else if (style.code) width = fontSize * 0.61;
   else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.28;
   else if (/[MW@%#&]/u.test(character)) width = fontSize * 0.86;
   else if (/[A-Z]/u.test(character)) width = fontSize * 0.64;
