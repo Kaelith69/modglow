@@ -29,8 +29,7 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
   const key = `${LOCK_PREFIX}${commentId}`;
   const token = `${Date.now()}:${randomUUID()}`;
 
-  // SET NX with an expiry is atomic. It avoids reading through TxClientLike,
-  // whose GET method queues a command and returns the transaction handle.
+  // SET NX with an expiry is atomic. The subsequent readback verifies the unique token.
   await redis.set(key, token, {
     nx: true,
     expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
