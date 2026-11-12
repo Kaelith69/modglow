@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { initWasm, Resvg } from '@resvg/resvg-wasm';
-import wasmDataUrl from '@resvg/resvg-wasm/index_bg.wasm?inline';
+import wasmBase64 from 'virtual:resvg-wasm-base64';
 import regularFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?inline';
 import semiboldFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2?inline';
 import boldFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2?inline';
@@ -15,10 +15,14 @@ function decodeDataUrl(dataUrl: string): Uint8Array {
   return new Uint8Array(Buffer.from(dataUrl.slice(comma + 1), 'base64'));
 }
 
+function decodeWasmBase64(base64: string): Uint8Array {
+  return new Uint8Array(Buffer.from(base64, 'base64'));
+}
+
 async function ensureRenderer(): Promise<void> {
   if (!rendererReady) {
     rendererReady = (async () => {
-      await initWasm(decodeDataUrl(wasmDataUrl));
+      await initWasm(decodeWasmBase64(wasmBase64));
     })();
   }
 
