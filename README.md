@@ -25,11 +25,16 @@ The SVG renderer supports:
 
 Raw HTML is not rendered. Links and images are represented as readable text in the card, not as interactive or embedded external media. XML-sensitive text is escaped before rendering.
 
-## Visual design
+## Four announcement flairs
 
-The announcement card uses a true AMOLED black canvas with a smoked charcoal surface, a restrained yellow haze, a neon yellow edge, and soft glow and text shadows. Body typography is intentionally larger than ordinary Reddit comment text for comfortable reading. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped content and rejects text that would exceed its readability limits rather than clipping it.
+The composer offers exactly four choices: **IMPORTANT**, **NOTICE**, **REMINDER**, and **ANNOUNCEMENT**. Each choice selects a distinct comic book layout and colour system:
 
-The generated card uses the ModGlow identity, a moderator badge, an announcement label, and a pinned marker. It does not imitate Reddit's full comment interface or include voting and reply controls.
+- **IMPORTANT:** vivid red angular title panel.
+- **NOTICE:** electric blue framed editorial panel.
+- **REMINDER:** solid orange calendar inspired panel.
+- **ANNOUNCEMENT:** high contrast yellow poster panel.
+
+All four use a true black AMOLED canvas, solid fills, strong contrast, bold typography, and clean vector outlines. The renderer contains no gradients, blended colours, transparency, glow, or drop shadow. It keeps the message as the visual focus and uses the selected flair colour for headings and inline code. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped text and rejects text that would exceed its readability limits rather than clipping it.
 
 ## Permissions and safety
 
