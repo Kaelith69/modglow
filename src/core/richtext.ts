@@ -83,7 +83,22 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
  */
 export function buildAnnouncementRichText(mediaUrl: string, markdown: string): RichTextBuilder {
   const blocks = parseMarkdown(markdown);
-  if (blocks.length === 0) throw new Error('Write a Markdown body before publishing.');
+  const hasVisibleText = blocks.some((block) => {
+    switch (block.type) {
+      case 'paragraph':
+      case 'heading':
+        return block.content.some((node) => node.text.trim().length > 0);
+      case 'blockquote':
+        return block.paragraphs.some((paragraph) => paragraph.some((node) => node.text.trim().length > 0));
+      case 'list':
+        return block.items.some((item) => item.some((node) => node.text.trim().length > 0));
+      case 'code':
+        return block.text.trim().length > 0;
+      case 'hr':
+        return false;
+    }
+  });
+  if (!hasVisibleText) throw new Error('Write some Markdown text before publishing.');
 
   const builder = new RichTextBuilder();
   builder.paragraph((paragraph) => {
