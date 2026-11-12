@@ -8,6 +8,21 @@ export const menu = new Hono();
 
 const announcementFields = (): FormField[] => [
   {
+    name: 'flair',
+    label: 'Announcement flair',
+    type: 'select',
+    options: [
+      { label: 'IMPORTANT', value: 'IMPORTANT' },
+      { label: 'NOTICE', value: 'NOTICE' },
+      { label: 'REMINDER', value: 'REMINDER' },
+      { label: 'ANNOUNCEMENT', value: 'ANNOUNCEMENT' },
+    ],
+    defaultValue: ['ANNOUNCEMENT'],
+    multiSelect: false,
+    required: true,
+    helpText: 'Each flair uses its own solid colour comic book template.',
+  },
+  {
     name: 'announcement',
     label: 'Announcement (Markdown supported)',
     type: 'paragraph',
