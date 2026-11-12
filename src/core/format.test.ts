@@ -74,10 +74,11 @@ test('canvas and outer frame grow with the final body line', () => {
 });
 
 test('long unbroken tokens split into lines and never exceed the line limit', () => {
-  const svg = buildAnnouncementSvg('W'.repeat(600), 'IMPORTANT');
+  const svg = buildAnnouncementSvg('W'.repeat(300), 'IMPORTANT');
   const lineCount = svg.match(/<tspan x="195" dy="/g)?.length ?? 0;
   assert.ok(lineCount > 1);
   assert.ok(lineCount <= 24);
+  assert.throws(() => buildAnnouncementSvg('W'.repeat(600), 'IMPORTANT'), /more than 24 rendered lines/);
   assert.throws(() => buildAnnouncementSvg('W '.repeat(1300), 'IMPORTANT'), /more than 24 rendered lines/);
 });
 
