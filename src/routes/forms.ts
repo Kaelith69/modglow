@@ -69,8 +69,8 @@ forms.post('/create-announcement-submit', async (c) => {
   if (!flair) {
     return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
   }
-  const announcementLength = countGraphemes(announcement);
   const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
+  const announcementLength = countGraphemes(announcement, characterLimit);
   if (announcementLength > characterLimit) {
     return c.json<UiResponse>(toast(
       bodyBelowSvg
