@@ -131,6 +131,18 @@ test('links and images display readable labels rather than external resources', 
   assert.doesNotMatch(svg, /https:\/\/example\.com/);
 });
 
+test('compact SVG Markdown preserves identifier underscores and balanced link parentheses', () => {
+  const svg = buildAnnouncementSvg(
+    'Use snake_case_value and [the article](https://example.com/path_(part)). ![diagram](https://example.com/image_(a).png)',
+    'NOTICE',
+  );
+  assert.match(svg, /snake_case_value/);
+  assert.match(svg, /the article/);
+  assert.match(svg, /diagram/);
+  assert.doesNotMatch(svg, /https:\\/\\/example\\.com/);
+  assert.match(svg, /font-style="normal"/);
+});
+
 test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
   const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3', 'REMINDER');
   assert.doesNotMatch(svg, /<script>/);
