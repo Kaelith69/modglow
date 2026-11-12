@@ -128,7 +128,7 @@ test('links and images display readable labels rather than external resources', 
   const svg = buildAnnouncementSvg('Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)', 'NOTICE');
   assert.match(svg, /Read the rules/);
   assert.match(svg, />Diagram</);
-  assert.doesNotMatch(svg, /https:\/\/example\.com/);
+  assert.doesNotMatch(svg, /https?:\/\//u);
 });
 
 test('compact SVG Markdown preserves identifier underscores and balanced link parentheses', () => {
