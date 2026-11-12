@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1
+
+- Matched the supplied reference layout across all four announcement flairs.
+- Standardized frame geometry, diagonal header, wordmark, icon, title, body placement, and padding.
+- Kept flair differentiation to the accent colour, title, and matching line icon.
+- Added regression tests that verify identical layout geometry across every flair.
+
 ## 0.4.0
 
 - Added exactly four selectable announcement flairs: IMPORTANT, NOTICE, REMINDER, and ANNOUNCEMENT.

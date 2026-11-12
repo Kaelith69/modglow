@@ -17,11 +17,15 @@ test('escapeXml removes XML-invalid control and surrogate characters', () => {
 
 test('default announcement uses the solid AMOLED comic template', () => {
   const svg = buildAnnouncementSvg('A moderator announcement.');
-  assert.match(svg, /width="1536" height="468" viewBox="0 0 1536 468"/);
+  assert.match(svg, /width="1536" height="585" viewBox="0 0 1536 585"/);
   assert.match(svg, /<title>ModGlow announcement<\/title>/);
   assert.match(svg, /fill="#000000"/);
-  assert.match(svg, /fill="#1B1700"/);
-  assert.match(svg, /fill="#FFE34F"/);
+  assert.match(svg, /stroke="#FFE34F"/);
+  assert.match(svg, /M32 65 H90 M32 65 V510 H1504 V59 H352/);
+  assert.match(svg, /M72 98 H1464 V500 H72 M72 98 V252 M72 98 H878 L806 252 H72/);
+  assert.match(svg, /<text x="104" y="67"/);
+  assert.match(svg, /<text x="263" y="207"/);
+  assert.match(svg, /<text x="88" y="340"/);
   assert.match(svg, />ANNOUNCEMENT</);
   assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<script>/);
   assert.doesNotMatch(svg, /Reply|Vote|Pinned/);
@@ -34,13 +38,21 @@ test('the four supported flairs use distinct solid comic templates', async () =>
   const cards = ANNOUNCEMENT_FLAIRS.map((flair) => buildAnnouncementSvg('Read this update.', flair));
   assert.equal(new Set(cards).size, 4);
   for (const card of cards) {
+    assert.match(card, /width="1536" height="585"/);
+    assert.match(card, /M32 65 H90 M32 65 V510 H1504 V59 H352/);
+    assert.match(card, /M72 98 H1464 V500 H72 M72 98 V252 M72 98 H878 L806 252 H72/);
+    assert.match(card, /<text x="104" y="67"/);
+    assert.match(card, /<text x="263" y="207"/);
+    assert.match(card, /<text x="88" y="340"/);
+  }
+  for (const card of cards) {
     assert.match(card, /fill="#000000"/);
     assert.doesNotMatch(card, /linearGradient|radialGradient|filter=|opacity=/);
   }
-  assert.match(cards[0], /fill="#FF4055"/);
+  assert.match(cards[0], /stroke="#FF4055"/);
   assert.match(cards[1], /stroke="#32B8FF"/);
-  assert.match(cards[2], /stroke="#FF9D28"/);
-  assert.match(cards[3], /fill="#FFE34F"/);
+  assert.match(cards[2], /stroke="#FF9900"/);
+  assert.match(cards[3], /stroke="#FFE34F"/);
 });
 
 test('unsupported flair values are rejected', () => {
@@ -116,10 +128,10 @@ test('long Markdown runs wrap across lines without losing emphasis', () => {
 test('the card grows with wrapped text and preserves bottom breathing room', () => {
   const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const lineCount = svg.match(/<tspan x="76" dy="/g)?.length ?? 1;
-  const bodyEndY = 292 + (lineCount - 1) * 82 + 64;
+  const lineCount = svg.match(/<tspan x="88" dy="/g)?.length ?? 1;
+  const bodyEndY = 340 + (lineCount - 1) * 78 + 64;
   assert.ok(height > 438);
-  assert.ok(height >= bodyEndY + 112);
+  assert.ok(height >= bodyEndY + 103);
 });
 
 test('empty, markup-only, overlong, and excessively tall announcements are rejected', () => {

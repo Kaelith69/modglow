@@ -1,14 +1,14 @@
 import { escapeXml } from './format.ts';
 
 const WIDTH = 1536;
-const BODY_X = 76;
+const BODY_X = 88;
 const BODY_FONT = 64;
-const LINE_HEIGHT = 82;
+const LINE_HEIGHT = 78;
 export const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
-const MIN_HEIGHT = 468;
-const BOTTOM_PADDING = 112;
-const BODY_WIDTH = 1384;
+const MIN_HEIGHT = 585;
+const BOTTOM_PADDING = 28;
+const BODY_WIDTH = 1360;
 
 type InlineRun = {
   text: string;
@@ -261,53 +261,38 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
 export const ANNOUNCEMENT_FLAIRS = ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT'] as const;
 export type AnnouncementFlair = typeof ANNOUNCEMENT_FLAIRS[number];
 
+
 type FlairTheme = {
   accent: string;
   accentText: string;
-  panel: string;
-  titleText: string;
-  header: string;
 };
 
 const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
-  IMPORTANT: {
-    accent: '#FF4055',
-    accentText: '#FF9AA6',
-    panel: '#21070C',
-    titleText: '#000000',
-    header: '<path d="M54 64 H1482 L1438 190 H98 Z" fill="#FF4055"/><path d="M76 190 H1460" stroke="#FF4055" stroke-width="8"/>',
-  },
-  NOTICE: {
-    accent: '#32B8FF',
-    accentText: '#9CDEFF',
-    panel: '#061522',
-    titleText: '#F2F0E8',
-    header: '<rect x="76" y="58" width="1384" height="142" fill="#061522" stroke="#32B8FF" stroke-width="8"/><rect x="76" y="58" width="28" height="142" fill="#32B8FF"/><rect x="126" y="86" width="8" height="86" fill="#32B8FF"/>',
-  },
-  REMINDER: {
-    accent: '#FF9D28',
-    accentText: '#FFD09A',
-    panel: '#1C1004',
-    titleText: '#F2F0E8',
-    header: '<rect x="76" y="58" width="1384" height="142" fill="#1C1004" stroke="#FF9D28" stroke-width="8"/><path d="M76 94 H1460" stroke="#FF9D28" stroke-width="8"/><rect x="112" y="42" width="34" height="44" fill="#FF9D28"/><rect x="1388" y="42" width="34" height="44" fill="#FF9D28"/>',
-  },
-  ANNOUNCEMENT: {
-    accent: '#FFE34F',
-    accentText: '#FFF0A0',
-    panel: '#1B1700',
-    titleText: '#000000',
-    header: '<rect x="76" y="58" width="1384" height="142" fill="#FFE34F"/><rect x="94" y="76" width="1348" height="106" fill="none" stroke="#000000" stroke-width="5"/><path d="M76 214 H1460" stroke="#FFE34F" stroke-width="8"/>',
-  },
+  IMPORTANT: { accent: '#FF4055', accentText: '#FF9AA6' },
+  NOTICE: { accent: '#32B8FF', accentText: '#9CDEFF' },
+  REMINDER: { accent: '#FF9900', accentText: '#FFC266' },
+  ANNOUNCEMENT: { accent: '#FFE34F', accentText: '#FFF0A0' },
 };
 
-function flairHeader(flair: AnnouncementFlair, theme: FlairTheme): string {
-  const titleX = flair === 'IMPORTANT' ? 118 : flair === 'NOTICE' ? 166 : flair === 'REMINDER' ? 112 : 112;
-  const titleY = flair === 'REMINDER' ? 156 : 151;
-  const fontSize = flair === 'ANNOUNCEMENT' ? 68 : 76;
+function flairIcon(flair: AnnouncementFlair, color: string): string {
+  const icons: Record<AnnouncementFlair, string> = {
+    IMPORTANT: '<path d="M170 143 V181 M170 196 V198" stroke="' + color + '" stroke-width="12" stroke-linecap="round"/>',
+    NOTICE: '<circle cx="170" cy="174" r="39" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M170 168 V196 M170 148 V150" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
+    REMINDER: '<rect x="133" y="143" width="74" height="68" rx="10" fill="none" stroke="' + color + '" stroke-width="10"/><path d="M152 133 V151 M188 133 V151 M133 164 H207" stroke="' + color + '" stroke-width="10" stroke-linecap="round"/>',
+    ANNOUNCEMENT: '<path d="M133 165 L202 143 V203 L133 181 Z" fill="none" stroke="' + color + '" stroke-width="10" stroke-linejoin="round"/><path d="M149 185 L160 211 H179 L168 190 M214 158 L228 150 M215 187 L229 194" fill="none" stroke="' + color + '" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>',
+  };
+  return '<g>' + icons[flair] + '</g>';
+}
+
+function flairHeader(flair: AnnouncementFlair, accent: string, frameBottom: number, innerBottom: number): string {
+  const title = flair;
+  const titleSize = flair === 'ANNOUNCEMENT' ? 64 : 88;
   return [
-    '<text x="76" y="34" font-family="IBM Plex Sans" font-size="25" font-weight="700" letter-spacing="5" fill="#F2F0E8">MODGLOW</text>',
-    theme.header,
-    '<text x="' + titleX + '" y="' + titleY + '" font-family="IBM Plex Sans" font-size="' + fontSize + '" font-weight="700" letter-spacing="2" fill="' + theme.titleText + '">' + flair + '</text>',
+    '<text x="104" y="67" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F2F0E8">MODGLOW</text>',
+    `<path d="M32 65 H90 M32 65 V${frameBottom} H1504 V59 H352" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
+    `<path d="M72 98 H1464 V${innerBottom} H72 M72 98 V252 M72 98 H878 L806 252 H72" fill="none" stroke="${accent}" stroke-width="8" stroke-linejoin="miter"/>`,
+    flairIcon(flair, accent),
+    '<text x="263" y="207" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" letter-spacing="2" fill="#F2F0E8">' + title + '</text>',
   ].join('');
 }
 
@@ -328,17 +313,19 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     throw new Error('The announcement needs more than ' + MAX_LINES + ' rendered lines. Shorten it to keep the image readable.');
   }
 
-  const bodyStartY = 292;
+  const bodyStartY = 340;
   const bodyEndY = bodyStartY + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + BODY_FONT;
-  const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING);
+  const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING + 75);
+  const frameBottom = height - 75;
+  const innerBottom = height - 85;
+  const svgHeader = flairHeader(flair, theme.accent, frameBottom, innerBottom);
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
     '<title>ModGlow ' + flair.toLowerCase() + '</title>',
     '<rect width="' + WIDTH + '" height="' + height + '" fill="#000000"/>',
-    '<rect x="32" y="32" width="1472" height="' + (height - 64) + '" fill="' + theme.panel + '" stroke="' + theme.accent + '" stroke-width="6"/>',
-    flairHeader(flair, theme),
+    svgHeader,
     '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8">' + rendered.markup + '</text>',
     '</svg>',
   ].join('\n');
