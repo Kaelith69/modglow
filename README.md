@@ -1,40 +1,37 @@
 # ModGlow
 
-**ModGlow is a moderator only Reddit Devvit tool for turning one manually selected comment into an attributed community spotlight image.** A moderator opens the comment menu, confirms that the author has explicitly permitted the feature, and publishes the image as the ModGlow app account. The app applies Reddit's native moderator distinction and pins the new post.
+**ModGlow is a moderator only Reddit Devvit tool for replacing one manually selected comment with a moderator distinguished image reply under the same submission.** A moderator opens the comment menu, confirms that the author has explicitly permitted the feature, and publishes the image as the Devvit app account. The app then removes the original comment as spam.
 
-The feature action leaves the original comment unchanged. A separate **Remove comment** moderator action is available when a moderator needs to remove the selected comment. Reddit's developer rules require ModGlow to remove any copied spotlight post when its source comment is deleted or removed, so choosing removal also causes the linked feature post to be removed. This platform requirement cannot be disabled in a public distribution build.
+The replacement is posted as a comment under the source comment's exact parent submission. The source comment is removed only after the replacement reply is published and moderator distinction is verified. The source is removed as spam, not hard deleted.
 
 ## What the app does
 
 1. A moderator opens the three dot menu on one comment and chooses **Feature with ModGlow**.
-2. Reddit only displays the action to moderators. The server independently verifies that the caller is a moderator with post moderation permission in the current subreddit.
-3. The moderator confirms that the comment author has explicitly permitted the comment to be featured publicly, including their username and a link to the original discussion.
-4. ModGlow fetches the selected comment again, validates its source subreddit and available author attribution, and rejects removed, deleted, empty, or excessively long comments.
-5. The app renders a custom editorial style image. It is not a recreation of Reddit's comment interface and does not use Reddit logos, Snoo, or Reddit trademarks.
-6. The image is uploaded to Reddit and a post is submitted using `runAs: 'APP'`. The individual moderator's account is not used as the post author.
-7. ModGlow distinguishes the post as a moderator and pins it in an available sticky slot. It verifies both states before reporting success.
-8. The original comment remains unchanged. The new post links back to the original discussion and identifies the original commenter on the image.
-9. A separate **Remove comment** action opens a confirmation form and uses Reddit's moderator removal API. It does not hard delete another person's comment. If a ModGlow feature already exists for that comment, the required `CommentDelete` cleanup removes the copied spotlight post too.
-10. If the original comment is later deleted or removed by anyone, Reddit sends a `CommentDelete` event. ModGlow removes the associated spotlight post and its stored mapping as required by Reddit's content deletion rules.
-11. If a moderator deletes or removes the generated spotlight post directly, Reddit sends a `PostDelete` event. ModGlow clears its source mapping so the comment can be featured again.
+2. The moderator confirms that the comment author has explicitly permitted the comment to be featured publicly.
+3. ModGlow validates the source comment and its parent submission.
+4. The app renders a minimal AMOLED black image with green comment text, the comment date and time, and a MOD tag.
+5. The image is uploaded to Reddit and published as a comment under the original parent submission using `reddit.submitComment()`. No new post is created.
+6. The replacement comment is distinguished as a moderator and re fetched to verify its parent submission and moderator status.
+7. Only after verification does ModGlow remove the original comment using Reddit's spam removal operation.
+8. The replacement comment ID is stored so retries reuse the same reply rather than creating duplicates.
 
 ## Moderator only controls
 
 - Both comment menu actions are configured with `forUserType: "moderator"`.
 - Both form handlers independently verify the caller's moderator identity and `posts` or `all` permission before acting.
 - There is no ordinary user menu action, automatic comment scanning, scheduled publishing, or bulk conversion.
-- Comment removal is a separate, explicitly confirmed action. It uses Reddit's moderator `remove(false)` operation, not a hard delete.
+- The replacement workflow uses Reddit's `remove(true)` operation to classify the source comment as spam, not a hard delete.
 - Each spotlight is initiated by a moderator from a specific comment.
 - The moderator must attest that the author has permitted this use. A moderator's selection does not itself grant rights to republish another redditor's content.
 
 ## Identity and attribution
 
-The new post is created by the **ModGlow Devvit app account**, not by the individual moderator who clicked the action. Devvit does not provide a generic subreddit account identity such as `u/<subreddit>` for app posts. The image identifies the moderation team as the curator and the original commenter as the author of the quoted content. The post body also links to the source discussion.
+The replacement comment is created by the **ModGlow Devvit app account**, not by the individual moderator who clicked the action. Devvit does not provide a generic subreddit account identity such as `u/<subreddit>`; `runAs: 'APP'` uses the app account. Reddit's moderator distinction is applied to the replacement comment.
 
 ## Failure handling
 
-- If validation, rendering, media upload, post submission, distinction, pinning, or verification fails, the original comment remains unchanged.
-- If a replacement post was created but the transaction did not complete, the app attempts to delete that incomplete post.
+- If validation, rendering, media upload, comment submission, distinction, or verification fails, the original comment is not intentionally removed.
+- If a replacement comment was published but a later step failed, its ID remains indexed. A retry reuses that exact reply and resumes the workflow.
 - A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases it only if the token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its ownership check and delete. Feature and removal actions share the lock.
 - Paired Redis hashes map source comments to spotlight posts and posts back to their source comments. They prevent duplicate publication and let deletion events clear stale mappings. Existing mappings are reverse indexed once on the first post deletion event after upgrade.
 - Community highlights and sticky slots are different Reddit features. ModGlow does not use `getHighlightedPosts()` as a sticky capacity check. It calls `post.sticky()` directly; if Reddit reports that no sticky slot is available, the incomplete post is rolled back.
