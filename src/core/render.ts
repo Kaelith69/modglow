@@ -27,10 +27,10 @@ function separator(x: number, y: number): string {
 
 function moderatorBadge(x: number): string {
   return [
-    '<rect x="' + x + '" y="84" width="194" height="68" rx="34" fill="#123D1E" stroke="#1A6A2B" stroke-width="1.5"/>',
-    '<path d="M' + (x + 25) + ' 103 L' + (x + 43) + ' 97 L' + (x + 61) + ' 103 V123 Q' + (x + 43) + ' 140 ' + (x + 43) + ' 140 Q' + (x + 25) + ' 132 ' + (x + 25) + ' 123 Z" fill="#16D94B"/>',
+    '<rect x="' + x + '" y="84" width="194" height="68" rx="34" fill="#17380D" stroke="#285A16" stroke-width="1.5"/>',
+    '<path d="M' + (x + 25) + ' 103 L' + (x + 43) + ' 97 L' + (x + 61) + ' 103 V123 Q' + (x + 43) + ' 140 ' + (x + 43) + ' 140 Q' + (x + 25) + ' 132 ' + (x + 25) + ' 123 Z" fill="#23B82F"/>',
     '<path d="M' + (x + 32) + ' 106 L' + (x + 43) + ' 102 L' + (x + 54) + ' 106 V122 Q' + (x + 43) + ' 132 ' + (x + 43) + ' 132 Q' + (x + 32) + ' 126 ' + (x + 32) + ' 122 Z" fill="none" stroke="#0D6C2B" stroke-width="2"/>',
-    '<text x="' + (x + 78) + '" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="500" fill="#2BCB50">Mod</text>',
+    '<text x="' + (x + 78) + '" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="500" fill="#61C64B">Mod</text>',
   ].join('');
 }
 
@@ -108,7 +108,7 @@ export function buildCommentSvg(input: CommentCardInput): string {
     '<linearGradient id="avatar" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#335A66"/><stop offset="1" stop-color="#182D3C"/></linearGradient>',
     '<radialGradient id="highlight"><stop offset="0" stop-color="#2D7B43" stop-opacity=".13"/><stop offset="1" stop-color="#2D7B43" stop-opacity="0"/></radialGradient>',
     '</defs>',
-    '<rect width="' + WIDTH + '" height="' + height + '" fill="#0E1012"/>',
+    '<rect width="' + WIDTH + '" height="' + height + '" fill="#101113"/>',
     '<rect x="10" y="10" width="1516" height="' + (height - 20) + '" rx="24" fill="url(#surface)" stroke="#293138" stroke-width="2"/>',
     '<ellipse cx="1160" cy="104" rx="500" ry="210" fill="url(#highlight)"/>',
     '<rect x="10" y="10" width="5" height="' + (height - 20) + '" rx="2.5" fill="#2B8A45" opacity=".72"/>',
@@ -116,7 +116,7 @@ export function buildCommentSvg(input: CommentCardInput): string {
     '<circle cx="132" cy="124" r="54" fill="url(#avatar)" stroke="#526A73" stroke-width="2"/>',
     '<circle cx="132" cy="124" r="45" fill="none" stroke="#E9B86C" stroke-width="1.5" opacity=".48"/>',
     '<text x="132" y="141" text-anchor="middle" font-family="IBM Plex Sans" font-size="48" font-weight="700" fill="#F1E7D5">' + initials + '</text>',
-    '<text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#24C84A">' + author + '</text>',
+    '<text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#5FBD47">' + author + '</text>',
     separator(dotOneX, 111),
     moderatorBadge(badgeX),
     separator(dotTwoX, 111),
