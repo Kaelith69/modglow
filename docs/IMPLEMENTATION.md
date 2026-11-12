@@ -46,6 +46,8 @@ Both menu declarations use `forUserType: "moderator"`. Both form handlers indepe
 
 The lockfile overrides vulnerable transitive packages used by the Devvit CLI and lint toolchain: `isomorphic-git` 1.38.6, `tmp` 0.2.7, and `minimatch` 11.0.8. These overrides retain the Devvit 0.15.3 SDK. CI enforces `npm audit --audit-level=moderate`.
 
+CI still reports upstream deprecation notices for transitive `inflight`, `glob@7`, `http-call`, and `whatwg-encoding` packages, plus Node `punycode` and `url.parse` deprecations. These are not current npm audit advisories (`npm audit` reports zero vulnerabilities). They come from the pinned Devvit tooling dependency tree; replacing them independently has not been verified as compatible with Devvit 0.15.3, so they remain documented for a future SDK update.
+
 ## Sticky behavior
 
 Community highlights and sticky slots are different Reddit features. ModGlow does not use `subreddit.getHighlightedPosts()` to infer sticky capacity. It calls `post.sticky()` directly. If both sticky slots are occupied or Reddit rejects the pin, the feature transaction attempts to delete the incomplete post and leaves the original comment untouched. It never unpins an existing post to make room.
