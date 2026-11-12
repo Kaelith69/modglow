@@ -141,6 +141,7 @@ test('compact SVG Markdown preserves identifier underscores and balanced link pa
   assert.match(svg, /diagram/);
   assert.doesNotMatch(svg, /https?:\/\//u);
   assert.match(svg, /font-style="normal"/);
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Use snake_case_value and the article\\. diagram<\\/tspan>/);
 });
 
 test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
