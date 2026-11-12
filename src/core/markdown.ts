@@ -118,7 +118,7 @@ function isHorizontalRule(line: string): boolean {
 function isSpecialBlockStart(line: string): boolean {
   return Boolean(
     isHeading(line)
-    || /^\s*>/u.test(line)
+    || /^ {0,3}>/u.test(line)
     || isUnorderedItem(line)
     || isOrderedItem(line)
     || isHorizontalRule(line)
@@ -189,11 +189,11 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
       continue;
     }
 
-    if (/^\s*>/u.test(line)) {
+    if (/^ {0,3}>/u.test(line)) {
       flushParagraph();
       const quoteLines: string[] = [];
-      while (index < lines.length && /^\s*>/u.test(lines[index])) {
-        quoteLines.push(lines[index].replace(/^\s*>\s?/u, ''));
+      while (index < lines.length && /^ {0,3}>/u.test(lines[index])) {
+        quoteLines.push(lines[index].replace(/^ {0,3}> ?/u, ''));
         index += 1;
       }
       const quoteParagraphs: MarkdownInline[][] = [];
