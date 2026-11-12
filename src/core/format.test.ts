@@ -19,7 +19,7 @@ test('default announcement uses the reference comic layout and dynamic frame', (
   const svg = buildAnnouncementSvg('A moderator announcement.');
   assert.match(svg, /width="1536" height="584" viewBox="0 0 1536 584"/);
   assert.match(svg, /<title>ModGlow announcement<\/title>/);
-  assert.match(svg, /fill="#050505"/);
+  assert.match(svg, /fill="#010703"/);
   assert.match(svg, /M350 57 H1512 V462 L1450 524 H22 V112 L82 50/);
   assert.match(svg, /<text x="112" y="62"/);
   assert.match(svg, /<text x="366" y="229"/);
@@ -44,7 +44,7 @@ test('all four flairs share reference geometry and use their supplied palette', 
     assert.match(card, /M1290 128 H1350/);
     assert.match(card, /M1365 128 H1425/);
     assert.match(card, /M1440 128 H1500/);
-    assert.match(card, /fill="#050505"/);
+    assert.match(card, /fill="#(?:050000|02091B|070300|010703)"/);
     assert.doesNotMatch(card, /linearGradient|radialGradient|filter=|opacity=/);
   }
   assert.match(cards[0], /#F20D24/);
