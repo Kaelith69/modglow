@@ -4,13 +4,16 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
+import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
+import { buildAnnouncementRichText } from '../core/richtext.ts';
+import { countGraphemes, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
   flair?: string | string[];
+  bodyBelowSvg?: boolean;
 };
 
 export const forms = new Hono();
@@ -58,6 +61,7 @@ forms.post('/create-announcement-submit', async (c) => {
     : '';
   const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
+  const bodyBelowSvg = values?.bodyBelowSvg === true;
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Write an announcement before publishing.'));
@@ -65,8 +69,14 @@ forms.post('/create-announcement-submit', async (c) => {
   if (!flair) {
     return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
   }
-  if (announcement.length > MAX_ANNOUNCEMENT_CHARS) {
-    return c.json<UiResponse>(toast(`The announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters.`));
+  const announcementLength = countGraphemes(announcement);
+  const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
+  if (announcementLength > characterLimit) {
+    return c.json<UiResponse>(toast(
+      bodyBelowSvg
+        ? `The Markdown body is too long. The limit is ${MAX_ANNOUNCEMENT_BODY_CHARS} characters.`
+        : `The SVG announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters. Enable the separate Markdown body option for longer announcements.`,
+    ));
   }
   if (!isPostId(postId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
     return c.json<UiResponse>(toast('The post or moderator context is invalid. Reopen ModGlow from the post menu and try again.'));
@@ -94,17 +104,21 @@ forms.post('/create-announcement-submit', async (c) => {
       return c.json<UiResponse>(toast('This post has been removed and cannot receive a ModGlow announcement.'));
     }
 
-    const svg = buildAnnouncementSvg(announcement, flair);
+    const svg = bodyBelowSvg
+      ? buildAnnouncementHeaderSvg(flair)
+      : buildAnnouncementSvg(announcement, flair);
     const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
-    const richtext = new RichTextBuilder().paragraph((paragraph) => {
-      paragraph.image({
-        mediaUrl: uploaded.mediaUrl,
-        caption: 'ModGlow moderator announcement',
+    const richtext = bodyBelowSvg
+      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement)
+      : new RichTextBuilder().paragraph((paragraph) => {
+        paragraph.image({
+          mediaUrl: uploaded.mediaUrl,
+          caption: 'ModGlow moderator announcement',
+        });
       });
-    });
 
     publishedComment = await reddit.submitComment({
       id: postId,
