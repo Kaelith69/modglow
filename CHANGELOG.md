@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1
+
+- Fixed Windows production builds by embedding the Resvg WebAssembly binary through a Vite virtual module instead of importing the WASM file with `?inline`.
+
+
 ## 0.2.0
 
 - Added a separate moderator only Remove comment menu action with explicit confirmation.
