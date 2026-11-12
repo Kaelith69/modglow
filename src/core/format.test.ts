@@ -8,7 +8,7 @@ test('escapeXml neutralises markup characters', () => {
 });
 
 test('escapeXml removes XML-invalid control characters', () => {
-  const input = 'safe' + String.fromCharCode(0, 8) + ' and valid\\nline';
+  const input = 'safe' + String.fromCharCode(0, 8) + 'text and valid' + String.fromCharCode(10) + 'line';
   assert.equal(escapeXml(input), 'safetext and valid\\nline');
 });
 
