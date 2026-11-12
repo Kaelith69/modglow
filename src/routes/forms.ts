@@ -14,7 +14,7 @@ type FeatureFormValues = {
 
 export const forms = new Hono();
 
-// v4 bypasses stale v3 locks left by requests terminated before cleanup.
+// v5 bypasses stale v4 locks left by requests terminated before cleanup.
 const LOCK_PREFIX = 'modglow:v5:lock:';
 const LOCK_TTL_SECONDS = 45;
 const CONVERSION_HASH = 'modglow:v2:features';
@@ -95,9 +95,6 @@ forms.post('/feature-comment-submit', async (c) => {
     }
     if (!hasCommentContentAvailable(comment.body, comment.authorName, comment.removed)) {
       return c.json<UiResponse>(toast('This comment is removed, deleted, or has no available text.'));
-    }
-    if (!comment.authorName || comment.authorName === '[deleted]') {
-      return c.json<UiResponse>(toast('The original author is unavailable, so this comment cannot be attributed.'));
     }
     if (comment.body.length > 2600) {
       return c.json<UiResponse>(toast('This comment is too long to feature safely. The limit is 2,600 characters.'));
@@ -212,7 +209,7 @@ forms.post('/remove-comment-submit', async (c) => {
   if (values?.confirmRemoval !== true) {
     return c.json<UiResponse>(toast('Confirm the removal before continuing.'));
   }
-  if (!isCommentId(commentId) || !context.userId || !context.subredditName || !context.subredditId) {
+  if (!isCommentId(commentId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
     return c.json<UiResponse>(toast('The selected comment or moderator context is invalid. Reopen the comment menu and try again.'));
   }
 
@@ -224,6 +221,9 @@ forms.post('/remove-comment-submit', async (c) => {
 
     lockToken = await acquireCommentLock(commentId);
     if (!lockToken) return c.json<UiResponse>(toast('A ModGlow action for this comment is already running. Wait briefly and retry.'));
+    if (await isDeletionRecorded(commentId)) {
+      return c.json<UiResponse>(toast('This comment was already deleted or removed.'));
+    }
 
     const comment = await reddit.getCommentById(commentId);
     if (!belongsToSubreddit(comment.subredditName, context.subredditName) || !belongsToSubredditId(comment.subredditId, context.subredditId)) {
