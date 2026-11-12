@@ -275,7 +275,7 @@ function renderBody(markdown: string): RenderedBody {
       const content = wrappedLine.map((run) => {
         const weight = run.bold ? '700' : '400';
         const style = run.italic ? 'italic' : 'normal';
-        const family = run.code ? 'monospace' : 'IBM Plex Sans';
+        const family = 'IBM Plex Sans';
         const fill = run.accent ? '#FFEFA3' : '#F2F0E8';
         const decoration = run.strike ? ' text-decoration="line-through"' : '';
         return '<tspan font-family="' + family + '" font-weight="' + weight + '" font-style="' + style + '" fill="' + fill + '"' + decoration + '>' + escapeXml(run.text) + '</tspan>';
