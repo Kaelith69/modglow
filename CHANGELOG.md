@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.3
+
+- Added `onPostDelete` cleanup so manually deleted or moderator removed spotlight posts no longer leave stale source mappings.
+- Added a reverse post to source comment index, with one time migration for existing mappings and regression tests.
+- Treats an already missing generated post as a successful rollback instead of preserving a stale orphan mapping.
+- Rejects malformed stored post mappings instead of leaving a source comment blocked from featuring.
+
+
 ## 0.2.2
 
 - Fixed the actual lock bug: `TxClientLike.get()` queues a Redis GET and returns the transaction handle, not the stored value. The previous code therefore treated every feature attempt as an existing lock and could not correctly release locks.

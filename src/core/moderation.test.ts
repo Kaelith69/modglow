@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from './moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, buildPostSourceIndex, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from './moderation.ts';
 
 test('comment moderation requires all or posts permission', () => {
   assert.equal(hasCommentModerationPermission(['posts']), true);
@@ -58,4 +58,20 @@ test('not found errors are distinguished from transient failures', () => {
   assert.equal(isNotFoundError(new Error('Post not found')), true);
   assert.equal(isNotFoundError({ status: 503, message: 'Service unavailable' }), false);
   assert.equal(isNotFoundError(new Error('Network timeout')), false);
+});
+
+
+test('reverse post index migrates only valid comment and post fullnames', () => {
+  assert.deepEqual(
+    buildPostSourceIndex({
+      t1_source1: 't3_post1',
+      t1_source2: 't3_post2',
+      invalid: 't3_post1',
+      t1_source3: 'not-a-post',
+    }),
+    {
+      t3_post1: 't1_source1',
+      t3_post2: 't1_source2',
+    },
+  );
 });

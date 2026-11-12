@@ -28,7 +28,8 @@
     "removeComment": "/internal/form/remove-comment-submit"
   },
   "triggers": {
-    "onCommentDelete": "/internal/triggers/comment-delete"
+    "onCommentDelete": "/internal/triggers/comment-delete",
+    "onPostDelete": "/internal/triggers/post-delete"
   },
   "scripts": {
     "build": "vite build",

@@ -16,6 +16,7 @@ The feature action leaves the original comment unchanged. A separate **Remove co
 8. The original comment remains unchanged. The new post links back to the original discussion and identifies the original commenter on the image.
 9. A separate **Remove comment** action opens a confirmation form and uses Reddit's moderator removal API. It does not hard delete another person's comment. If a ModGlow feature already exists for that comment, the required `CommentDelete` cleanup removes the copied spotlight post too.
 10. If the original comment is later deleted or removed by anyone, Reddit sends a `CommentDelete` event. ModGlow removes the associated spotlight post and its stored mapping as required by Reddit's content deletion rules.
+11. If a moderator deletes or removes the generated spotlight post directly, Reddit sends a `PostDelete` event. ModGlow clears its source mapping so the comment can be featured again.
 
 ## Moderator only controls
 
@@ -35,9 +36,9 @@ The new post is created by the **ModGlow Devvit app account**, not by the indivi
 - If validation, rendering, media upload, post submission, distinction, pinning, or verification fails, the original comment remains unchanged.
 - If a replacement post was created but the transaction did not complete, the app attempts to delete that incomplete post.
 - A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases it only if the token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its ownership check and delete. Feature and removal actions share the lock.
-- A Redis mapping prevents duplicate spotlight posts for the same source comment.
+- Paired Redis hashes map source comments to spotlight posts and posts back to their source comments. They prevent duplicate publication and let deletion events clear stale mappings. Existing mappings are reverse indexed once on the first post deletion event after upgrade.
 - Community highlights and sticky slots are different Reddit features. ModGlow does not use `getHighlightedPosts()` as a sticky capacity check. It calls `post.sticky()` directly; if Reddit reports that no sticky slot is available, the incomplete post is rolled back.
-- Comment deletion cleanup is idempotent, so repeated deletion events do not create additional side effects.
+- Comment and generated post deletion cleanup is idempotent. Repeated and unrelated deletion events do not create additional side effects.
 
 ## Data handling
 
@@ -96,7 +97,7 @@ Create a test comment and open its comment menu as a moderator. Confirm the perm
 - Removing or deleting the source comment causes the associated spotlight post to be removed by the deletion trigger.
 - Ordinary non moderators cannot access or complete the action.
 
-Also test a moderator without post permissions, a removed comment, a deleted author, long content, non Latin scripts, occupied sticky slots, duplicate requests, and simulated upload or pin failures.
+Also test a moderator without post permissions, a removed comment, a deleted author, long content, non Latin scripts, occupied sticky slots, duplicate requests, simulated upload or pin failures, and manually removing a generated spotlight post before featuring its source comment again.
 
 ## Feature request locking
 

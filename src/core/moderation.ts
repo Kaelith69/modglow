@@ -58,3 +58,15 @@ export function isNotFoundError(error: unknown): boolean {
 export function isPostId(value: unknown): value is `t3_${string}` {
   return typeof value === 'string' && /^t3_[a-z0-9]+$/i.test(value);
 }
+
+
+/** Build the reverse post index while rejecting malformed legacy records. */
+export function buildPostSourceIndex(
+  mappings: Readonly<Record<string, string>>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(mappings)
+      .filter(([commentId, postId]) => isCommentId(commentId) && isPostId(postId))
+      .map(([commentId, postId]): [string, string] => [postId, commentId]),
+  );
+}

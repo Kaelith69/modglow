@@ -12,6 +12,7 @@
 8. It submits the post explicitly as `APP`, distinguishes it, calls `sticky()`, and re-fetches it to verify both states.
 9. It saves the source comment to post mapping and rechecks the tombstone and current source comment before committing the workflow as complete.
 10. The original comment is never edited or removed by the feature action.
+11. A reverse Redis hash indexes generated post IDs to source comment IDs so `onPostDelete` can clear stale mappings when a moderator removes a spotlight post.
 
 ## Comment removal flow
 
@@ -51,6 +52,10 @@ CI still reports upstream deprecation notices for transitive `inflight`, `glob@7
 ## Sticky behavior
 
 Community highlights and sticky slots are different Reddit features. ModGlow does not use `subreddit.getHighlightedPosts()` to infer sticky capacity. It calls `post.sticky()` directly. If both sticky slots are occupied or Reddit rejects the pin, the feature transaction attempts to delete the incomplete post and leaves the original comment untouched. It never unpins an existing post to make room.
+
+## Generated post deletion handling
+
+The `onPostDelete` trigger clears the forward comment to post mapping and reverse post to comment mapping when a generated spotlight is deleted or moderator removed. New feature records write both directions. On the first post deletion event after upgrade, the app migrates existing forward mappings to the reverse index. Subsequent events use a single reverse lookup. Repeated or unrelated post deletion events are no ops.
 
 ## Source deletion handling
 

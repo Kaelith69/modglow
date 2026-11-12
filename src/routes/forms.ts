@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildCommentSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type FeatureFormValues = {
   permissionConfirmed?: boolean;
@@ -18,6 +18,7 @@ export const forms = new Hono();
 const LOCK_PREFIX = 'modglow:v5:lock:';
 const LOCK_TTL_SECONDS = 45;
 const CONVERSION_HASH = 'modglow:v2:features';
+const POST_SOURCE_HASH = 'modglow:v1:feature-post-sources';
 const DELETED_COMMENT_PREFIX = 'modglow:v1:deleted:';
 const DELETED_COMMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -105,8 +106,14 @@ forms.post('/feature-comment-submit', async (c) => {
     }
 
     const existingPostId = await redis.hGet(CONVERSION_HASH, comment.id);
-    if (existingPostId) {
+    if (existingPostId && isPostId(existingPostId)) {
+      // Backfill the reverse index for highlights created before this index existed.
+      await redis.hSet(POST_SOURCE_HASH, { [existingPostId]: comment.id });
       return c.json<UiResponse>(toast('This comment already has a ModGlow highlight.'));
+    }
+    if (existingPostId) {
+      // Discard malformed metadata instead of blocking a valid feature action forever.
+      await redis.hDel(CONVERSION_HASH, [comment.id]);
     }
 
     // Community highlights and subreddit sticky slots are different Reddit features.
@@ -152,6 +159,8 @@ forms.post('/feature-comment-submit', async (c) => {
       throw new Error('Reddit did not confirm that the highlight is both pinned and moderator distinguished.');
     }
 
+    // Keep a reverse index so manual spotlight deletion can release the source mapping.
+    await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: comment.id });
     await redis.hSet(CONVERSION_HASH, { [comment.id]: replacementPost.id });
     featureRecordSaved = true;
 
@@ -168,19 +177,37 @@ forms.post('/feature-comment-submit', async (c) => {
     console.error('[ModGlow] Feature action failed.', error);
 
     if (replacementPost && !transactionComplete) {
+      let postDeletionConfirmed = false;
       try {
         await replacementPost.delete();
-        if (featureRecordSaved) await redis.hDel(CONVERSION_HASH, [commentId]);
+        postDeletionConfirmed = true;
       } catch (cleanupError) {
-        console.error('[ModGlow] Failed to remove an incomplete highlight post.', cleanupError);
-        if (!featureRecordSaved) {
+        if (isNotFoundError(cleanupError)) {
+          postDeletionConfirmed = true;
+        } else {
+          console.error('[ModGlow] Failed to remove an incomplete highlight post.', cleanupError);
           try {
+            // Preserve both directions when Reddit cannot confirm cleanup. This
+            // prevents duplicate publication and lets onPostDelete reconcile it.
+            await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: commentId });
             await redis.hSet(CONVERSION_HASH, { [commentId]: replacementPost.id });
             featureRecordSaved = true;
             console.error('[ModGlow] Preserved an orphan mapping to prevent duplicate publication.');
           } catch (mappingError) {
             console.error('[ModGlow] Could not record the incomplete highlight post.', mappingError);
           }
+        }
+      }
+
+      if (postDeletionConfirmed) {
+        try {
+          if (featureRecordSaved) await redis.hDel(CONVERSION_HASH, [commentId]);
+          await redis.hDel(POST_SOURCE_HASH, [replacementPost.id]);
+          featureRecordSaved = false;
+        } catch (mappingCleanupError) {
+          // Do not recreate an orphan mapping after Reddit confirmed deletion.
+          // The PostDelete trigger can reconcile metadata if its event is pending.
+          console.error('[ModGlow] Could not clear the rolled back highlight mapping.', mappingCleanupError);
         }
       }
     }
