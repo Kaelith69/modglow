@@ -34,14 +34,14 @@ The new post is created by the **ModGlow Devvit app account**, not by the indivi
 
 - If validation, rendering, media upload, post submission, distinction, pinning, or verification fails, the original comment remains unchanged.
 - If a replacement post was created but the transaction did not complete, the app attempts to delete that incomplete post.
-- A per comment Redis lock uses a WATCH transaction and a 180 second expiry. Release checks the unique lock token, preventing one request from deleting another request's lock.
+- A per comment Redis lock uses atomic `SET NX` with a 45 second expiry. The app verifies ownership by reading back its unique token, then releases the lock through a watched compare and delete. Feature and removal actions share the lock.
 - A Redis mapping prevents duplicate spotlight posts for the same source comment.
-- Before rendering or uploading, the app checks the subreddit community highlights and stops if both highlight slots are occupied. A final pin failure still triggers rollback, and the original comment remains untouched.
+- Community highlights and sticky slots are different Reddit features. ModGlow does not use `getHighlightedPosts()` as a sticky capacity check. It calls `post.sticky()` directly; if Reddit reports that no sticky slot is available, the incomplete post is rolled back.
 - Comment deletion cleanup is idempotent, so repeated deletion events do not create additional side effects.
 
 ## Data handling
 
-- Redis stores only the source comment ID to generated post ID mapping and short lived conversion locks.
+- Redis stores the source comment ID to generated post ID mapping, short lived conversion locks, and seven day deletion tombstones. It does not store comment bodies, author profile URLs, avatars, or other profile details.
 - The app does not store the comment body, author profile URL, avatar, or other profile details in Redis.
 - The comment text is processed only to render the requested image and publish the Reddit post.
 - The generated image is uploaded to Reddit media hosting. Reddit's current media API does not expose a separate media asset deletion operation. When a source comment is deleted, ModGlow deletes the Reddit post that embeds the image and clears its own mapping.
@@ -100,7 +100,9 @@ Also test a moderator without post permissions, a removed comment, a deleted aut
 
 ## Feature request locking
 
-Feature publication uses a per comment Redis lock to prevent concurrent duplicate posts. Acquisition uses atomic Redis `SET NX` with a 45 second expiry. Release uses a watched compare and delete. The earlier implementation incorrectly read through `TxClientLike.get()`, which queues a GET and returns the transaction handle rather than the stored string, causing every feature request to be rejected as already in progress. The expiry is shorter than the previous 180 second lease and allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a spotlight post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+Feature publication and moderator removal share a per comment Redis lock. Acquisition uses atomic Redis `SET NX` with a 45 second expiry, then reads the key back and proceeds only when the unique request token is present. The `SET NX` return value alone is not treated as proof of ownership. Release uses `WATCH`, reads through the returned transaction client, and deletes only when the stored token still belongs to the current request. This follows Reddit's documented transaction client behavior. The lease allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a feature post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+
+Reddit's `CommentDelete` trigger writes a seven day deletion tombstone before looking up the source to post mapping. This closes the race where deletion is delivered before an in flight feature request saves its mapping. The feature request checks the tombstone before rendering and after saving the mapping. The removal action writes the same tombstone while it still holds the shared lock.
 
 ## Validation and publishing
 
@@ -125,15 +127,12 @@ Public distribution requires Reddit approval. Review the current [launch guide](
 
 ## GitHub
 
-Create a new public repository named `modglow`, then push this project:
+Repository: [Kaelith69/modglow](https://github.com/Kaelith69/modglow). Push updates to the existing `main` branch after validation:
 
 ```bash
-git init
 git add .
-git commit -m "Initial ModGlow Devvit moderator tool"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/modglow.git
-git push -u origin main
+git commit -m "Describe the verified ModGlow changes"
+git push origin main
 ```
 
 The included GitHub Actions workflow runs type checks, unit tests, lint, and the production build on pushes and pull requests.
@@ -170,7 +169,7 @@ modglow/
 - The post author is the Devvit app account, not the subreddit account and not the invoking moderator.
 - The feature action leaves the original comment unchanged. A separate moderator removal action is available.
 - If the original comment is deleted or removed, Reddit requires the related spotlight content to be removed too.
-- Reddit supports two subreddit sticky slots. ModGlow will not replace an existing pinned post.
+- Reddit supports two subreddit sticky slots. Community highlights are a separate feature. ModGlow calls `post.sticky()` directly and will not replace an existing pinned post.
 - Reddit app review is required before the app can be listed publicly for other moderators.
 
 ## License
