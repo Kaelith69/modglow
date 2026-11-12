@@ -110,7 +110,7 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
   ]);
   assert.ok(blocks.some((block) => block.type === 'paragraph' && block.content.map((node) => node.text).join(' ') === 'First paragraph continued on the next source line.'));
   assert.ok(blocks.some((block) => block.type === 'blockquote' && block.paragraphs.length === 1));
-  const quoteIndentation = parseMarkdown('> real quote\\n\\n    > literal text');
+  const quoteIndentation = parseMarkdown('> real quote\n\n    > literal text');
   assert.ok(quoteIndentation.some((block) => block.type === 'blockquote'));
   assert.ok(quoteIndentation.some((block) => block.type === 'paragraph' && block.content.map((node) => node.text).join('') === '> literal text'));
   const codeBlocks = blocks.filter((block) => block.type === 'code');
