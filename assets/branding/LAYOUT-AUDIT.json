@@ -63,5 +63,21 @@
     "The SVG has explicit intrinsic width and height with a matching viewBox so server rasterization is deterministic.",
     "No gradients, raster images, external dependencies, filters, transparency or clipping masks.",
     "All user supplied text is XML escaped."
-  ]
-}\n
+  ],
+  "typography": {
+    "font_family": "IBM Plex Sans",
+    "bundled_faces": [
+      "400 normal",
+      "600 normal",
+      "400 italic",
+      "700 normal",
+      "700 italic"
+    ],
+    "body_weight": 700,
+    "blockquote_weight": 700,
+    "blockquote_style": "italic",
+    "heading_style": "heavy italic display text, constrained to each supplied title panel",
+    "rasterizer_font_family": "IBM Plex Sans",
+    "wrapping_note": "Conservative glyph width estimates, not exact font metrics. Preserve a right safety margin and test wide glyphs, punctuation, combining marks and long unbroken tokens."
+  }
+}
