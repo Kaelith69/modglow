@@ -34,7 +34,7 @@ The composer offers exactly four choices: **IMPORTANT**, **NOTICE**, **REMINDER*
 - **REMINDER:** solid orange calendar inspired panel.
 - **ANNOUNCEMENT:** high contrast yellow poster panel.
 
-All four use a true black AMOLED canvas, solid fills, strong contrast, bold typography, and clean vector outlines. The renderer contains no gradients, blended colours, transparency, glow, or drop shadow. It keeps the message as the visual focus and uses the selected flair colour for headings and inline code. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped text and rejects text that would exceed its readability limits rather than clipping it.
+All four share the exact same reference layout, including frame geometry, diagonal header panel, wordmark, icon placement, title baseline, body inset, and padding. Only the flair accent colour, title, and matching line icon change. The canvas is pure AMOLED black with solid strokes and fills only. There are no gradients, blended colours, transparency, glow, or drop shadows. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped text while preserving the reference layout and rejects text that would exceed its readability limits rather than clipping it.
 
 ## Permissions and safety
 
