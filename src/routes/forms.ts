@@ -90,6 +90,7 @@ forms.post('/create-announcement-submit', async (c) => {
   let pinnedAndVerified = false;
   let pinMismatchConfirmed = false;
   let cleanupFailed = false;
+  let cleanupCompleted = false;
 
   try {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
@@ -154,8 +155,11 @@ forms.post('/create-announcement-submit', async (c) => {
     if (publishedComment && pinMismatchConfirmed) {
       try {
         await publishedComment.delete();
+        cleanupCompleted = true;
       } catch (cleanupError) {
-        if (!isNotFoundError(cleanupError)) {
+        if (isNotFoundError(cleanupError)) {
+          cleanupCompleted = true;
+        } else {
           cleanupFailed = true;
           console.error('[ModGlow] Could not remove an announcement that failed pin verification.', cleanupError);
         }
@@ -170,6 +174,11 @@ forms.post('/create-announcement-submit', async (c) => {
     if (cleanupFailed) {
       return c.json<UiResponse>(toast(
         'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying.',
+      ));
+    }
+    if (cleanupCompleted) {
+      return c.json<UiResponse>(toast(
+        'Reddit did not confirm the pin state. ModGlow removed the incomplete comment, so you can safely retry.',
       ));
     }
 
