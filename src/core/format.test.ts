@@ -159,15 +159,15 @@ test('separate body SVG is a fixed height title banner with no announcement body
   for (const flair of ANNOUNCEMENT_FLAIRS) {
     const svg = buildAnnouncementHeaderSvg(flair);
     assert.match(svg, /width="2000" height="600" viewBox="0 0 2000 600"/);
-    assert.match(svg, new RegExp('<title>MODGLOW ' + flair.toLowerCase() + '<\\\\/title>'));
+    assert.ok(svg.includes('<title>MODGLOW ' + flair.toLowerCase() + '</title>'));
     assert.match(svg, /M466 65 H1970 V450 L1890 530 H30 V145 L85 65/);
     assert.match(svg, /<rect x="115" y="415" width="16" height="95"/);
     assert.doesNotMatch(svg, /x="195" y="475"|Announcement body|body text/i);
   }
 
-  assert.match(buildAnnouncementHeaderSvg('IMPORTANT'), /IMPORTANT<\\/text>/);
-  assert.match(buildAnnouncementHeaderSvg('NOTICE'), /NOTICE<\\/text>/);
-  assert.match(buildAnnouncementHeaderSvg('ANNOUNCEMENT'), /ANNOUNCEMENT<\\/text>/);
-  assert.match(buildAnnouncementHeaderSvg('REMINDER'), /REMINDER<\\/text>/);
+  assert.ok(buildAnnouncementHeaderSvg('IMPORTANT').includes('IMPORTANT</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('NOTICE').includes('NOTICE</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('ANNOUNCEMENT').includes('ANNOUNCEMENT</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('REMINDER').includes('REMINDER</text>'));
   assert.throws(() => buildAnnouncementHeaderSvg('URGENT' as never), /four supported announcement flairs/);
 });
