@@ -271,7 +271,7 @@ function importantHeader(): string {
     '<path d="M70 120 H510 L390 360 H70 Z" fill="#FF2525"/>',
     '<path d="M530 135 H1720 L1600 345 H420 Z" fill="#FFF5E8"/>',
     '<g fill="none" stroke="#FFF5E8" stroke-width="16" stroke-linejoin="round"><path d="M270 155 L375 320 H165 Z"/><path d="M270 205 V260 M270 290 V292"/></g>',
-    '<text x="570" y="300" fill="#080605" font-family="' + FONT_FAMILY + '" font-size="145" font-weight="900" font-style="italic" textLength="1050" lengthAdjust="spacingAndGlyphs">IMPORTANT</text>',
+    '<text x="570" y="300" fill="#080605" font-family="' + FONT_FAMILY + '" font-size="145" font-weight="900" font-style="italic" textLength="1000" lengthAdjust="spacingAndGlyphs">IMPORTANT</text>',
     '<g fill="#FF2525"><path d="M1655 170 H1715 L1630 325 H1570 Z"/><path d="M1745 170 H1805 L1720 325 H1660 Z"/><path d="M1835 170 H1895 L1810 325 H1750 Z"/></g>',
   ].join('');
 }
@@ -294,7 +294,7 @@ function announcementHeader(): string {
     '<path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>',
     '<g transform="scale(1.3020833)" fill="#126B18" stroke="#126B18" stroke-linejoin="round"><path d="M186 139 L166 153 L135 167 L135 185 L141 211 L175 213 L200 220 Z"/><path d="M101 175 L90 190 L92 206 L108 217 L114 216 L143 252 L154 251 L157 243 L130 210 L125 169 Z"/><path d="M199 122 L195 127 L195 137 L209 224 L212 230 L219 230 L222 224 L216 188 L221 182 L221 171 L211 159 L207 126 L204 122 Z"/></g>',
     '<g transform="scale(1.3020833)" fill="none" stroke="#126B18" stroke-width="8" stroke-linecap="round"><path d="M249 132 L230 146 L228 152"/><path d="M266 165 L237 167 L233 173"/><path d="M235 192 L251 202 L261 202"/></g>',
-    '<text x="460" y="295" fill="#050A05" font-family="' + FONT_FAMILY + '" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>',
+    '<text x="460" y="295" fill="#050A05" font-family="' + FONT_FAMILY + '" font-size="130" font-weight="900" font-style="italic" textLength="1100" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>',
     '<g fill="#8CFF00"><path d="M1655 170 H1715 L1630 325 H1570 Z"/><path d="M1745 170 H1805 L1720 325 H1660 Z"/><path d="M1835 170 H1895 L1810 325 H1750 Z"/></g>',
   ].join('');
 }
