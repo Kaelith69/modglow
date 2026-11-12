@@ -99,38 +99,87 @@ function plainText(value: string): string {
   return value.replace(/\*{1,3}|_{1,3}/g, '');
 }
 
+function glyphWidth(character: string, fontSize: number): number {
+  if (/\\s/.test(character)) return fontSize * 0.28;
+  if (/[ilI.,'`!:;|]/.test(character)) return fontSize * 0.28;
+  if (/[MW@%#&]/.test(character)) return fontSize * 0.86;
+  if (/[A-Z]/.test(character)) return fontSize * 0.64;
+  if (/[0-9]/.test(character)) return fontSize * 0.56;
+  if (character.codePointAt(0)! > 0xffff) return fontSize;
+  return fontSize * 0.52;
+}
+
+function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): InlineRun[][] {
+  const lines: InlineRun[][] = [[]];
+  let lineWidth = 0;
+
+  const append = (text: string, style: Omit<InlineRun, 'text'>): void => {
+    if (!text) return;
+    const line = lines[lines.length - 1];
+    const previous = line[line.length - 1];
+    if (previous && previous.bold === style.bold && previous.italic === style.italic) {
+      previous.text += text;
+    } else {
+      line.push({ text, ...style });
+    }
+  };
+
+  const nextLine = (): void => {
+    if (lines[lines.length - 1].length > 0) {
+      lines.push([]);
+      lineWidth = 0;
+    }
+  };
+
+  for (const run of runs) {
+    const tokens = run.text.match(/\\s+|[^\\s]+/gu) ?? [];
+    for (const token of tokens) {
+      const style = { bold: run.bold, italic: run.italic };
+      if (/^\\s+$/u.test(token)) {
+        const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize), 0);
+        if (lineWidth > 0 && lineWidth + width > maxWidth) {
+          nextLine();
+        } else if (lineWidth > 0) {
+          append(token, style);
+          lineWidth += width;
+        }
+        continue;
+      }
+
+      const tokenWidth = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize), 0);
+      if (lineWidth > 0 && lineWidth + tokenWidth > maxWidth) nextLine();
+
+      if (tokenWidth <= maxWidth) {
+        append(token, style);
+        lineWidth += tokenWidth;
+        continue;
+      }
+
+      for (const character of token) {
+        const width = glyphWidth(character, fontSize);
+        if (lineWidth > 0 && lineWidth + width > maxWidth) nextLine();
+        append(character, style);
+        lineWidth += width;
+      }
+    }
+  }
+
+  return lines.filter((line, index) => line.length > 0 || index === 0);
+}
+
 function renderBody(markdown: string): { markup: string; lineCount: number } {
   const prepared = prepareMarkdown(markdown);
-  const paragraphs = prepared.split('\n');
   const renderedLines: string[] = [];
 
-  for (const paragraph of paragraphs) {
+  for (const paragraph of prepared.split('\\n')) {
     if (!paragraph) {
       renderedLines.push('<tspan x="' + BODY_X + '" dy="' + LINE_HEIGHT + '"> </tspan>');
       continue;
     }
 
-    const plain = plainText(paragraph);
-    const wrapped = wrapTextByWidth(plain, BODY_WIDTH, BODY_FONT);
-    let remaining = paragraph;
+    const wrapped = wrapInlineRuns(parseInlineRuns(paragraph), BODY_WIDTH, BODY_FONT);
     for (const line of wrapped) {
-      const targetLength = [...line].length;
-      let consumed = '';
-      let visible = '';
-      while (remaining.length && [...visible].length < targetLength) {
-        const next = remaining[0];
-        if (next === '*' || next === '_') {
-          consumed += next;
-          remaining = remaining.slice(1);
-          continue;
-        }
-        visible += next;
-        consumed += next;
-        remaining = remaining.slice(1);
-      }
-
-      const lineRuns = parseInlineRuns(consumed);
-      const content = lineRuns.map((run) => {
+      const content = line.map((run) => {
         const weight = run.bold ? '700' : '400';
         const style = run.italic ? 'italic' : 'normal';
         return '<tspan font-weight="' + weight + '" font-style="' + style + '">' + escapeXml(run.text) + '</tspan>';
