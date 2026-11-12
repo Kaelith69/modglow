@@ -20,16 +20,23 @@ const announcementFields = (): FormField[] => [
     defaultValue: ['ANNOUNCEMENT'],
     multiSelect: false,
     required: true,
-    helpText: 'Each flair uses its own solid colour comic book template.',
+    helpText: 'Each flair keeps its own colour palette, title artwork, and layout.',
+  },
+  {
+    name: 'bodyBelowSvg',
+    label: 'Publish Markdown below the SVG',
+    type: 'boolean',
+    defaultValue: false,
+    helpText: 'Off: keep the announcement inside the SVG. On: publish the SVG title first, followed by the full Markdown body as native Reddit text.',
   },
   {
     name: 'announcement',
-    label: 'Announcement (Markdown supported)',
+    label: 'Announcement text (Markdown supported)',
     type: 'paragraph',
     required: true,
-    placeholder: '## Important update\n\nWrite your announcement here. Use headings, **bold**, *italic*, lists, quotes, code, and links.',
-    helpText: 'This text is rendered into a ModGlow image and published as one top level comment by the ModGlow app. Supported styles include bold, italic, block formatting, code, and strikethrough. Links render as text.',
-  },
+    placeholder: '## Important update\\n\\nWrite your announcement here. Use # headings, - bullets, 1. numbered lists, **bold**, *italic*, > quotes, `code`, and [links](https://example.com).',
+    helpText: 'Short announcements can stay inside the SVG. Enable the option above for longer content and full native Reddit formatting. Supports headings, bold, italic, strikethrough, links, lists, quotes, and code blocks.',
+  },,
 ];
 
 menu.post('/create-announcement', async (c) => {
@@ -53,7 +60,7 @@ menu.post('/create-announcement', async (c) => {
       name: 'createAnnouncement',
       form: {
         title: 'Create a ModGlow announcement',
-        description: 'Choose one of four flairs and write the announcement in Markdown. ModGlow renders it in a distinct solid colour comic book template, posts it as the app, and pins it as a moderator comment.',
+        description: 'Choose a flair, write in Markdown, and choose whether the body stays inside the SVG or appears below the SVG as native Reddit text. The SVG title is always first.',
         fields: announcementFields(),
         acceptLabel: 'Generate and pin comment',
         cancelLabel: 'Cancel',
