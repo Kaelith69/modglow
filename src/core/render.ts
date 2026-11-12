@@ -100,7 +100,7 @@ function plainText(value: string): string {
 }
 
 function glyphWidth(character: string, fontSize: number): number {
-  if (/\\s/.test(character)) return fontSize * 0.28;
+  if (/\s/.test(character)) return fontSize * 0.28;
   if (/[ilI.,'`!:;|]/.test(character)) return fontSize * 0.28;
   if (/[MW@%#&]/.test(character)) return fontSize * 0.86;
   if (/[A-Z]/.test(character)) return fontSize * 0.64;
@@ -132,10 +132,10 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
   };
 
   for (const run of runs) {
-    const tokens = run.text.match(/\\s+|[^\\s]+/gu) ?? [];
+    const tokens = run.text.match(/\s+|[^\s]+/gu) ?? [];
     for (const token of tokens) {
       const style = { bold: run.bold, italic: run.italic };
-      if (/^\\s+$/u.test(token)) {
+      if (/^\s+$/u.test(token)) {
         const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize), 0);
         if (lineWidth > 0 && lineWidth + width > maxWidth) {
           nextLine();
@@ -171,7 +171,7 @@ function renderBody(markdown: string): { markup: string; lineCount: number } {
   const prepared = prepareMarkdown(markdown);
   const renderedLines: string[] = [];
 
-  for (const paragraph of prepared.split('\\n')) {
+  for (const paragraph of prepared.split('\n')) {
     if (!paragraph) {
       renderedLines.push('<tspan x="' + BODY_X + '" dy="' + LINE_HEIGHT + '"> </tspan>');
       continue;
