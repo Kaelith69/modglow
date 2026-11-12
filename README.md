@@ -9,23 +9,35 @@
 3. ModGlow renders the text into its branded image card.
 4. The image is uploaded to Reddit media hosting and embedded in one top-level comment under the original post.
 5. The comment is published as the **ModGlow app account**, distinguished as a moderator, and pinned.
-6. ModGlow verifies that Reddit reports the comment as both moderator-distinguished and stickied.
+6. ModGlow fetches the comment again and verifies that Reddit reports it as both moderator-distinguished and stickied.
 
 ModGlow does not create a separate Reddit post, select or quote an existing comment, edit another user's content, or remove existing comments.
 
+## Markdown support
+
+The SVG renderer supports:
+
+- **Bold**, *italic*, ***bold italic***, and ~~strikethrough~~.
+- Headings, blockquotes, ordered lists, and unordered lists.
+- Inline code and fenced code blocks.
+- Markdown links, displayed as their readable link text.
+- Markdown images, displayed as their alt text.
+
+Raw HTML is not rendered. Links and images are represented as readable text in the card, not as interactive or embedded external media. XML-sensitive text is escaped before rendering.
+
 ## Visual design
 
-The announcement card uses a true AMOLED black canvas with a smoked charcoal surface, a restrained yellow haze, a neon yellow edge, and soft glow and text shadows. Body typography is intentionally larger than ordinary Reddit comment text for comfortable reading. Markdown emphasis such as **bold**, *italic*, and ***bold italic*** is retained by the SVG renderer. The card grows vertically with wrapped content and rejects text that would exceed its readability limits rather than clipping it.
+The announcement card uses a true AMOLED black canvas with a smoked charcoal surface, a restrained yellow haze, a neon yellow edge, and soft glow and text shadows. Body typography is intentionally larger than ordinary Reddit comment text for comfortable reading. Latin bold and italic faces use bundled IBM Plex Sans files. Malayalam and Tamil use bundled Noto Sans fonts. The card grows vertically with wrapped content and rejects text that would exceed its readability limits rather than clipping it.
 
-The generated card uses the ModGlow identity and a moderator announcement label. It does not imitate Reddit's full comment interface or include voting and reply controls.
+The generated card uses the ModGlow identity, a moderator badge, an announcement label, and a pinned marker. It does not imitate Reddit's full comment interface or include voting and reply controls.
 
 ## Permissions and safety
 
 - The post menu action is visible only to moderators.
 - The server independently verifies the user's moderator permissions before publishing.
 - The target post ID, subreddit name, and immutable subreddit ID are checked before content is generated.
-- A short-lived Redis lock prevents simultaneous duplicate submissions for the same post.
-- The app publishes exactly one top-level image comment per successful submission.
+- A short-lived Redis lock prevents simultaneous submissions for the same post.
+- The app publishes one top-level image comment per successful submission.
 - The app calls the comment's moderator distinction method with sticky enabled, then fetches the comment again to verify both states.
 - If pinning fails, ModGlow attempts to delete the incomplete app-authored comment rather than leave an unpinned announcement behind.
 - The app does not store announcement text in Redis and makes no external HTTP or AI service requests.
@@ -52,7 +64,7 @@ npm run check
 npm run dev
 ```
 
-In a test subreddit, open a post as a moderator and select **Create ModGlow announcement**. Test Markdown formatting, long text, emoji, XML characters, Malayalam, Tamil, duplicate submissions, a moderator without post permissions, a removed post, media upload failure, comment submission failure, and pin failure.
+In a test subreddit, open a post as a moderator and select **Create ModGlow announcement**. Test every supported Markdown block and inline style, long text, emoji, XML characters, Malayalam, Tamil, duplicate and concurrent requests, a moderator without post permissions, a removed post, media upload failure, comment submission failure, and pin failure.
 
 Verify that:
 - The comment appears directly under the selected post.
