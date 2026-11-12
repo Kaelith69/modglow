@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { belongsToSubreddit, hasCommentModerationPermission, isCommentId, isPostId } from './moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId } from './moderation.ts';
 
 test('comment moderation requires all or posts permission', () => {
   assert.equal(hasCommentModerationPermission(['posts']), true);
@@ -28,4 +28,27 @@ test('post identifiers must be valid post fullnames', () => {
   assert.equal(isPostId('abc123'), false);
   assert.equal(isPostId('t3_'), false);
   assert.equal(isPostId(null), false);
+});
+
+test('subreddit IDs must match exactly', () => {
+  assert.equal(belongsToSubredditId('t5_abc123', 't5_abc123'), true);
+  assert.equal(belongsToSubredditId('t5_abc123', 't5_other'), false);
+});
+
+test('comment availability rejects removed and author-deleted content', () => {
+  assert.equal(hasCommentContentAvailable('A valid comment', 'author', false), true);
+  assert.equal(hasCommentContentAvailable('   ', 'author', false), false);
+  assert.equal(hasCommentContentAvailable('[deleted]', '[deleted]', false), false);
+  assert.equal(hasCommentContentAvailable('[removed]', 'author', false), false);
+  assert.equal(hasCommentContentAvailable('valid', '[deleted]', false), false);
+  assert.equal(hasCommentContentAvailable('valid', 'author', true), false);
+});
+
+test('not found errors are distinguished from transient failures', () => {
+  assert.equal(isNotFoundError({ status: 404 }), true);
+  assert.equal(isNotFoundError({ response: { status: 404 } }), true);
+  assert.equal(isNotFoundError({ code: 'NOT_FOUND' }), true);
+  assert.equal(isNotFoundError(new Error('Post not found')), true);
+  assert.equal(isNotFoundError({ status: 503, message: 'Service unavailable' }), false);
+  assert.equal(isNotFoundError(new Error('Network timeout')), false);
 });
