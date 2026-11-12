@@ -36,7 +36,7 @@ const announcementFields = (): FormField[] => [
     required: true,
     placeholder: '## Important update\\n\\nWrite your announcement here. Use # headings, - bullets, 1. numbered lists, **bold**, *italic*, > quotes, `code`, and [links](https://example.com).',
     helpText: 'Short announcements can stay inside the SVG. Enable the option above for longer content and full native Reddit formatting. Supports headings, bold, italic, strikethrough, links, lists, quotes, and code blocks.',
-  },,
+  },
 ];
 
 menu.post('/create-announcement', async (c) => {
