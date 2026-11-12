@@ -100,7 +100,7 @@ test('headings, quotes, ordered lists, and unordered lists retain block styling'
   const svg = buildAnnouncementSvg(
     '# Important\n> Please read this.\n- First item\n2. Second item',
   );
-  assert.match(svg, /font-weight="700" font-style="normal" fill="#F20D24">Important<\/tspan>/);
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#7CFF00">Important<\/tspan>/);
   assert.match(svg, /› /);
   assert.match(svg, /• /);
   assert.match(svg, /2\. /);
