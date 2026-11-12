@@ -51,7 +51,7 @@ test('the four supported flairs use distinct solid comic templates', async () =>
   }
   assert.match(cards[0], /stroke="#FF4055"/);
   assert.match(cards[1], /stroke="#32B8FF"/);
-  assert.match(cards[2], /stroke="#FF9D28"/);
+  assert.match(cards[2], /stroke="#FF9900"/);
   assert.match(cards[3], /stroke="#FFE34F"/);
 });
 
