@@ -8,7 +8,7 @@ import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, 
 import { buildAnnouncementRichText } from '../core/richtext.ts';
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
@@ -140,7 +140,7 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     const verifiedComment = await reddit.getCommentById(publishedComment.id);
-    if (!verifiedComment.stickied || verifiedComment.distinguishedBy !== 'moderator') {
+    if (!isModeratorPinnedComment(verifiedComment)) {
       pinMismatchConfirmed = true;
       throw new Error('Reddit confirmed that the ModGlow comment is not both pinned and moderator distinguished.');
     }
