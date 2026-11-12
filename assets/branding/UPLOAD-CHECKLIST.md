@@ -1,9 +1,9 @@
 # ModGlow upload checklist
 
-- Upload `png/icon-1024.png` as the app icon.
-- Upload `png/app-directory-banner-1600x700.png` as the listing banner if offered.
+- Use `assets/modglow-icon.png` as the Devvit app icon. This is the single maintained PNG icon asset.
+- Use `svg/modglow-wordmark-dark.svg` or `svg/modglow-wordmark-light.svg` for editable wordmark artwork.
 - Use `svg/announcement-card-sample.svg` as a vector example of the generated image comment.
-- Listing artwork is promotional material, not a genuine screenshot of the running app.
+- No App Directory banner export is maintained in this repository.
 - Capture genuine screenshots from a Devvit playtest for fields that request product screenshots.
 - Check artwork at full resolution and at target display size.
 - Do not add Reddit's logo, Snoo, or an imitation of Reddit's interface.
