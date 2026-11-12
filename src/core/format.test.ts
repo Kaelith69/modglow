@@ -1,141 +1,112 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escapeXml, markdownToPlainText, relativeTime, wrapText, wrapTextByWidth } from './format.ts';
-import { buildAnnouncementSvg, buildCommentSvg } from './render.ts';
+import { escapeXml } from './format.ts';
+import { buildAnnouncementSvg } from './render.ts';
 
-test('escapeXml neutralises markup characters', () => {
-  assert.equal(escapeXml("<tag a=\"x\">Tom & 'Ada'</tag>"), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
+test('escapeXml neutralises all XML markup characters', () => {
+  assert.equal(
+    escapeXml(`<tag a="x">Tom & 'Ada'</tag>`),
+    '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;',
+  );
 });
 
-test('escapeXml removes XML-invalid control characters', () => {
-  const input = 'safe' + String.fromCharCode(0, 8) + 'text and valid' + String.fromCharCode(10) + 'line';
-  assert.equal(escapeXml(input), 'safetext and valid\nline');
+test('escapeXml removes XML-invalid control and surrogate characters', () => {
+  const input = 'safe' + String.fromCharCode(0, 8, 0xd800, 0xfffe) + 'text\nline';
+  assert.equal(escapeXml(input), 'safetext\nline');
 });
 
-test('markdownToPlainText keeps readable content and strips formatting syntax', () => {
-  const result = markdownToPlainText('**Notice**\n\nRead [the rules](https://example.com).\n> Be kind');
-  assert.equal(result, 'Notice\n\nRead the rules.\nBe kind');
-});
-
-test('wrapText wraps long lines and keeps all content', () => {
-  const source = 'alpha beta gamma delta epsilon zeta';
-  const lines = wrapText(source, 12);
-  assert.deepEqual(lines, ['alpha beta', 'gamma delta', 'epsilon zeta']);
-  assert.equal(lines.join(' '), source);
-});
-
-test('wrapping helpers reject invalid limits instead of looping forever', () => {
-  assert.throws(() => wrapText('abc', 0), /positive integer/);
-  assert.throws(() => wrapTextByWidth('abc', 0, 12), /positive finite number/);
-  assert.throws(() => wrapTextByWidth('abc', 100, Number.NaN), /positive finite number/);
-});
-
-test('relativeTime handles invalid dates without exposing Invalid Date', () => {
-  assert.equal(relativeTime(new Date(Number.NaN)), 'date unavailable');
-});
-
-test('wrapTextByWidth keeps wide text within the image column', () => {
-  const lines = wrapTextByWidth('W'.repeat(120), 1000, 42);
-  assert.ok(lines.length > 1);
-  assert.equal(lines.join('').length, 120);
-});
-
-test('comment card uses the ModGlow identity and a clean pinned comment layout', () => {
-  const svg = buildCommentSvg({
-    subredditName: 'Coconaad',
-    body: 'This is an example',
-    createdAt: new Date('2026-11-12T00:00:00Z'),
-    edited: false,
-  });
+test('announcement SVG uses the AMOLED smoked yellow ModGlow identity', () => {
+  const svg = buildAnnouncementSvg('A moderator announcement.');
   assert.match(svg, /width="1536" height="438" viewBox="0 0 1536 438"/);
-  assert.match(svg, /#000000/);
-  assert.match(svg, /#FFE45C/);
-  assert.match(svg, /#C9C5B5/);
-  assert.match(svg, /#FFE45C/);
-  assert.match(svg, /Pinned/);
-  assert.match(svg, />Mod</);
+  assert.match(svg, /<title>ModGlow moderator announcement<\/title>/);
+  assert.match(svg, /fill="#000000"/);
+  assert.match(svg, /url\(#smokedSurface\)/);
+  assert.match(svg, /url\(#yellowSmoke\)/);
+  assert.match(svg, /url\(#neonEdge\)/);
+  assert.match(svg, /filter="url\(#softGlow\)"/);
+  assert.match(svg, /filter="url\(#textShadow\)"/);
   assert.match(svg, />ModGlow</);
-  assert.match(svg, /<circle cx="132" cy="124"/);
-  assert.match(svg, /M512 92 L858 292/);
-  assert.doesNotMatch(svg, /Reply|Vote|<script>|cx="654"|M818|M1127|M1380/);
-});
-
-test('comment card preserves bold, italic, and bold italic Markdown', () => {
-  const svg = buildCommentSvg({
-    subredditName: 'Coconaad',
-    body: 'A **bold** and *italic* and ***bold italic*** phrase.',
-    createdAt: new Date(),
-    edited: false,
-  });
-  assert.match(svg, /font-weight="700" font-style="normal">bold</);
-  assert.match(svg, /font-weight="400" font-style="italic">italic</);
-  assert.match(svg, /font-weight="700" font-style="italic">bold italic</);
-});
-
-test('comment card keeps edited metadata compact and handles older timestamps', () => {
-  const svg = buildCommentSvg({
-    subredditName: 'Coconaad',
-    body: 'A thoughtful reply.',
-    createdAt: new Date('2020-01-01T00:00:00Z'),
-    edited: true,
-  });
-  assert.match(svg, />Jan 1</);
-  assert.match(svg, />edited</);
+  assert.match(svg, />Mod</);
+  assert.match(svg, />ANNOUNCEMENT</);
   assert.match(svg, />Pinned</);
+  assert.doesNotMatch(svg, /Reply|Vote|<script>/);
 });
 
-test('comment card escapes hostile comment content', () => {
-  const svg = buildCommentSvg({
-    subredditName: 'safe',
-    body: 'A < 8 & 9 > 3',
-    createdAt: new Date(),
-    edited: false,
-  });
-  assert.match(svg, /A &lt; 8 &amp; 9 &gt; 3/);
+test('inline Markdown preserves bold, italic, bold italic, and strikethrough', () => {
+  const svg = buildAnnouncementSvg(
+    'A **bold** and *italic* and ***bold italic*** and ~~removed~~ phrase.',
+  );
+  assert.match(svg, /font-weight="700" font-style="normal"[^>]*>bold<\/tspan>/);
+  assert.match(svg, /font-weight="400" font-style="italic"[^>]*>italic<\/tspan>/);
+  assert.match(svg, /font-weight="700" font-style="italic"[^>]*>bold italic<\/tspan>/);
+  assert.match(svg, /text-decoration="line-through">removed<\/tspan>/);
+});
+
+test('underscore emphasis and escaped Markdown markers render literally', () => {
+  const svg = buildAnnouncementSvg('__bold__ and _italic_ and \\*literal\\*');
+  assert.match(svg, /font-weight="700" font-style="normal"[^>]*>bold<\/tspan>/);
+  assert.match(svg, /font-weight="400" font-style="italic"[^>]*>italic<\/tspan>/);
+  assert.match(svg, /and \*literal\*<\/tspan>/);
+  assert.doesNotMatch(svg, /font-style="italic"[^>]*>literal<\/tspan>/);
+});
+
+test('headings, quotes, ordered lists, and unordered lists retain block styling', () => {
+  const svg = buildAnnouncementSvg(
+    '# Important\n> Please read this.\n- First item\n2. Second item',
+  );
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFEFA3">Important<\/tspan>/);
+  assert.match(svg, /› /);
+  assert.match(svg, /• /);
+  assert.match(svg, /2\. /);
+  assert.match(svg, /font-style="italic"/);
+});
+
+test('inline and fenced code remain literal and use highlighted text styling', () => {
+  const svg = buildAnnouncementSvg(
+    'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
+  );
+  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#FFEFA3"/);
+  assert.match(svg, /\*\*not bold\*\*/);
+  assert.match(svg, /\*\*literal\*\*/);
+  assert.doesNotMatch(svg, /font-weight="700" font-style="normal"[^>]*>not bold</);
+});
+
+test('links preserve their readable label and images preserve their alt text', () => {
+  const svg = buildAnnouncementSvg(
+    'Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)',
+  );
+  assert.match(svg, /Read the rules\./);
+  assert.match(svg, />Diagram</);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/);
+});
+
+test('hostile HTML and SVG content is displayed as safe text or removed as markup', () => {
+  const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3');
   assert.doesNotMatch(svg, /<script>/);
+  assert.match(svg, /Text alert\(1\) &amp; 2 &lt; 3/);
 });
 
-test('comment card grows with multiline text and keeps comfortable bottom padding', () => {
-  const svg = buildCommentSvg({
-    subredditName: 'Coconaad',
-    body: 'A first line with enough words to wrap across the card. '.repeat(8),
-    createdAt: new Date(),
-    edited: false,
-  });
+test('long Markdown runs wrap across lines without losing emphasis', () => {
+  const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
+  const boldLines = [...svg.matchAll(/font-weight="700" font-style="normal"/g)];
+  const italicLines = [...svg.matchAll(/font-weight="400" font-style="italic"/g)];
+  assert.ok(boldLines.length >= 2);
+  assert.ok(italicLines.length >= 2);
+  assert.match(svg, /height="\d+"/);
+});
+
+test('the card grows with wrapped text and preserves bottom breathing room', () => {
+  const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
   const lineCount = svg.match(/<tspan x="76" dy="/g)?.length ?? 1;
   const bodyEndY = 252 + (lineCount - 1) * 82 + 64;
-  assert.ok(height > 410);
+  assert.ok(height > 438);
   assert.ok(height >= bodyEndY + 112);
-  assert.doesNotMatch(svg, /Reply|Vote|cx="654"/);
 });
 
-test('spotlight image rejects oversized comments instead of clipping content', () => {
-  assert.throws(() => buildCommentSvg({
-    subredditName: 'Coconaad',
-    body: 'W'.repeat(3000),
-    createdAt: new Date(),
-    edited: false,
-  }), /too long to feature safely/);
-});
-
-test('announcement card renders moderator-authored Markdown as a pinned image comment', () => {
-  const svg = buildAnnouncementSvg('## Important update\n\nA **bold** and *italic* and ***bold italic*** announcement.');
-  assert.match(svg, /ModGlow moderator announcement/);
-  assert.match(svg, />INFO</);
-  assert.match(svg, />Pinned</);
-  assert.match(svg, /font-weight="700" font-style="normal">bold</);
-  assert.match(svg, /font-weight="400" font-style="italic">italic</);
-  assert.match(svg, /font-weight="700" font-style="italic">bold italic</);
-  assert.match(svg, /fill="#000000"/);
-  assert.match(svg, /url\(#yellowSmoke\)/);
-  assert.match(svg, /url\(#neonEdge\)/);
-});
-
-test('announcement Markdown emphasis survives wrapping across multiple SVG lines', () => {
-  const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
-  const boldLines = [...svg.matchAll(/<tspan font-weight="700" font-style="normal">/g)];
-  const italicLines = [...svg.matchAll(/<tspan font-weight="400" font-style="italic">/g)];
-  assert.ok(boldLines.length >= 2);
-  assert.ok(italicLines.length >= 2);
+test('empty, markup-only, overlong, and excessively tall announcements are rejected', () => {
+  assert.throws(() => buildAnnouncementSvg('   '), /no renderable text/);
+  assert.throws(() => buildAnnouncementSvg('<b></b>'), /no renderable text/);
+  assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
+  assert.throws(() => buildAnnouncementSvg('W '.repeat(650)), /more than 24 rendered lines/);
 });

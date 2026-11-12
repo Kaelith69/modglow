@@ -1,35 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { belongsToSubreddit, belongsToSubredditId, buildPostSourceIndex, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError, isPostId, isUserId } from './moderation.ts';
+import {
+  belongsToSubreddit,
+  belongsToSubredditId,
+  hasPostModerationPermission,
+  isNotFoundError,
+  isPostId,
+  isUserId,
+} from './moderation.ts';
 
-test('comment moderation requires all or posts permission', () => {
-  assert.equal(hasCommentModerationPermission(['posts']), true);
-  assert.equal(hasCommentModerationPermission(['all']), true);
-  assert.equal(hasCommentModerationPermission(['wiki', 'flair']), false);
-  assert.equal(hasCommentModerationPermission([]), false);
+test('post moderation requires all or posts permission', () => {
+  assert.equal(hasPostModerationPermission(['posts']), true);
+  assert.equal(hasPostModerationPermission(['all']), true);
+  assert.equal(hasPostModerationPermission(['wiki', 'flair']), false);
+  assert.equal(hasPostModerationPermission([]), false);
 });
 
-test('comment identifiers must be valid fullnames', () => {
-  assert.equal(isCommentId('t1_abc123'), true);
-  assert.equal(isCommentId('t3_abc123'), false);
-  assert.equal(isCommentId('abc123'), false);
-  assert.equal(isCommentId('t1_'), false);
-  assert.equal(isCommentId(null), false);
-});
-
-test('user identifiers must be valid Reddit user fullnames', () => {
-  assert.equal(isUserId('t2_abc123'), true);
-  assert.equal(isUserId('t1_abc123'), false);
-  assert.equal(isUserId('abc123'), false);
-  assert.equal(isUserId(null), false);
-});
-
-test('subreddit comparison is case insensitive and whitespace safe', () => {
-  assert.equal(belongsToSubreddit('Coconaad', ' coconaad '), true);
-  assert.equal(belongsToSubreddit('Coconaad', 'OtherSub'), false);
-});
-
-test('post identifiers must be valid post fullnames', () => {
+test('post identifiers must be valid Reddit fullnames', () => {
   assert.equal(isPostId('t3_abc123'), true);
   assert.equal(isPostId('t1_abc123'), false);
   assert.equal(isPostId('abc123'), false);
@@ -37,18 +24,22 @@ test('post identifiers must be valid post fullnames', () => {
   assert.equal(isPostId(null), false);
 });
 
+test('user identifiers must be valid Reddit fullnames', () => {
+  assert.equal(isUserId('t2_abc123'), true);
+  assert.equal(isUserId('t1_abc123'), false);
+  assert.equal(isUserId('abc123'), false);
+  assert.equal(isUserId('t2_'), false);
+  assert.equal(isUserId(null), false);
+});
+
+test('subreddit names compare case insensitively and ignore surrounding whitespace', () => {
+  assert.equal(belongsToSubreddit('Coconaad', ' coconaad '), true);
+  assert.equal(belongsToSubreddit('Coconaad', 'OtherSub'), false);
+});
+
 test('subreddit IDs must match exactly', () => {
   assert.equal(belongsToSubredditId('t5_abc123', 't5_abc123'), true);
   assert.equal(belongsToSubredditId('t5_abc123', 't5_other'), false);
-});
-
-test('comment availability rejects removed and author-deleted content', () => {
-  assert.equal(hasCommentContentAvailable('A valid comment', 'author', false), true);
-  assert.equal(hasCommentContentAvailable('   ', 'author', false), false);
-  assert.equal(hasCommentContentAvailable('[deleted]', '[deleted]', false), false);
-  assert.equal(hasCommentContentAvailable('[removed]', 'author', false), false);
-  assert.equal(hasCommentContentAvailable('valid', '[deleted]', false), false);
-  assert.equal(hasCommentContentAvailable('valid', 'author', true), false);
 });
 
 test('not found errors are distinguished from transient failures', () => {
@@ -58,20 +49,4 @@ test('not found errors are distinguished from transient failures', () => {
   assert.equal(isNotFoundError(new Error('Post not found')), true);
   assert.equal(isNotFoundError({ status: 503, message: 'Service unavailable' }), false);
   assert.equal(isNotFoundError(new Error('Network timeout')), false);
-});
-
-
-test('reverse post index migrates only valid comment and post fullnames', () => {
-  assert.deepEqual(
-    buildPostSourceIndex({
-      t1_source1: 't3_post1',
-      t1_source2: 't3_post2',
-      invalid: 't3_post1',
-      t1_source3: 'not-a-post',
-    }),
-    {
-      t3_post1: 't1_source1',
-      t3_post2: 't1_source2',
-    },
-  );
 });

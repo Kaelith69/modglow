@@ -8,24 +8,21 @@
       1600,
       700
     ],
-    "spotlight_card": [
+    "announcement_card_minimum": [
       1536,
       438
-    ],
-    "promo_panels": [
-      1080,
-      1920
     ]
   },
   "layout_rules": [
-    "The featured comment uses a 1536px wide true AMOLED black canvas with a smoked charcoal surface.",
-    "A restrained warm yellow haze, fine illuminated edge, and soft shadows provide depth without washing out the black background.",
-    "Header includes ModGlow icon and name, moderator badge, timestamp, and pinned marker.",
-    "Comment text uses 64px IBM Plex Sans with 82px line height, larger than typical Reddit comment text.",
-    "Bold, italic, and bold italic Markdown runs are retained in the SVG.",
+    "The announcement card uses a 1536px wide true AMOLED black canvas with a smoked charcoal surface.",
+    "A restrained warm yellow haze, fine illuminated edge, and soft shadows add depth without washing out the black background.",
+    "The header contains the ModGlow mark and name, moderator badge, announcement label, and pinned marker.",
+    "Body text uses 64px IBM Plex Sans with 82px line height, larger than typical Reddit comment text.",
+    "Bold, italic, bold italic, strikethrough, headings, quotes, and list markers are supported in the SVG.",
+    "Inline and fenced code use the bundled IBM Plex Sans face with a warm yellow tint.",
     "The card grows vertically with wrapped text and keeps 112px of bottom breathing room.",
-    "SVG text is escaped and oversized content is rejected rather than clipped.",
-    "Promo panels remain marketing artwork, not screenshots of a live app."
+    "XML text is escaped and oversized content is rejected rather than clipped.",
+    "Listing artwork is not presented as a screenshot of the live app."
   ],
-  "note": "AMOLED black and warm neon yellow smoked glass visual system. Renderer is the source of truth for actual output dimensions."
+  "note": "AMOLED black and warm neon yellow smoked glass visual system. The renderer is the source of truth for actual output dimensions."
 }

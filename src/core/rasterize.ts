@@ -3,7 +3,9 @@ import { initWasm, Resvg } from '@resvg/resvg-wasm';
 import wasmBase64 from 'virtual:resvg-wasm-base64';
 import regularFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?inline';
 import semiboldFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2?inline';
+import italicFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-italic.woff2?inline';
 import boldFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-normal.woff2?inline';
+import boldItalicFontDataUrl from '@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-700-italic.woff2?inline';
 import malayalamFontDataUrl from '@fontsource/noto-sans-malayalam/files/noto-sans-malayalam-malayalam-400-normal.woff2?inline';
 import tamilFontDataUrl from '@fontsource/noto-sans-tamil/files/noto-sans-tamil-tamil-400-normal.woff2?inline';
 
@@ -34,7 +36,7 @@ async function ensureRenderer(): Promise<void> {
   }
 }
 
-export async function renderCommentPng(svg: string): Promise<Uint8Array> {
+export async function renderAnnouncementPng(svg: string): Promise<Uint8Array> {
   await ensureRenderer();
   const renderer = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
@@ -43,7 +45,9 @@ export async function renderCommentPng(svg: string): Promise<Uint8Array> {
       fontBuffers: [
         decodeDataUrl(regularFontDataUrl),
         decodeDataUrl(semiboldFontDataUrl),
+        decodeDataUrl(italicFontDataUrl),
         decodeDataUrl(boldFontDataUrl),
+        decodeDataUrl(boldItalicFontDataUrl),
         decodeDataUrl(malayalamFontDataUrl),
         decodeDataUrl(tamilFontDataUrl),
       ],

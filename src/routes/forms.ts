@@ -4,9 +4,9 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { buildAnnouncementSvg } from '../core/render.ts';
-import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
+import { renderAnnouncementPng } from '../core/rasterize.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
@@ -16,7 +16,6 @@ export const forms = new Hono();
 
 const LOCK_PREFIX = 'modglow:v1:announcement-lock:';
 const LOCK_TTL_SECONDS = 45;
-const MAX_ANNOUNCEMENT_CHARS = 2600;
 
 function toast(message: string): UiResponse {
   return { showToast: message };
@@ -26,6 +25,8 @@ async function acquirePostLock(postId: string): Promise<string | undefined> {
   const key = `${LOCK_PREFIX}${postId}`;
   const token = `${Date.now()}:${randomUUID()}`;
 
+  // SET NX is atomic. The 45 second lease exceeds Devvit's 30 second
+  // request limit, so a live request cannot normally outlast its lock.
   await redis.set(key, token, {
     nx: true,
     expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
@@ -36,6 +37,8 @@ async function acquirePostLock(postId: string): Promise<string | undefined> {
 
 async function releasePostLock(postId: string, token: string): Promise<void> {
   const key = `${LOCK_PREFIX}${postId}`;
+  // Compare the token before release so this request never deletes another
+  // request's lock. The lease duration prevents a live request reaching expiry.
   if ((await redis.get(key)) === token) await redis.del(key);
 }
 
@@ -43,13 +46,15 @@ async function verifyModerator(subredditName: string, userId: `t2_${string}`): P
   const moderator = await reddit.getUserById(userId);
   if (!moderator) return false;
   const permissions = await moderator.getModPermissionsForSubreddit(subredditName);
-  return hasCommentModerationPermission(permissions);
+  return hasPostModerationPermission(permissions);
 }
 
 forms.post('/create-announcement-submit', async (c) => {
-  const values = await c.req.json<AnnouncementFormValues>().catch(() => ({} as AnnouncementFormValues));
+  const values = await c.req.json<AnnouncementFormValues | null>().catch(() => null);
   const postId = context.postId ?? '';
-  const announcement = typeof values.announcement === 'string' ? values.announcement.trim() : '';
+  const announcement = values && typeof values === 'object' && typeof values.announcement === 'string'
+    ? values.announcement.trim()
+    : '';
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Write an announcement before publishing.'));
@@ -84,7 +89,7 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     const svg = buildAnnouncementSvg(announcement);
-    const png = await renderCommentPng(svg);
+    const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
