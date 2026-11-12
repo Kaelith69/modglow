@@ -10,6 +10,7 @@ import malayalamFontDataUrl from '@fontsource/noto-sans-malayalam/files/noto-san
 import tamilFontDataUrl from '@fontsource/noto-sans-tamil/files/noto-sans-tamil-tamil-400-normal.woff2?inline';
 
 let rendererReady: Promise<void> | undefined;
+let fontBuffers: Uint8Array[] | undefined;
 
 function decodeDataUrl(dataUrl: string): Uint8Array {
   const comma = dataUrl.indexOf(',');
@@ -19,6 +20,21 @@ function decodeDataUrl(dataUrl: string): Uint8Array {
 
 function decodeWasmBase64(base64: string): Uint8Array {
   return new Uint8Array(Buffer.from(base64, 'base64'));
+}
+
+function getFontBuffers(): Uint8Array[] {
+  if (!fontBuffers) {
+    fontBuffers = [
+      decodeDataUrl(regularFontDataUrl),
+      decodeDataUrl(semiboldFontDataUrl),
+      decodeDataUrl(italicFontDataUrl),
+      decodeDataUrl(boldFontDataUrl),
+      decodeDataUrl(boldItalicFontDataUrl),
+      decodeDataUrl(malayalamFontDataUrl),
+      decodeDataUrl(tamilFontDataUrl),
+    ];
+  }
+  return fontBuffers;
 }
 
 async function ensureRenderer(): Promise<void> {
@@ -42,23 +58,26 @@ export async function renderAnnouncementPng(svg: string): Promise<Uint8Array> {
     fitTo: { mode: 'width', value: 1200 },
     background: '#000000',
     font: {
-      fontBuffers: [
-        decodeDataUrl(regularFontDataUrl),
-        decodeDataUrl(semiboldFontDataUrl),
-        decodeDataUrl(italicFontDataUrl),
-        decodeDataUrl(boldFontDataUrl),
-        decodeDataUrl(boldItalicFontDataUrl),
-        decodeDataUrl(malayalamFontDataUrl),
-        decodeDataUrl(tamilFontDataUrl),
-      ],
+      fontBuffers: getFontBuffers(),
       defaultFontFamily: 'IBM Plex Sans',
       sansSerifFamily: 'IBM Plex Sans',
       loadSystemFonts: false,
     },
   });
-  const png = renderer.render().asPng();
-  if (png.byteLength > 19 * 1024 * 1024) {
-    throw new Error('The generated image exceeds Reddit’s safe upload size.');
+
+  let rendered: ReturnType<typeof renderer.render> | undefined;
+  try {
+    rendered = renderer.render();
+    const png = rendered.asPng();
+    if (png.byteLength > 19 * 1024 * 1024) {
+      throw new Error('The generated image exceeds Reddit’s safe upload size.');
+    }
+    return png;
+  } finally {
+    try {
+      rendered?.free();
+    } finally {
+      renderer.free();
+    }
   }
-  return png;
 }
