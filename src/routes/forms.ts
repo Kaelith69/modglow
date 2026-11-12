@@ -92,6 +92,7 @@ forms.post('/create-announcement-submit', async (c) => {
   let pinMismatchConfirmed = false;
   let cleanupFailed = false;
   let cleanupCompleted = false;
+  let preserveLockUntilExpiry = false;
 
   try {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
@@ -173,17 +174,20 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     if (commentSubmissionStarted && !publishedComment) {
+      preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
         'Reddit may have received the comment request, but ModGlow did not receive a confirmation. Check the post before retrying to avoid duplicate announcements.',
       ));
     }
 
     if (publishedComment && !pinnedAndVerified && !pinMismatchConfirmed) {
+      preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
         'A ModGlow comment may have been published, but Reddit could not confirm its pin status. Check the post before retrying to avoid duplicate announcements.',
       ));
     }
     if (cleanupFailed) {
+      preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
         'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying.',
       ));
@@ -196,7 +200,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
     return c.json<UiResponse>(toast('Could not publish and pin the ModGlow announcement. Check the post, moderator permissions, and Reddit comment availability, then try again.'));
   } finally {
-    if (lockToken) {
+    if (lockToken && !preserveLockUntilExpiry) {
       try {
         await releasePostLock(postId, lockToken);
       } catch (error) {
