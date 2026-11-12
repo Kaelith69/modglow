@@ -25,6 +25,8 @@ async function acquirePostLock(postId: string): Promise<string | undefined> {
   const key = `${LOCK_PREFIX}${postId}`;
   const token = `${Date.now()}:${randomUUID()}`;
 
+  // SET NX is atomic. The 45 second lease exceeds Devvit's 30 second
+  // request limit, so a live request cannot normally outlast its lock.
   await redis.set(key, token, {
     nx: true,
     expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
@@ -35,6 +37,8 @@ async function acquirePostLock(postId: string): Promise<string | undefined> {
 
 async function releasePostLock(postId: string, token: string): Promise<void> {
   const key = `${LOCK_PREFIX}${postId}`;
+  // Compare the token before release so this request never deletes another
+  // request's lock. The lease duration prevents a live request reaching expiry.
   if ((await redis.get(key)) === token) await redis.del(key);
 }
 
@@ -46,9 +50,11 @@ async function verifyModerator(subredditName: string, userId: `t2_${string}`): P
 }
 
 forms.post('/create-announcement-submit', async (c) => {
-  const values = await c.req.json<AnnouncementFormValues>().catch(() => ({} as AnnouncementFormValues));
+  const values = await c.req.json<AnnouncementFormValues | null>().catch(() => null);
   const postId = context.postId ?? '';
-  const announcement = typeof values.announcement === 'string' ? values.announcement.trim() : '';
+  const announcement = values && typeof values === 'object' && typeof values.announcement === 'string'
+    ? values.announcement.trim()
+    : '';
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Write an announcement before publishing.'));
