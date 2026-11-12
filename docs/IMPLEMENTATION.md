@@ -91,4 +91,7 @@ The server builds a custom dark comment card SVG using XML-safe escaped comment 
 
 ## Comment card layout
 
+The generated image uses a 1536px wide canvas with the ModGlow app icon and name, moderator badge, relative timestamp, pinned marker, and comment body. The surface is true AMOLED black with a smoked charcoal overlay, a restrained warm yellow haze, an illuminated edge, and soft shadows. Body text is 64px with 82px line height, slightly larger than typical Reddit comment text. Inline bold, italic, and bold italic Markdown is retained. The card grows vertically with wrapped text and keeps 112px of bottom breathing room after the final baseline. XML text is escaped and oversized content is rejected rather than clipped.
+
+
 The generated image uses a 1536px wide canvas with the ModGlow app icon and name, moderator badge, relative timestamp, pinned marker, and comment body. The original commenter username and avatar are omitted from the image and remain attributed in the post caption and source link. The overflow menu, reply control, vote label, upvote arrow, and downvote arrow are removed. It uses near black surfaces with a restrained neon yellow green glow and muted blue grey metadata. The layout grows vertically as wrapped comment text requires and keeps 106px of bottom breathing room after the final text baseline. The renderer escapes XML content and rejects text that would exceed the readable line limit.
