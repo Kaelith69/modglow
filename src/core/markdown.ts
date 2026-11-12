@@ -51,7 +51,7 @@ function safeHttpUrl(value: string): boolean {
 /** Parse the inline Markdown subset supported by Reddit rich text comments. */
 export function parseInlineMarkdown(value: string): MarkdownInline[] {
   const nodes: MarkdownInline[] = [];
-  const pattern = /\\([\\`*_{}\[\]()#+.!>~-])|!\[([^\]]*)\]\(([^\s)]+)\)|\[([^\]]+)\]\(([^\s)]+)\)|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|~~(.+?)~~|`([^`]+)`|\*(.+?)\*|_(.+?)_/gu;
+  const pattern = /\\([\\`*_{}\x5B\]()#+.!>~-])|!\[([^\]]*)\]\(([^\s)]+)\)|\[([^\]]+)\]\(([^\s)]+)\)|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|~~(.+?)~~|`([^`]+)`|\*(.+?)\*|_(.+?)_/gu;
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
