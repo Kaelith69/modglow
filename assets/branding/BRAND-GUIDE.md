@@ -1,20 +1,24 @@
 # ModGlow brand guide
 
-## Moderator announcement card
+## Four moderator announcement templates
 
-The generated image uses a true AMOLED black canvas with a smoked charcoal surface, a fine warm yellow illuminated edge, and a restrained yellow haze. The header contains the ModGlow app mark and name, a moderator badge, an announcement label, and a pinned marker. It does not display a source-comment author, comment timestamp, or source attribution because the moderator writes the announcement directly.
+The composer offers exactly four flairs. Each has a distinct comic book composition, while all four remain part of the same visual system.
 
-The body uses high-contrast warm white text, with yellow highlights for headings, list markers, and inline code. Bold, italic, bold italic, and strikethrough styles are rendered as text runs. The design uses restrained SVG shadows for legibility and a soft ambient yellow glow. The surface remains nearly black and avoids a broad grey fog, heavy gradients, or excessive neon bloom.
+| Flair | Template | Accent |
+| --- | --- | --- |
+| IMPORTANT | Red angular alert panel | `#FF4055` |
+| NOTICE | Blue framed editorial panel | `#32B8FF` |
+| REMINDER | Orange calendar inspired panel | `#FF9D28` |
+| ANNOUNCEMENT | Yellow poster panel | `#FFE34F` |
 
-## Palette
+## Shared visual rules
 
-- AMOLED canvas: `#000000`
-- Smoked surface: `#080808` to `#101010`
-- Main text: `#F2F0E8`
-- Neon yellow: `#FFE45C`
-- Pale highlight: `#FFEFA3`
-- Muted gold: `#A99B62`
-- Badge surface: `#29230D`
+- True AMOLED black canvas: `#000000`.
+- Solid colour fills only. No gradients, blended colours, transparency, glow, or drop shadows.
+- High contrast warm white body text: `#F2F0E8`.
+- Bold comic book typography and clean vector outlines.
+- The selected flair accent colours headings, list markers, and inline code.
+- No decorative elements that compete with the announcement text.
 
 ## Typography
 
