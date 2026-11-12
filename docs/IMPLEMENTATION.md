@@ -1,53 +1,68 @@
 # Implementation and safety notes
 
-## Request flow
+## Feature flow
 
-1. Reddit shows the comment menu item only to moderators.
-2. The menu endpoint opens a short form containing the selected comment ID and an explicit author permission attestation.
-3. The submit endpoint verifies the caller's moderator identity and post permission for the current subreddit.
-4. It fetches the comment again and verifies the comment belongs to the current subreddit, is available, has text, and has an attributable author.
-5. It acquires a per comment Redis lock using `WATCH` and an expiring transaction, then checks the completed feature map.
-6. It converts a safe Markdown subset to plain text, escapes XML, renders an original editorial SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
-7. It submits the post explicitly as `APP`, distinguishes it, pins it in the next available sticky slot, and re-fetches it to verify both states.
-8. It records the source comment ID to generated post ID mapping. The feature action never edits or removes the original comment.
+1. Reddit exposes the comment menu action only to moderators.
+2. The menu endpoint requires a valid comment context and opens an author permission attestation form.
+3. The submit endpoint verifies the caller's moderator identity and `posts` or `all` permission.
+4. It fetches the comment and checks both subreddit name and immutable subreddit ID, content availability, author attribution, and the 2,600 character limit.
+5. It claims a per comment lock with atomic Redis `SET NX`, then reads the key back and proceeds only if its unique token is present.
+6. It checks the deletion tombstone and completed feature mapping before rendering.
+7. It converts a restricted Markdown subset to plain text, removes XML-invalid characters, escapes XML, renders the editorial SVG, rasterises it to PNG with bundled WebAssembly and fonts, and uploads the image to Reddit media hosting.
+8. It submits the post explicitly as `APP`, distinguishes it, calls `sticky()`, and re-fetches it to verify both states.
+9. It saves the source comment to post mapping and rechecks the tombstone and current source comment before committing the workflow as complete.
+10. The original comment is never edited or removed by the feature action.
+
+## Comment removal flow
+
+1. Reddit exposes a separate Remove comment menu action only to moderators.
+2. The action opens a confirmation form. The server independently verifies moderator identity, `posts` or `all` permission, subreddit name, subreddit ID, and comment availability.
+3. The remove action acquires the same per comment lock as the feature action to prevent a publish and remove race.
+4. It calls `comment.remove(false)`, verifies the updated `removed` state, and writes a seven day deletion tombstone as an additional race safeguard.
+5. Reddit's `CommentDelete` trigger removes any linked spotlight post. This is moderator removal, not hard deletion of the comment author's account content.
 
 ## Content permission and attribution
 
-Reddit's rules state that existing user content may be copied and displayed only in compliance with the Developer Terms and any requirements imposed by the content owner. ModGlow therefore requires the moderator to attest that explicit author permission has already been obtained. The app credits the original author on the image and links to the source discussion in the post body. This attestation is a product safeguard, not a substitute for any permission Reddit or the content owner requires.
+Reddit's rules require compliance with the Developer Terms and content owner rights when copying existing user content. ModGlow requires the moderator to attest that explicit author permission has already been obtained. The app credits the original author on the image and links to the source discussion. This attestation is a product safeguard, not a substitute for any permission Reddit or the content owner requires.
 
 ## Moderator access
 
-Both menu declarations use `forUserType: "moderator"`. Each form handler independently resolves the current user and calls `getModPermissionsForSubreddit()`. Both require `posts` or `all` permission. No individual moderator identity is placed in the image or used as the post author. The separate removal flow calls `comment.remove(false)`, Reddit's moderator removal operation. It is not a hard delete of another user's comment.
+Both menu declarations use `forUserType: "moderator"`. Both form handlers independently resolve the current user and call `getModPermissionsForSubreddit()`. Both require `posts` or `all` permission. No individual moderator identity is placed in the image or used as the post author.
 
 ## Identity
 
-`runAs: 'APP'` is explicit. The generated post author is the Devvit app account. The card uses a separate, original editorial visual identity and does not reproduce Reddit's native comment interface or use Reddit marks.
+`runAs: 'APP'` is explicit. The generated post author is the Devvit app account. The card uses an original editorial visual identity and does not reproduce Reddit's native comment interface or use Reddit marks.
 
-## Transaction and duplicate protection
+## Locking and duplicate protection
 
-- Per comment Redis keys store unique lock tokens with a 180 second expiry. `WATCH` transactions make acquisition and token checked release safe under concurrent requests.
+- Feature and removal actions share a per comment Redis lock key with a 45 second expiry.
+- Acquisition uses atomic `SET NX`, then reads back the unique token. The SET return value alone is not trusted as proof of lock ownership.
+- Release uses `WATCH`, reads with the transaction client, and deletes only if the stored token still matches.
+- The short lease recovers when a Devvit Web request is terminated before cleanup can run. It is longer than the platform's 30 second request limit.
 - Redis hash `modglow:v2:features` stores the source comment to generated post mapping.
-- A concurrent request is rejected while a valid lock exists. Expired locks recover after a crashed request, and a request cannot release a newer request's lock.
-- A completed mapping blocks duplicate posts.
-- If a post is created but distinction, pinning, or verification fails, the app attempts to delete the incomplete post. The source comment remains untouched.
-- The app checks `subreddit.getHighlightedPosts()` before creating media and stops if both community highlight slots are occupied. A race that fills a slot after the check is handled by the pin failure rollback.
+- A completed mapping blocks duplicate feature posts.
+
+## Sticky behavior
+
+Community highlights and sticky slots are different Reddit features. ModGlow does not use `subreddit.getHighlightedPosts()` to infer sticky capacity. It calls `post.sticky()` directly. If both sticky slots are occupied or Reddit rejects the pin, the feature transaction attempts to delete the incomplete post and leaves the original comment untouched. It never unpins an existing post to make room.
 
 ## Source deletion handling
 
-Reddit's `CommentDelete` event covers comment deletion or removal by a user, moderator, or administrator. Reddit's rules require copied user content to be removed when the source is deleted. The trigger looks up the generated post ID, deletes the post, and clears the mapping only after deletion succeeds. If Reddit is temporarily unavailable, the handler returns an error and retains the mapping so the event can be retried. Repeated delivery is safe. This trigger is required for public app compliance.
+Reddit's `CommentDelete` event covers comment deletion or removal by a user, moderator, or administrator. The trigger first writes a seven day deletion tombstone, then reads the feature mapping. If a mapping exists, it validates the post fullname and deletes the app-authored post even if the post was already moderator removed. It clears the mapping only after the post is deleted or Reddit confirms the post no longer exists. Transient errors return a failure response and retain the mapping so Reddit can retry the event.
+
+The tombstone closes an important race: a deletion event may arrive before an in flight feature request saves its source to post mapping. The feature route checks the tombstone before rendering and after saving the mapping. The manual removal route writes the same tombstone while it still owns the shared comment lock.
 
 ## Image rendering
 
-The server builds a custom editorial SVG using escaped comment text and a restricted Markdown to plain text conversion. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
+The server builds a custom editorial SVG using XML-safe escaped comment text and a restricted Markdown to plain text conversion. Text wrapping rejects invalid width arguments and oversized content rather than looping or silently clipping. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
 
 ## Required playtest matrix
 
 - Moderator with `posts` permission.
 - Moderator without `posts` permission.
-- Ordinary user attempting to access the action.
-- Comment with explicit author permission.
-- Comment without author permission attestation.
-- Deleted, removed, empty, and deleted author cases.
+- Ordinary user attempting to access either action.
+- Comment with and without explicit author permission attestation.
+- Deleted, removed, empty, deleted author, and cross subreddit comment cases.
 - Markdown, URLs, emoji, XML characters, Malayalam, and Tamil.
 - Maximum length and over length comments.
 - One free sticky slot and both sticky slots occupied.
@@ -55,7 +70,9 @@ The server builds a custom editorial SVG using escaped comment text and a restri
 - Post submission failure.
 - Distinction failure.
 - Sticky failure.
-- Duplicate and concurrent requests.
-- Source comment deletion trigger, including repeated event delivery and transient Reddit API failures.
-- Moderator comment removal confirmation, permission denial, cross subreddit guard, and already removed comments.
+- Duplicate and concurrent feature requests.
+- Concurrent feature and removal requests.
+- Source comment deletion event before, during, and after feature publication.
+- Repeated deletion event delivery and transient Reddit API failures.
+- Moderator removal confirmation and verification.
 - Reddit mobile and desktop.
