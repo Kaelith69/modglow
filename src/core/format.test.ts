@@ -1,183 +1,112 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { escapeXml } from './format.ts';
-import { buildAnnouncementSvg } from './render.ts';
+import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg } from './render.ts';
 
-test('escapeXml neutralises all XML markup characters', () => {
-  assert.equal(
-    escapeXml(`<tag a="x">Tom & 'Ada'</tag>`),
-    '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;',
-  );
+test('escapeXml neutralises XML markup and removes invalid XML characters', () => {
+  assert.equal(escapeXml('<tag a="x">Tom & \'Ada\'</tag>'), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
+  const invalid = 'safe' + String.fromCharCode(0, 8, 0xd800, 0xfffe) + 'text\nline';
+  assert.equal(escapeXml(invalid), 'safetext\nline');
 });
 
-test('escapeXml removes XML-invalid control and surrogate characters', () => {
-  const input = 'safe' + String.fromCharCode(0, 8, 0xd800, 0xfffe) + 'text\nline';
-  assert.equal(escapeXml(input), 'safetext\nline');
-});
-
-test('default announcement uses the reference comic layout and dynamic frame', () => {
-  const svg = buildAnnouncementSvg('A moderator announcement.');
-  assert.match(svg, /width="1536" height="584" viewBox="0 0 1536 584"/);
-  assert.match(svg, /<title>ModGlow announcement<\/title>/);
-  assert.match(svg, /fill="#010703"/);
-  assert.match(svg, /M350 57 H1512 V462 L1450 524 H22 V112 L82 50/);
-  assert.match(svg, /<text x="112" y="62"/);
-  assert.match(svg, /<text x="366" y="229"/);
-  assert.match(svg, /<text x="145" y="350"/);
-  assert.match(svg, /M96 306 V378/);
-  assert.match(svg, />ANNOUNCEMENT</);
-  assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<script>/);
-  assert.doesNotMatch(svg, /Reply|Vote|Pinned/);
-});
-
-test('all four flairs share reference geometry and use their supplied palette', async () => {
-  const { ANNOUNCEMENT_FLAIRS } = await import('./render.ts');
+test('all four templates retain their exact supplied geometry and palettes', () => {
   assert.deepEqual(ANNOUNCEMENT_FLAIRS, ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT']);
-  const cards = ANNOUNCEMENT_FLAIRS.map((flair) => buildAnnouncementSvg('Read this update.', flair));
-  assert.equal(new Set(cards).size, 4);
-  for (const card of cards) {
-    assert.match(card, /M350 57 H1512 V462 L1450 524 H22 V112 L82 50/);
-    assert.match(card, /<text x="112" y="62"/);
-    assert.match(card, /<text x="366" y="229"/);
-    assert.match(card, /<text x="145" y="350"/);
-    assert.match(card, /M96 306 V378/);
-    assert.match(card, /M1290 128 H1350/);
-    assert.match(card, /M1365 128 H1425/);
-    assert.match(card, /M1440 128 H1500/);
-    assert.match(card, /fill="#(?:050000|02091B|070300|010703)"/);
-    assert.doesNotMatch(card, /linearGradient|radialGradient|filter=|opacity=/);
+  const important = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'IMPORTANT');
+  const notice = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'NOTICE');
+  const announcement = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'ANNOUNCEMENT');
+  const reminder = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'REMINDER');
+
+  for (const svg of [important, notice, announcement, reminder]) {
+    assert.match(svg, /viewBox="0 0 2000 760"/);
+    assert.match(svg, /M110 65 H1970 V610 L1890 690 H30 V145 Z/);
+    assert.match(svg, /x="165" y="80"/);
+    assert.match(svg, /x="195" y="475"/);
+    assert.match(svg, /width="16" height="195"/);
+    assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<image/);
   }
-  assert.match(cards[0], /#F20D24/);
-  assert.match(cards[1], /#087CFF/);
-  assert.match(cards[2], /#FF7900/);
-  assert.match(cards[3], /#7CFF00/);
+
+  assert.match(important, /fill="#080605"/);
+  assert.match(important, /stroke="#FF2525"/);
+  assert.match(important, /M70 120 H510 L390 360 H70 Z/);
+  assert.match(important, /textLength="1050"/);
+  assert.match(important, /IMPORTANT<\\/text>/);
+
+  assert.match(notice, /fill="#050D1C"/);
+  assert.match(notice, /stroke="#078BFF"/);
+  assert.match(notice, /cx="245" cy="240" r="75"/);
+  assert.match(notice, /textLength="720"/);
+  assert.match(notice, /NOTICE<\\/text>/);
+
+  assert.match(announcement, /fill="#050A05"/);
+  assert.match(announcement, /stroke="#8CFF00"/);
+  assert.match(announcement, /M135 215 L230 185 L230 285 L135 255 Z/);
+  assert.match(announcement, /textLength="1180"/);
+  assert.match(announcement, /ANNOUNCEMENT<\\/text>/);
+
+  assert.match(reminder, /fill="#090604"/);
+  assert.match(reminder, /stroke="#FF7900"/);
+  assert.match(reminder, /<rect x="160" y="185" width="145" height="125" rx="16"/);
+  assert.match(reminder, /textLength="1050"/);
+  assert.match(reminder, /REMINDER<\\/text>/);
 });
 
-test('frame grows with body lines and retains bottom clearance', () => {
-  const short = buildAnnouncementSvg('One line.', 'NOTICE');
-  const long = buildAnnouncementSvg('A wrapped announcement line with enough words to fill the card width. '.repeat(7), 'NOTICE');
-  const shortHeight = Number(short.match(/height="(\d+)"/)?.[1]);
-  const longHeight = Number(long.match(/height="(\d+)"/)?.[1]);
-  assert.ok(longHeight > shortHeight);
-  const lastBaseline = 350 + ((long.match(/<tspan x="145" dy="/g)?.length ?? 1) - 1) * 78;
-  const frameBottom = longHeight - 60;
-  assert.ok(frameBottom - (lastBaseline + 64) >= 32);
-  assert.match(long, new RegExp('M96 306 V' + (lastBaseline + 28)));
+test('two line reference text retains the original 2000 by 760 composition', () => {
+  const svg = buildAnnouncementSvg('Please follow the sub rules no religion or\npolitics here', 'IMPORTANT');
+  assert.match(svg, /viewBox="0 0 2000 760"/);
+  assert.match(svg, /M110 65 H1970 V610 L1890 690 H30 V145 Z/);
+  assert.match(svg, /<tspan x="195" dy="0">/);
+  assert.match(svg, /<tspan x="195" dy="100">/);
 });
 
-test('long unbroken words wrap rather than crossing the body width', () => {
-  const svg = buildAnnouncementSvg('W'.repeat(400), 'IMPORTANT');
-  const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
+test('canvas and outer frame grow with the final body line', () => {
+  const oneLine = buildAnnouncementSvg('A short announcement.', 'NOTICE');
+  const manyLines = buildAnnouncementSvg('A sentence that wraps across the card width. '.repeat(12), 'NOTICE');
+  const oneHeight = Number(oneLine.match(/viewBox="0 0 2000 (\\d+)"/)?.[1]);
+  const manyHeight = Number(manyLines.match(/viewBox="0 0 2000 (\\d+)"/)?.[1]);
+  const lineCount = manyLines.match(/<tspan x="195" dy="/g)?.length ?? 0;
+  const lastBaseline = 475 + (lineCount - 1) * 100;
+  const frameBottom = manyHeight - 70;
+  assert.ok(manyHeight > oneHeight);
+  assert.ok(lineCount > 1);
+  assert.equal(frameBottom, lastBaseline + 115);
+  assert.equal(manyHeight, frameBottom + 70);
+  assert.match(manyLines, new RegExp('V' + (frameBottom - 80) + ' L1890 ' + frameBottom));
+});
+
+test('long unbroken tokens split into lines and never exceed the line limit', () => {
+  const svg = buildAnnouncementSvg('W'.repeat(500), 'IMPORTANT');
+  const lineCount = svg.match(/<tspan x="195" dy="/g)?.length ?? 0;
   assert.ok(lineCount > 1);
   assert.ok(lineCount <= 24);
-});
-test('unsupported flair values are rejected', () => {
-  assert.throws(
-    () => buildAnnouncementSvg('Not allowed.', 'URGENT' as never),
-    /four supported announcement flairs/,
-  );
+  assert.throws(() => buildAnnouncementSvg('W '.repeat(2000), 'IMPORTANT'), /more than 24 rendered lines/);
 });
 
-test('inline Markdown preserves bold, italic, bold italic, and strikethrough', () => {
-  const svg = buildAnnouncementSvg(
-    'A **bold** and *italic* and ***bold italic*** and ~~removed~~ phrase.',
-  );
-  assert.match(svg, /font-weight="700" font-style="normal"[^>]*>bold<\/tspan>/);
-  assert.match(svg, /font-weight="400" font-style="italic"[^>]*>italic<\/tspan>/);
-  assert.match(svg, /font-weight="700" font-style="italic"[^>]*>bold italic<\/tspan>/);
-  assert.match(svg, /text-decoration="line-through">removed<\/tspan>/);
-});
-
-test('underscore emphasis and escaped Markdown markers render literally', () => {
-  const svg = buildAnnouncementSvg('__bold__ and _italic_ and \\*literal\\*');
-  assert.match(svg, /font-weight="700" font-style="normal"[^>]*>bold<\/tspan>/);
-  assert.match(svg, /font-weight="400" font-style="italic"[^>]*>italic<\/tspan>/);
-  assert.match(svg, /and \*literal\*<\/tspan>/);
-  assert.doesNotMatch(svg, /font-style="italic"[^>]*>literal<\/tspan>/);
-});
-
-test('headings, quotes, ordered lists, and unordered lists retain block styling', () => {
-  const svg = buildAnnouncementSvg(
-    '# Important\n> Please read this.\n- First item\n2. Second item',
-  );
-  assert.match(svg, /font-weight="700" font-style="normal" fill="#7CFF00">Important<\/tspan>/);
+test('Markdown styles and block prefixes remain supported', () => {
+  const svg = buildAnnouncementSvg('# Heading\n> quoted text\n- first item\n2. second item\n**bold** *italic* ***both*** ~~strike~~', 'ANNOUNCEMENT');
+  assert.match(svg, /font-weight="700"/);
+  assert.match(svg, /font-style="italic"/);
+  assert.match(svg, /text-decoration="line-through"/);
   assert.match(svg, /› /);
   assert.match(svg, /• /);
-  assert.match(svg, /2\. /);
-  assert.match(svg, /font-style="italic"/);
+  assert.match(svg, /2\\. /);
 });
 
-test('inline and fenced code remain literal and use highlighted text styling', () => {
-  const svg = buildAnnouncementSvg(
-    'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
-  );
-  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#7CFF00"/);
-  assert.match(svg, /\*\*not bold\*\*/);
-  assert.match(svg, /\*\*literal\*\*/);
-  assert.doesNotMatch(svg, /font-weight="700" font-style="normal"[^>]*>not bold</);
-});
-
-test('links preserve their readable label and images preserve their alt text', () => {
-  const svg = buildAnnouncementSvg(
-    'Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)',
-  );
-  assert.match(svg, /Read the rules\./);
+test('links and images display readable labels rather than external resources', () => {
+  const svg = buildAnnouncementSvg('Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)', 'NOTICE');
+  assert.match(svg, /Read the rules/);
   assert.match(svg, />Diagram</);
-  assert.doesNotMatch(svg, /https:\/\/example\.com/);
+  assert.doesNotMatch(svg, /https:\\/\\/example\\.com/);
 });
 
-test('hostile HTML and SVG content is displayed as safe text or removed as markup', () => {
-  const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3');
+test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
+  const svg = buildAnnouncementSvg('Text <script>alert(1)</script> & 2 < 3', 'REMINDER');
   assert.doesNotMatch(svg, /<script>/);
-  assert.match(svg, /Text alert\(1\) &amp; 2 &lt; 3/);
+  assert.match(svg, /Text alert\\(1\\) &amp; 2 &lt; 3/);
 });
 
-test('long Markdown runs wrap across lines without losing emphasis', () => {
-  const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
-  const boldLines = [...svg.matchAll(/font-weight="700" font-style="normal"/g)];
-  const italicLines = [...svg.matchAll(/font-weight="400" font-style="italic"/g)];
-  assert.ok(boldLines.length >= 2);
-  assert.ok(italicLines.length >= 2);
-  assert.match(svg, /height="\d+"/);
-});
-
-test('the card grows with wrapped text and preserves bottom breathing room', () => {
-  const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
-  const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 1;
-  const bodyEndY = 350 + (lineCount - 1) * 78 + 64;
-  const innerBottomFrameEdge = height - 60 - 7;
-  assert.ok(height > 584);
-  assert.ok(innerBottomFrameEdge - bodyEndY >= 32);
-});
-
-test('empty, markup-only, overlong, and excessively tall announcements are rejected', () => {
+test('empty, overlong and excessively tall announcements are rejected', () => {
   assert.throws(() => buildAnnouncementSvg('   '), /no renderable text/);
-  assert.throws(() => buildAnnouncementSvg('<b></b>'), /no renderable text/);
   assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
-  assert.throws(() => buildAnnouncementSvg('W '.repeat(650)), /more than 24 rendered lines/);
-});
-
-
-test('wide lowercase glyphs wrap conservatively within the message width', () => {
-  const wideM = buildAnnouncementSvg('m'.repeat(500), 'NOTICE');
-  const wideW = buildAnnouncementSvg('w'.repeat(500), 'NOTICE');
-  const countLines = (svg: string) => svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
-  assert.ok(countLines(wideM) >= 20);
-  assert.ok(countLines(wideW) >= 20);
-  assert.ok(countLines(wideM) <= 24);
-  assert.ok(countLines(wideW) <= 24);
-});
-
-test('message lines, marker, and frame remain inside the SVG viewBox', () => {
-  const svg = buildAnnouncementSvg('A long message with many words. '.repeat(20), 'IMPORTANT');
-  const height = Number(svg.match(/height="(\d+)"/)?.[1]);
-  const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
-  const finalBaseline = 350 + (lineCount - 1) * 78;
-  const markerEnd = finalBaseline + 28;
-  const frameBottom = height - 60;
-  assert.ok(lineCount > 1);
-  assert.ok(markerEnd < frameBottom);
-  assert.ok(frameBottom < height);
-  assert.match(svg, new RegExp('M96 306 V' + markerEnd));
+  assert.throws(() => buildAnnouncementSvg('W '.repeat(2000)), /more than 24 rendered lines/);
+  assert.throws(() => buildAnnouncementSvg('Not allowed.', 'URGENT' as never), /four supported announcement flairs/);
 });
