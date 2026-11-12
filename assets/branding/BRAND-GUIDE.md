@@ -4,7 +4,7 @@
 
 The four announcement SVG templates reproduce the supplied IMPORTANT, NOTICE, ANNOUNCEMENT and REMINDER artwork. They are intentionally different compositions, not one generic card recoloured four times.
 
-All templates use a 2000px wide SVG viewBox, editable vector shapes and text, solid fills, and no external assets, gradients, filters, transparency or raster artwork. The intrinsic SVG height is calculated from the final body line. The viewBox preserves its aspect ratio when scaled to fit a Reddit image display.
+All templates use a 2000px wide SVG viewBox, editable vector shapes and text, solid fills, and no external assets, gradients, filters, transparency or raster artwork. Compact mode calculates SVG height from the final body line. Separate body mode uses a fixed 2000 by 600 title only SVG, followed by native Reddit Markdown in the same comment. The viewBox preserves its aspect ratio when scaled to fit a Reddit image display.
 
 ## IMPORTANT
 
@@ -13,7 +13,7 @@ All templates use a 2000px wide SVG viewBox, editable vector shapes and text, so
 - Ivory: `#FFF5E8`
 - Red left panel with ivory warning triangle.
 - Ivory title panel, dark italic IMPORTANT title, two red diagonal accents.
-- Title uses 145px type and a 1050px textLength.
+- Title uses 145px type and a 1000px textLength.
 
 ## NOTICE
 
@@ -31,7 +31,7 @@ All templates use a 2000px wide SVG viewBox, editable vector shapes and text, so
 - Ivory: `#FFF5E8`
 - Ivory left panel with dark green megaphone icon.
 - Green title panel, dark italic ANNOUNCEMENT title, two green diagonal accents.
-- Title uses 130px type and a 1180px textLength.
+- Title uses 130px type and a 1100px textLength.
 
 ## REMINDER
 
@@ -43,6 +43,8 @@ All templates use a 2000px wide SVG viewBox, editable vector shapes and text, so
 - Title uses 145px type and a 1050px textLength.
 
 ## Dynamic body layout and bounds
+
+The maintained `announcement-card-sample.svg` demonstrates compact mode with its body embedded in the SVG. `announcement-title-only-sample.svg` demonstrates the fixed title banner used when the separate Markdown body option is enabled. In both modes, the SVG image is the first element in the published comment.
 
 - Body starts at x=195 with 76px text and 100px baseline spacing.
 - The body uses conservative per glyph width estimates and wraps words before they reach the safe right margin. Long unbroken tokens are split.
