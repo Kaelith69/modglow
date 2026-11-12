@@ -6,7 +6,7 @@ import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { buildCommentSvg } from '../core/render.ts';
 import { renderCommentPng } from '../core/rasterize.ts';
-import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId, isNotFoundError } from '../core/moderation.ts';
+import { belongsToSubreddit, belongsToSubredditId, hasCommentContentAvailable, hasCommentModerationPermission, isCommentId } from '../core/moderation.ts';
 
 type FeatureFormValues = {
   permissionConfirmed?: boolean;
@@ -92,6 +92,9 @@ forms.post('/feature-comment-submit', async (c) => {
 
     lockToken = await acquireCommentLock(commentId);
     if (!lockToken) return c.json<UiResponse>(toast('A ModGlow action for this comment is already running. Wait briefly and retry.'));
+    if (await isDeletionRecorded(commentId)) {
+      return c.json<UiResponse>(toast('This comment was recently deleted or removed and cannot be featured.'));
+    }
 
     const comment = await reddit.getCommentById(commentId);
     if (!belongsToSubreddit(comment.subredditName, context.subredditName) || !belongsToSubredditId(comment.subredditId, context.subredditId)) {
@@ -105,11 +108,6 @@ forms.post('/feature-comment-submit', async (c) => {
     }
     if (comment.body.length > 2600) {
       return c.json<UiResponse>(toast('This comment is too long to feature safely. The limit is 2,600 characters.'));
-    }
-
-    lockToken = await acquireCommentLock(comment.id);
-    if (!lockToken) {
-      return c.json<UiResponse>(toast('A ModGlow request for this comment is still running, or a previous request timed out. The temporary lock expires within 45 seconds. Wait briefly and try again. This message does not mean a feature post was published.'));
     }
 
     if (await isDeletionRecorded(commentId)) {
@@ -230,6 +228,9 @@ forms.post('/remove-comment-submit', async (c) => {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
       return c.json<UiResponse>(toast('This action requires post moderation permission in this subreddit.'));
     }
+
+    lockToken = await acquireCommentLock(commentId);
+    if (!lockToken) return c.json<UiResponse>(toast('A ModGlow action for this comment is already running. Wait briefly and retry.'));
 
     const comment = await reddit.getCommentById(commentId);
     if (!belongsToSubreddit(comment.subredditName, context.subredditName) || !belongsToSubredditId(comment.subredditId, context.subredditId)) {
