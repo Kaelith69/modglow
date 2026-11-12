@@ -1,0 +1,29 @@
+{
+  "canvas_sizes": {
+    "icon": [
+      1024,
+      1024
+    ],
+    "banner": [
+      1600,
+      700
+    ],
+    "spotlight_card": [
+      1200,
+      900
+    ],
+    "promo_panels": [
+      1080,
+      1920
+    ]
+  },
+  "layout_rules": [
+    "All portrait text is manually line-broken within 900px safe width.",
+    "All portrait content uses 64px minimum side margin.",
+    "Promo title and body line baselines are fixed and do not approach the right or bottom edge.",
+    "All sample card text is line-broken and kept inside a 1200x900 canvas with 28px outer inset.",
+    "The icon is redrawn with a solid rounded-square background and no transparent or black corner artifacts.",
+    "App icon and dark wordmark have opaque full canvas backgrounds, avoiding transparent corner artifacts."
+  ],
+  "note": "Promotional panels are marketing artwork, not screenshots of a live Reddit app."
+}

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700" viewBox="0 0 1600 700"><title>ModGlow brand artwork</title><defs>
+<linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101B2E"/><stop offset="1" stop-color="#263B55"/></linearGradient>
+<radialGradient id="glow"><stop stop-color="#E9B86C" stop-opacity=".25"/><stop offset="1" stop-color="#E9B86C" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="700" fill="url(#hero)"/>
+<circle cx="1335" cy="340" r="390" fill="url(#glow)"/>
+<circle cx="1335" cy="340" r="270" fill="none" stroke="#E9B86C" stroke-width="2" opacity=".18"/>
+<circle cx="1335" cy="340" r="205" fill="none" stroke="#E9B86C" stroke-width="2" opacity=".2"/>
+<g transform="translate(990 50) scale(.56)">
+<g>
+ <path d="M512 92 L858 292 L858 692 L512 892 L166 692 L166 292 Z" fill="#E9B86C"/>
+ <path d="M512 172 L788 332 L788 652 L512 812 L236 652 L236 332 Z" fill="#101B2E"/>
+ <path d="M512 254 L716 372 L716 612 L512 730 L308 612 L308 372 Z" fill="none" stroke="#F6F1E7" stroke-width="26"/>
+ <path d="M512 338 L642 413 L642 571 L512 646 L382 571 L382 413 Z" fill="#E9B86C"/>
+ <path d="M512 390 L597 439 L597 545 L512 594 L427 545 L427 439 Z" fill="#1D2B43"/>
+ <path d="M458 496 Q512 430 566 496" fill="none" stroke="#F6F1E7" stroke-width="22" stroke-linecap="round"/>
+ <circle cx="512" cy="524" r="18" fill="#E9B86C"/>
+</g></g>
+<g transform="translate(78 58) scale(.13)">
+<g>
+ <path d="M512 92 L858 292 L858 692 L512 892 L166 692 L166 292 Z" fill="#E9B86C"/>
+ <path d="M512 172 L788 332 L788 652 L512 812 L236 652 L236 332 Z" fill="#101B2E"/>
+ <path d="M512 254 L716 372 L716 612 L512 730 L308 612 L308 372 Z" fill="none" stroke="#F6F1E7" stroke-width="26"/>
+ <path d="M512 338 L642 413 L642 571 L512 646 L382 571 L382 413 Z" fill="#E9B86C"/>
+ <path d="M512 390 L597 439 L597 545 L512 594 L427 545 L427 439 Z" fill="#1D2B43"/>
+ <path d="M458 496 Q512 430 566 496" fill="none" stroke="#F6F1E7" stroke-width="22" stroke-linecap="round"/>
+ <circle cx="512" cy="524" r="18" fill="#E9B86C"/>
+</g></g>
+<text x="245" y="166" font-family="DejaVu Sans, Arial, sans-serif" font-size="78" font-weight="800" letter-spacing="-2" fill="#F6F1E7">ModGlow</text>
+<text x="80" y="274" font-family="DejaVu Sans, Arial, sans-serif" font-size="27" font-weight="800" letter-spacing="4" fill="#E9B86C">COMMUNITY SPOTLIGHT, BY MODERATORS</text>
+<text x="80" y="356" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" fill="#F6F1E7">Turn a manually selected comment into a polished,</text>
+<text x="80" y="402" font-family="DejaVu Sans, Arial, sans-serif" font-size="30" fill="#F6F1E7">attributed community feature.</text>
+<rect x="80" y="482" width="300" height="62" rx="31" fill="#E9B86C"/>
+<text x="230" y="522" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="20" font-weight="800" letter-spacing="2" fill="#101B2E">MODERATOR ONLY</text>
+<text x="80" y="620" font-family="DejaVu Sans, Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="2" fill="#C5CDD7">MANUAL SELECTION  ·  AUTHOR CREDIT  ·  COMMUNITY FIRST</text>
+</svg>

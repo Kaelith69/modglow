@@ -1,0 +1,48 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "modglow",
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Feature with ModGlow",
+        "description": "Create an attributed community spotlight image from this comment. Moderator action only.",
+        "location": "comment",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/feature-comment"
+      },
+      {
+        "label": "Remove comment",
+        "description": "Remove this comment using Reddit moderation tools. Any linked ModGlow feature is removed too. Moderator action only.",
+        "location": "comment",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/remove-comment"
+      }
+    ]
+  },
+  "forms": {
+    "featureComment": "/internal/form/feature-comment-submit",
+    "removeComment": "/internal/form/remove-comment-submit"
+  },
+  "triggers": {
+    "onCommentDelete": "/internal/triggers/comment-delete"
+  },
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch"
+  },
+  "permissions": {
+    "reddit": {
+      "enable": true,
+      "scope": "moderator"
+    },
+    "media": true,
+    "redis": true
+  },
+  "marketingAssets": {
+    "icon": "assets/modglow-icon.png"
+  }
+}
