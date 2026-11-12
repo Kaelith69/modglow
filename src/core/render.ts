@@ -9,8 +9,8 @@ const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'graphem
 
 function graphemeCount(value: string, stopAfter: number): number {
   let count = 0;
-  for (const _part of GRAPHEME_SEGMENTER.segment(value)) {
-    count += 1;
+  for (const part of GRAPHEME_SEGMENTER.segment(value)) {
+    if (part.segment.length > 0) count += 1;
     if (count > stopAfter) return count;
   }
   return count;
