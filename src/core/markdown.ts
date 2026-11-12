@@ -236,8 +236,8 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
 
 
 /** Return false for separator only content, which has no useful body text. */
-export function hasMarkdownContent(markdown: string): boolean {
-  return parseMarkdown(markdown).some((block) => {
+export function hasMarkdownBlocksContent(blocks: readonly MarkdownBlock[]): boolean {
+  return blocks.some((block) => {
     switch (block.type) {
       case 'paragraph':
       case 'heading':
@@ -252,4 +252,9 @@ export function hasMarkdownContent(markdown: string): boolean {
         return false;
     }
   });
+}
+
+
+export function hasMarkdownContent(markdown: string): boolean {
+  return hasMarkdownBlocksContent(parseMarkdown(markdown));
 }
