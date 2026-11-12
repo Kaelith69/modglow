@@ -29,12 +29,15 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
 
   // SET NX with an expiry is atomic. It avoids reading through TxClientLike,
   // whose GET method queues a command and returns the transaction handle.
-  const result = await redis.set(key, token, {
+  // Devvit's Redis set() returns the Redis client, not the Redis SET reply.
+  // SET NX remains atomic. Read the key back and only accept our own token.
+  await redis.set(key, token, {
     nx: true,
     expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
   });
 
-  return result === 'OK' ? token : undefined;
+  const storedToken = await redis.get(key);
+  return storedToken === token ? token : undefined;
 }
 
 async function releaseCommentLock(commentId: string, token: string): Promise<void> {
