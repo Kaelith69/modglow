@@ -69,7 +69,7 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
   if (baseStyle.code) return [{ text: value, ...baseStyle }];
 
   const runs: InlineRun[] = [];
-  const pattern = /\\([\\\`*_{}()#+.!>])|\`([^\`]+)\`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|(?<![\p{L}\p{N}])__(.+?)__(?![\p{L}\p{N}])|\*(.+?)\*|(?<![\p{L}\p{N}])_(.+?)_(?![\p{L}\p{N}])/gu;
+  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|(?<![\p{L}\p{N}])__(.+?)__(?![\p{L}\p{N}])|\*(.+?)\*|(?<![\p{L}\p{N}])_(.+?)_(?![\p{L}\p{N}])/gu;
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
