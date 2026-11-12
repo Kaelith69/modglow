@@ -19,16 +19,16 @@ The four templates share these coordinates. Only the accent colour, title panel 
 
 | Flair | Accent |
 | --- | --- |
-| IMPORTANT | `#FF4055` |
-| NOTICE | `#32B8FF` |
-| REMINDER | `#FF9900` |
-| ANNOUNCEMENT | `#FFE34F` |
+| IMPORTANT | `#F20D24` |
+| NOTICE | `#087CFF` |
+| REMINDER | `#FF7900` |
+| ANNOUNCEMENT | `#7CFF00` |
 
 ## Shared visual rules
 
-- Pure AMOLED black canvas: `#000000`.
+- Solid near black canvas: `#050505`.
 - Solid fills and strokes only. No gradients, blended colours, transparency, glow, or drop shadows.
-- White wordmark, flair title, and body text: `#F2F0E8`.
+- Warm cream: `#F5F0E6`. Body text and wordmark use warm cream. IMPORTANT and NOTICE use cream title panels with dark italic titles. REMINDER and ANNOUNCEMENT use accent title panels with dark italic titles.
 - One matching line icon per flair, placed at the same coordinates.
 - No extra badges, labels, decorative panels, textures, or visual effects.
 
