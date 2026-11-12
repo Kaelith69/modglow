@@ -7,6 +7,15 @@ const BODY_FONT = 76;
 const FONT_FAMILY = 'Arial, Helvetica, sans-serif';
 const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
+function graphemeCount(value: string, stopAfter: number): number {
+  let count = 0;
+  for (const _part of GRAPHEME_SEGMENTER.segment(value)) {
+    count += 1;
+    if (count > stopAfter) return count;
+  }
+  return count;
+}
+
 function graphemes(value: string): string[] {
   return Array.from(GRAPHEME_SEGMENTER.segment(value), (part) => part.segment);
 }
@@ -345,7 +354,7 @@ export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEM
 }
 
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
-  if (typeof markdown !== 'string' || graphemes(markdown).length > MAX_ANNOUNCEMENT_CHARS) {
+  if (typeof markdown !== 'string' || graphemeCount(markdown, MAX_ANNOUNCEMENT_CHARS) > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
   if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {
