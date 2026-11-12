@@ -289,7 +289,7 @@ function flairHeader(flair: AnnouncementFlair, accent: string, frameBottom: numb
   const titleSize = flair === 'ANNOUNCEMENT' ? 64 : 88;
   return [
     '<text x="104" y="67" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F2F0E8">MODGLOW</text>',
-    `<path d="M32 65 H90 M32 65 M352 59 H1504 V${frameBottom} H32 Z" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
+    `<path d="M32 65 H90 M32 65 V${frameBottom} H1504 V59 H352" fill="none" stroke="${accent}" stroke-width="12" stroke-linecap="square" stroke-linejoin="miter"/>`,
     `<path d="M72 98 H1464 V${innerBottom} H72 M72 98 V252 M72 98 H878 L806 252 H72" fill="none" stroke="${accent}" stroke-width="8" stroke-linejoin="miter"/>`,
     flairIcon(flair, accent),
     '<text x="263" y="207" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" letter-spacing="2" fill="#F2F0E8">' + title + '</text>',
