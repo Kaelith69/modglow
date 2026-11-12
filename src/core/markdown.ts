@@ -21,8 +21,14 @@ export type MarkdownBlock =
 
 const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
-export function countGraphemes(value: string): number {
-  return Array.from(GRAPHEME_SEGMENTER.segment(value)).length;
+/** Count grapheme clusters, optionally stopping once the supplied limit is exceeded. */
+export function countGraphemes(value: string, stopAfter = Number.POSITIVE_INFINITY): number {
+  let count = 0;
+  for (const _segment of GRAPHEME_SEGMENTER.segment(value)) {
+    count += 1;
+    if (count > stopAfter) return count;
+  }
+  return count;
 }
 
 function appendInline(
