@@ -10,19 +10,24 @@
     ],
     "announcement_card_minimum": [
       1536,
-      438
+      584
     ]
   },
   "layout_rules": [
-    "The announcement card uses a 1536px wide true AMOLED black canvas with a smoked charcoal surface.",
-    "A restrained warm yellow haze, fine illuminated edge, and soft shadows add depth without washing out the black background.",
-    "The header contains the ModGlow mark and name, moderator badge, announcement label, and pinned marker.",
-    "Body text uses 64px IBM Plex Sans with 82px line height, larger than typical Reddit comment text.",
-    "Bold, italic, bold italic, strikethrough, headings, quotes, and list markers are supported in the SVG.",
-    "Inline and fenced code use the bundled IBM Plex Sans face with a warm yellow tint.",
-    "The card grows vertically with wrapped text and keeps 112px of bottom breathing room.",
-    "XML text is escaped and oversized content is rejected rather than clipped.",
+    "All four announcement cards use the supplied angular comic reference composition.",
+    "Each card uses a solid near black tinted background: IMPORTANT #050000, NOTICE #02091B, REMINDER #070300, ANNOUNCEMENT #010703.",
+    "The 14px outer accent frame has clipped upper left and lower right corners and grows with the rendered message.",
+    "The top left MODGLOW wordmark, two slanted header panels, icon tile, title and three accent slashes share fixed geometry across all four flairs.",
+    "IMPORTANT uses red #F20D24, NOTICE uses blue #087CFF, REMINDER uses orange #FF7900, and ANNOUNCEMENT uses lime #7CFF00.",
+    "IMPORTANT and NOTICE use cream title panels. REMINDER and ANNOUNCEMENT use their accent colour for the title panel.",
+    "Body text begins at x=145 and y=350 with 64px IBM Plex Sans and 78px line spacing.",
+    "The body marker begins at x=96 and tracks the final wrapped line.",
+    "Wrapping uses conservative glyph width estimates, including wider lowercase m and w, and splits oversized unbroken tokens.",
+    "SVG height is derived from the final rendered line count and preserves at least 32px between the text bounds and the inner bottom edge of the frame.",
+    "The renderer rejects empty content, content above 2600 characters, and content above 24 rendered lines.",
+    "All fills and strokes are solid. No gradients, blends, opacity, filters, glow, shadows, textures or extra badges are used.",
+    "XML text is escaped and fonts are bundled. System fonts are disabled during rasterization.",
     "Listing artwork is not presented as a screenshot of the live app."
   ],
-  "note": "AMOLED black and warm neon yellow smoked glass visual system. The renderer is the source of truth for actual output dimensions."
+  "note": "The live SVG renderer is the source of truth. The reference sample SVG is kept in sync with its fixed geometry, palettes and minimum canvas size."
 }
