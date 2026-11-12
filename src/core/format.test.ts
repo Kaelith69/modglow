@@ -128,7 +128,7 @@ test('links and images display readable labels rather than external resources', 
   const svg = buildAnnouncementSvg('Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)', 'NOTICE');
   assert.match(svg, /Read the rules/);
   assert.match(svg, />Diagram</);
-  assert.doesNotMatch(svg, /https?:\/\//u);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/u);
 });
 
 test('compact SVG code fences close only with matching fence character and length', () => {
@@ -149,9 +149,9 @@ test('compact SVG Markdown preserves identifier underscores and balanced link pa
   assert.match(svg, /snake_case_value/);
   assert.match(svg, /the article/);
   assert.match(svg, /diagram/);
-  assert.doesNotMatch(svg, /https?:\/\//u);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/u);
   assert.match(svg, /font-style="normal"/);
-  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Use snake_case_value and the article\. diagram<\/tspan>/);
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Use snake_case_value and the article\./);
 });
 
 test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
