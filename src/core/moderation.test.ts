@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   belongsToSubreddit,
   belongsToSubredditId,
+  canModeratorCommentOnPost,
   hasPostModerationPermission,
   isNotFoundError,
   isModeratorPinnedComment,
@@ -58,4 +59,12 @@ test('comment pin verification requires both persisted moderator distinction and
   assert.equal(isModeratorPinnedComment({ stickied: false, distinguishedBy: 'moderator' }), false);
   assert.equal(isModeratorPinnedComment({ stickied: true, distinguishedBy: null }), false);
   assert.equal(isModeratorPinnedComment({ stickied: true, distinguishedBy: 'admin' }), false);
+});
+
+
+test('archived and removed posts reject moderator comments but locked posts remain commentable', () => {
+  assert.equal(canModeratorCommentOnPost({ removed: false, archived: false }), true);
+  assert.equal(canModeratorCommentOnPost({ removed: false, archived: true }), false);
+  assert.equal(canModeratorCommentOnPost({ removed: true, archived: false }), false);
+  assert.equal(canModeratorCommentOnPost({ removed: false, archived: false, locked: true }), true);
 });
