@@ -73,6 +73,6 @@ The title only SVG is a fixed 2000 by 600 canvas. The embedded text SVG retains 
 
 ## Rendering details
 
-The announcement card SVG declares `Arial, Helvetica, sans-serif` explicitly. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. Embedded SVG body text is bold by default at weight 700; blockquotes are bold italic. The separate Markdown body uses Reddit's native typography and formatting.
+The announcement card SVG declares `Arial, Helvetica, sans-serif` explicitly. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. The bundled font files explicitly cover Latin, Malayalam, and Tamil; other scripts need visual validation in compact SVG mode. Embedded SVG body text is bold by default at weight 700; blockquotes are bold italic. The separate Markdown body uses Reddit's native typography and formatting.
 
 The server rasterises SVG with bundled WebAssembly and fonts. No gradients, filters, external assets, transparency, or embedded raster artwork are used in the templates.
