@@ -97,10 +97,10 @@ test('long unbroken tokens split into lines and never exceed the line limit', ()
 
 test('plain announcement body and blockquotes are bold by default', () => {
   const svg = buildAnnouncementSvg('Ordinary announcement text.\n> Quoted announcement text.', 'NOTICE');
-  assert.match(svg, /<tspan font-family="IBM Plex Sans" font-weight="700" font-style="normal" fill="#FFF5E8">Ordinary announcement text\.<\/tspan>/);
-  assert.match(svg, /<tspan font-family="IBM Plex Sans" font-weight="700" font-style="italic" fill="#FFF5E8">Quoted announcement text\.<\/tspan>/);
-  assert.match(svg, /font-family="IBM Plex Sans" font-size="76"/);
-  assert.doesNotMatch(svg, /Arial|Helvetica/);
+  assert.match(svg, /<tspan font-family="Arial, Helvetica, sans-serif" font-weight="700" font-style="normal" fill="#FFF5E8">Ordinary announcement text\.<\/tspan>/);
+  assert.match(svg, /<tspan font-family="Arial, Helvetica, sans-serif" font-weight="700" font-style="italic" fill="#FFF5E8">Quoted announcement text\.<\/tspan>/);
+  assert.match(svg, /font-family="Arial, Helvetica, sans-serif" font-size="76"/);
+  assert.match(svg, /font-family="Arial, Helvetica, sans-serif"/);
 });
 
 test('every flair uses the embedded font family and bold default body style', () => {
@@ -108,7 +108,7 @@ test('every flair uses the embedded font family and bold default body style', ()
     const svg = buildAnnouncementSvg('Plain body text.', flair);
     const fontFamilies = [...svg.matchAll(/font-family="([^"]+)"/g)].map((match) => match[1]);
     assert.ok(fontFamilies.length > 0);
-    assert.ok(fontFamilies.every((family) => family === 'IBM Plex Sans'));
+    assert.ok(fontFamilies.every((family) => family === 'Arial, Helvetica, sans-serif'));
     assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Plain body text\.<\/tspan>/);
     assert.doesNotMatch(svg, /Arial|Helvetica/);
   }
