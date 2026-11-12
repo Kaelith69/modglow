@@ -14,7 +14,7 @@
 10. The app submits one top level comment to the original post using `reddit.submitComment({ id: postId, richtext, runAs: 'APP' })`. If the request fails without returning a comment object, the result is treated as ambiguous because Reddit may have accepted it before the response was lost. ModGlow warns the moderator to check the post before retrying.
 11. The returned comment is distinguished with sticky enabled. ModGlow fetches it again and verifies `stickied === true` and `distinguishedBy === 'moderator'`.
 12. If Reddit explicitly returns a comment whose persisted state is not both pinned and moderator distinguished, ModGlow attempts to delete that incomplete app authored comment. If the verification read itself fails, the app does not delete a comment whose state is unknown. It warns the moderator to check the post before retrying, avoiding accidental deletion of a successfully pinned comment or a duplicate retry.
-13. The lock is released after the operation. The token is checked before deletion, and the 45 second lease is longer than the documented 30 second request limit so a live request cannot normally reach expiry before cleanup.
+13. The lock is released after a confirmed outcome. If comment submission or pin verification has an ambiguous result, or cleanup cannot be confirmed, ModGlow leaves the lock in place until its 45 second lease expires to discourage an immediate duplicate retry. Otherwise the token is checked before deletion. The lease is longer than the documented 30 second request limit so a live request cannot normally reach expiry before cleanup.
 
 ## Identity and scope
 
