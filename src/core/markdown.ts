@@ -233,3 +233,23 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
   flushParagraph();
   return blocks;
 }
+
+
+/** Return false for separator only content, which has no useful body text. */
+export function hasMarkdownContent(markdown: string): boolean {
+  return parseMarkdown(markdown).some((block) => {
+    switch (block.type) {
+      case 'paragraph':
+      case 'heading':
+        return block.content.some((node) => node.text.trim().length > 0);
+      case 'blockquote':
+        return block.paragraphs.some((paragraph) => paragraph.some((node) => node.text.trim().length > 0));
+      case 'list':
+        return block.items.some((item) => item.some((node) => node.text.trim().length > 0));
+      case 'code':
+        return block.text.trim().length > 0;
+      case 'hr':
+        return false;
+    }
+  });
+}
