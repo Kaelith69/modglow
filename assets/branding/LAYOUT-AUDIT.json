@@ -1,9 +1,17 @@
 {
   "canvas_sizes": {
-    "icon": [1024, 1024],
-    "banner": [1600, 700],
-    "announcement_card_minimum": [1536, 438],
-    "promo_panels": [1080, 1920]
+    "icon": [
+      1024,
+      1024
+    ],
+    "banner": [
+      1600,
+      700
+    ],
+    "announcement_card_minimum": [
+      1536,
+      438
+    ]
   },
   "layout_rules": [
     "The announcement card uses a 1536px wide true AMOLED black canvas with a smoked charcoal surface.",
