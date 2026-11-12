@@ -69,10 +69,10 @@ async function isDeletionRecorded(commentId: string): Promise<boolean> {
 }
 
 forms.post('/feature-comment-submit', async (c) => {
-  const values = await c.req.json<FeatureFormValues>();
+  const values = await c.req.json<FeatureFormValues>().catch(() => ({} as FeatureFormValues));
   const commentId = context.commentId ?? '';
 
-  if (!values.permissionConfirmed) {
+  if (values?.permissionConfirmed !== true) {
     return c.json<UiResponse>(toast('You must confirm that the comment author has explicitly permitted this feature.'));
   }
 
@@ -216,7 +216,7 @@ forms.post('/remove-comment-submit', async (c) => {
   const values = await c.req.json<RemoveCommentFormValues>().catch(() => ({} as RemoveCommentFormValues));
   const commentId = context.commentId ?? '';
 
-  if (values.confirmRemoval !== true) {
+  if (values?.confirmRemoval !== true) {
     return c.json<UiResponse>(toast('Confirm the removal before continuing.'));
   }
   if (!isCommentId(commentId) || !context.userId || !context.subredditName || !context.subredditId) {
