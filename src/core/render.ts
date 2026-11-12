@@ -7,7 +7,7 @@ const LINE_HEIGHT = 78;
 export const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
 const MIN_HEIGHT = 584;
-const BOTTOM_PADDING = 97;
+const BOTTOM_PADDING = 100;
 const BODY_WIDTH = 1300;
 
 type InlineRun = {
@@ -86,19 +86,21 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
 }
 
 function glyphWidth(character: string, fontSize: number, style: RunStyle): number {
-  if (/\p{Mark}/u.test(character)) return 0;
+  if (/\p{Mark}/u.test(character) || character === '\u200d') return 0;
 
   let width: number;
-  if (/\s/u.test(character)) width = fontSize * 0.28;
-  else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.28;
-  else if (/[MW@%#&]/u.test(character)) width = fontSize * 0.86;
-  else if (/[A-Z]/u.test(character)) width = fontSize * 0.64;
-  else if (/[0-9]/u.test(character)) width = fontSize * 0.56;
+  if (/\s/u.test(character)) width = fontSize * 0.32;
+  else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.34;
+  else if (/[mw@%&#]/u.test(character)) width = fontSize * 0.86;
+  else if (/[MW]/u.test(character)) width = fontSize * 0.94;
+  else if (/[A-Z]/u.test(character)) width = fontSize * 0.70;
+  else if (/[0-9]/u.test(character)) width = fontSize * 0.62;
   else if (character.codePointAt(0)! > 0xffff) width = fontSize;
-  else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.76;
-  else width = fontSize * 0.52;
+  else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.90;
+  else if (/[frt]/u.test(character)) width = fontSize * 0.43;
+  else width = fontSize * 0.62;
 
-  return width * (style.bold ? 1.12 : 1.08);
+  return width * (style.bold ? 1.10 : 1.08);
 }
 
 function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): InlineRun[][] {
