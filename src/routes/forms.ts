@@ -19,6 +19,7 @@ const LOCK_PREFIX = 'modglow:v5:lock:';
 const LOCK_TTL_SECONDS = 45;
 const CONVERSION_HASH = 'modglow:v2:features';
 const POST_SOURCE_HASH = 'modglow:v1:feature-post-sources';
+const COMMENT_REPLY_HASH = 'modglow:v1:comment-replies';
 const DELETED_COMMENT_PREFIX = 'modglow:v1:deleted:';
 const DELETED_COMMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -75,7 +76,7 @@ forms.post('/feature-comment-submit', async (c) => {
   }
 
   let lockToken: string | undefined;
-  let replacementPost: Awaited<ReturnType<typeof reddit.submitPost>> | undefined;
+  let replacementComment: Awaited<ReturnType<typeof reddit.submitComment>> | undefined;
   let featureRecordSaved = false;
   let transactionComplete = false;
 
@@ -105,114 +106,88 @@ forms.post('/feature-comment-submit', async (c) => {
       return c.json<UiResponse>(toast('This comment was recently deleted or removed and cannot be featured.'));
     }
 
-    const existingPostId = await redis.hGet(CONVERSION_HASH, comment.id);
-    if (existingPostId && isPostId(existingPostId)) {
-      // Backfill the reverse index for highlights created before this index existed.
-      await redis.hSet(POST_SOURCE_HASH, { [existingPostId]: comment.id });
-      return c.json<UiResponse>(toast('This comment already has a ModGlow highlight.'));
-    }
-    if (existingPostId) {
-      // Discard malformed metadata instead of blocking a valid feature action forever.
-      await redis.hDel(CONVERSION_HASH, [comment.id]);
+    const existingReplyId = await redis.hGet(COMMENT_REPLY_HASH, comment.id);
+    if (existingReplyId && !isCommentId(existingReplyId)) {
+      await redis.hDel(COMMENT_REPLY_HASH, [comment.id]);
     }
 
-    // Community highlights and subreddit sticky slots are different Reddit features.
-    // sticky() below is authoritative; a failure triggers rollback without changing the source.
+    if (!isPostId(comment.postId)) {
+      return c.json<UiResponse>(toast('The original comment does not have a valid parent submission.'));
+    }
 
     const svg = buildCommentSvg({
-      subredditName: comment.subredditName,
-      authorName: comment.authorName,
       body: comment.body,
       createdAt: comment.createdAt,
-      edited: comment.edited,
     });
 
     const png = await renderCommentPng(svg);
-    if (await isDeletionRecorded(commentId)) throw new Error('The source comment was deleted while rendering.');
+    if (await isDeletionRecorded(commentId)) throw new Error('The source comment was removed while rendering.');
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
-    const richtext = new RichTextBuilder()
-      .paragraph((paragraph) => {
-        paragraph.image({
-          mediaUrl: uploaded.mediaUrl,
-          caption: `Moderator selected community spotlight from r/${comment.subredditName}. Original author: u/${comment.authorName}.`,
-        });
-      })
-      .paragraph((paragraph) => {
-        paragraph.text({ text: `Original discussion: https://www.reddit.com${comment.permalink}` });
-      })
-      ;
+    if (existingReplyId && isCommentId(existingReplyId)) {
+      replacementComment = await reddit.getCommentById(existingReplyId);
+      if (replacementComment.postId !== comment.postId) {
+        throw new Error('The stored replacement comment does not belong to the original submission.');
+      }
+    } else {
+      const richtext = new RichTextBuilder().paragraph((paragraph) => {
+        paragraph.image({ mediaUrl: uploaded.mediaUrl });
+      });
 
-    replacementPost = await reddit.submitPost({
-      subredditName: comment.subredditName,
-      title: `Community spotlight: u/${comment.authorName}`,
-      richtext,
-      runAs: 'APP',
+      replacementComment = await reddit.submitComment({
+        id: comment.postId,
+        richtext,
+        runAs: 'APP',
+      });
+
+      if (replacementComment.postId !== comment.postId) {
+        throw new Error('Reddit returned a replacement comment under an unexpected submission.');
+      }
+
+      // Persist immediately after publication so retries reuse this exact reply.
+      await redis.hSet(COMMENT_REPLY_HASH, { [comment.id]: replacementComment.id });
+    }
+
+    if (replacementComment.distinguishedBy !== 'moderator') {
+      await replacementComment.distinguish(false);
+    }
+
+    const verifiedReply = await reddit.getCommentById(replacementComment.id);
+    if (verifiedReply.postId !== comment.postId || verifiedReply.distinguishedBy !== 'moderator') {
+      throw new Error('Reddit did not confirm the replacement comment under the original submission with moderator distinction.');
+    }
+
+    const latestOriginal = await reddit.getCommentById(comment.id);
+    if (!hasCommentContentAvailable(latestOriginal.body, latestOriginal.authorName, latestOriginal.removed)) {
+      throw new Error('The original comment was already removed or deleted before replacement completion.');
+    }
+
+    await latestOriginal.remove(true);
+    const verifiedOriginal = await reddit.getCommentById(comment.id);
+    if (!verifiedOriginal.removed || !verifiedOriginal.spam) {
+      throw new Error('Reddit did not confirm spam removal of the original comment.');
+    }
+
+    await redis.set(`${DELETED_COMMENT_PREFIX}${commentId}`, '1', {
+      expiration: new Date(Date.now() + DELETED_COMMENT_TTL_MS),
     });
 
-    await replacementPost.distinguish();
-    await replacementPost.sticky();
-
-    const verifiedPost = await reddit.getPostById(replacementPost.id);
-    if (!verifiedPost.stickied || verifiedPost.distinguishedBy !== 'moderator') {
-      throw new Error('Reddit did not confirm that the highlight is both pinned and moderator distinguished.');
-    }
-
-    // Keep a reverse index so manual spotlight deletion can release the source mapping.
-    await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: comment.id });
-    await redis.hSet(CONVERSION_HASH, { [comment.id]: replacementPost.id });
-    featureRecordSaved = true;
-
-    // Close the race where the source is deleted while rendering or publishing.
-    const latestOriginal = await reddit.getCommentById(comment.id);
-    if (await isDeletionRecorded(commentId) || !hasCommentContentAvailable(latestOriginal.body, latestOriginal.authorName, latestOriginal.removed)) {
-      throw new Error('The source comment was deleted or removed during publishing.');
-    }
     transactionComplete = true;
+    console.info(`[ModGlow] Replaced ${comment.id} with distinguished comment ${replacementComment.id} under ${comment.postId}; source marked as spam.`);
+    return c.json<UiResponse>(toast('Replacement comment published and distinguished. Original comment removed as spam.'));
 
-    console.info(`[ModGlow] Featured ${comment.id} as ${replacementPost.id} in r/${comment.subredditName}.`);
-    return c.json<UiResponse>(toast('Highlight published, moderator distinguished, and pinned. The original comment remains unchanged.'));
   } catch (error) {
     console.error('[ModGlow] Feature action failed.', error);
 
-    if (replacementPost && !transactionComplete) {
-      let postDeletionConfirmed = false;
-      try {
-        await replacementPost.delete();
-        postDeletionConfirmed = true;
-      } catch (cleanupError) {
-        if (isNotFoundError(cleanupError)) {
-          postDeletionConfirmed = true;
-        } else {
-          console.error('[ModGlow] Failed to remove an incomplete highlight post.', cleanupError);
-          try {
-            // Preserve both directions when Reddit cannot confirm cleanup. This
-            // prevents duplicate publication and lets onPostDelete reconcile it.
-            await redis.hSet(POST_SOURCE_HASH, { [replacementPost.id]: commentId });
-            await redis.hSet(CONVERSION_HASH, { [commentId]: replacementPost.id });
-            featureRecordSaved = true;
-            console.error('[ModGlow] Preserved an orphan mapping to prevent duplicate publication.');
-          } catch (mappingError) {
-            console.error('[ModGlow] Could not record the incomplete highlight post.', mappingError);
-          }
-        }
-      }
-
-      if (postDeletionConfirmed) {
-        try {
-          if (featureRecordSaved) await redis.hDel(CONVERSION_HASH, [commentId]);
-          await redis.hDel(POST_SOURCE_HASH, [replacementPost.id]);
-          featureRecordSaved = false;
-        } catch (mappingCleanupError) {
-          // Do not recreate an orphan mapping after Reddit confirmed deletion.
-          // The PostDelete trigger can reconcile metadata if its event is pending.
-          console.error('[ModGlow] Could not clear the rolled back highlight mapping.', mappingCleanupError);
-        }
-      }
+    // A successfully published replacement is retained and indexed. A retry
+    // reuses it rather than creating a duplicate. The source is never removed
+    // unless publication and moderator distinction have both been verified.
+    if (replacementComment && !transactionComplete) {
+      console.error(`[ModGlow] Replacement comment ${replacementComment.id} remains indexed for safe retry.`);
     }
 
-    return c.json<UiResponse>(toast('Could not complete the highlight. The original comment was not changed. Check the comment, author permission, and available sticky slots, then try again.'));
+    return c.json<UiResponse>(toast('Could not complete the replacement. The original comment was not intentionally removed. Retry to resume safely without publishing a duplicate.'));
   } finally {
     if (lockToken) {
       try {
