@@ -122,7 +122,7 @@ function isSpecialBlockStart(line: string): boolean {
 
 /**
  * Parse Markdown blocks without evaluating raw HTML or unsafe URL schemes.
- * Nested lists and tables are deliberately left as literal paragraph text.
+ * Nested lists and tables are not converted into structured Reddit blocks.
  */
 export function parseMarkdown(markdown: string): MarkdownBlock[] {
   const source = markdown.replace(/\r\n?/gu, '\n').trim();
