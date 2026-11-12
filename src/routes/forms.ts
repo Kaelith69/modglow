@@ -132,7 +132,7 @@ forms.post('/feature-comment-submit', async (c) => {
       .paragraph((paragraph) => {
         paragraph.text({ text: `Original discussion: https://www.reddit.com${comment.permalink}` });
       })
-      .build();
+      ;
 
     replacementPost = await reddit.submitPost({
       subredditName: comment.subredditName,
