@@ -6,10 +6,10 @@ The generated image uses a compact dark comment composition inspired by the supp
 The layout is 1536px wide and grows vertically to fit wrapped text. The avatar uses the author's initials rather than copying a Reddit avatar. Action icons are original vector paths. The image preserves author attribution without reproducing Reddit's proprietary interface artwork, logo, or Snoo.
 
 ## Palette
-- Near black: `#0E1012`
+- Near black: `#101113`
 - Surface: `#171B1F`
-- Highlight green: `#24C84A`
-- Moderator green: `#123D1E`
+- Highlight green: `#5FBD47`
+- Moderator green: `#17380D`
 - Muted blue grey: `#91A3AF`
 - Comment text: `#A9B9C4`
 - Avatar slate: `#335A66`
