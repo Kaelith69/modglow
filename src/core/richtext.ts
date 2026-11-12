@@ -82,7 +82,7 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
  * the image, so Reddit handles its layout, links, and accessibility.
  */
 export function buildAnnouncementRichText(mediaUrl: string, markdown: string): RichTextBuilder {
-  if (countGraphemes(markdown) > MAX_ANNOUNCEMENT_BODY_CHARS) {
+  if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
   }
   const blocks = parseMarkdown(markdown);
