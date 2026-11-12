@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.3
+
+- Fixed lock acquisition to account for the Devvit Redis SDK contract: `redis.set()` returns the Redis client, not the Redis `SET` reply. ModGlow now reads the key back and only proceeds when it contains this request's unique token.
+- Keeps `SET NX` as the atomic winner selection, with a 45 second expiry. Competing requests cannot mistake the returned client object for a successful lock.
+
 ## 0.2.2
 
 - Fixed the actual lock bug: `TxClientLike.get()` queues a Redis GET and returns the transaction handle, not the stored value. The previous code therefore treated every feature attempt as an existing lock and could not correctly release locks.
