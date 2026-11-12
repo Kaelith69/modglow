@@ -111,7 +111,7 @@ test('inline and fenced code remain literal and use highlighted text styling', (
   const svg = buildAnnouncementSvg(
     'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
   );
-  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#F20D24"/);
+  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#7CFF00"/);
   assert.match(svg, /\*\*not bold\*\*/);
   assert.match(svg, /\*\*literal\*\*/);
   assert.doesNotMatch(svg, /font-weight="700" font-style="normal"[^>]*>not bold</);
