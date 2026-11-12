@@ -17,5 +17,6 @@ jobs:
       - name: Summarize dependency advisories
         run: |
           npm audit --json > audit-report.json || true
-          node -e "const a=require('./audit-report.json'); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,via:v.via.map(x=>typeof x==='string'?x:x.name)}))"
+          node -e "const a=require('./audit-report.json'); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,via:v.via.map(x=>typeof x==='string'?x:{name:x.name,title:x.title,url:x.url,range:x.range})}))"
+          npm ls minimatch isomorphic-git tmp --all || true
       - run: npm run check
