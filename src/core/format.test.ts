@@ -40,10 +40,9 @@ test('wrapTextByWidth keeps wide text within the image column', () => {
   assert.equal(lines.join('').length, 120);
 });
 
-test('comment card follows the dark pinned moderator comment composition', () => {
+test('comment card uses the ModGlow app identity and pinned comment layout', () => {
   const svg = buildCommentSvg({
     subredditName: 'Coconaad',
-    authorName: 'Kaelith69',
     body: 'This is an example',
     createdAt: new Date('2026-11-12T00:00:00Z'),
     edited: false,
@@ -54,22 +53,20 @@ test('comment card follows the dark pinned moderator comment composition', () =>
   assert.match(svg, /#91A3AF/);
   assert.match(svg, /Pinned/);
   assert.match(svg, />Mod</);
+  assert.match(svg, />ModGlow</);
   assert.match(svg, />Reply</);
   assert.match(svg, />Vote</);
-  assert.match(svg, /Kaelith69/);
-  assert.match(svg, /This is an example/);
   assert.match(svg, /<circle cx="132" cy="124"/);
+  assert.match(svg, /M512 92 L858 292/);
   assert.match(svg, /M818/);
   assert.match(svg, /M1127/);
   assert.match(svg, /M1380/);
-  assert.doesNotMatch(svg, /<script>/);
-  assert.doesNotMatch(svg, /COMMUNITY ARCHIVE|A COMMUNITY SPOTLIGHT/);
+  assert.doesNotMatch(svg, /Kaelith69|example_user|<script>/);
 });
 
 test('comment card keeps edited metadata compact and handles older timestamps', () => {
   const svg = buildCommentSvg({
     subredditName: 'Coconaad',
-    authorName: 'example_user',
     body: 'A thoughtful reply.',
     createdAt: new Date('2020-01-01T00:00:00Z'),
     edited: true,
@@ -82,7 +79,6 @@ test('comment card keeps edited metadata compact and handles older timestamps', 
 test('comment card escapes hostile comment content', () => {
   const svg = buildCommentSvg({
     subredditName: 'safe',
-    authorName: 'user_name',
     body: 'A < 8 & 9 > 3',
     createdAt: new Date(),
     edited: false,
@@ -91,20 +87,9 @@ test('comment card escapes hostile comment content', () => {
   assert.doesNotMatch(svg, /<script>/);
 });
 
-test('comment card rejects invalid usernames instead of letting the header overflow', () => {
-  assert.throws(() => buildCommentSvg({
-    subredditName: 'Coconaad',
-    authorName: 'this_username_is_far_too_long',
-    body: 'A valid comment.',
-    createdAt: new Date(),
-    edited: false,
-  }), /invalid Reddit username/);
-});
-
 test('comment card grows with multiline text and keeps the action row below it', () => {
   const svg = buildCommentSvg({
     subredditName: 'Coconaad',
-    authorName: 'example_user',
     body: 'A first line with enough words to wrap across the card. '.repeat(8),
     createdAt: new Date(),
     edited: false,
@@ -119,7 +104,6 @@ test('comment card grows with multiline text and keeps the action row below it',
 test('spotlight image rejects oversized comments instead of clipping content', () => {
   assert.throws(() => buildCommentSvg({
     subredditName: 'Coconaad',
-    authorName: 'example_user',
     body: 'W'.repeat(3000),
     createdAt: new Date(),
     edited: false,

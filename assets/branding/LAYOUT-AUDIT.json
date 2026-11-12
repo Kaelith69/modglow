@@ -19,12 +19,12 @@
   },
   "layout_rules": [
     "The featured comment card uses a 1536px wide dark composition and grows vertically with wrapped comment text.",
-    "Author, moderator badge, timestamp, and pinned marker share a compact top row with calculated horizontal spacing.",
-    "The author avatar is a circular monogram and does not copy a Reddit user avatar.",
+    "The header uses the ModGlow app icon and ModGlow name only, followed by the moderator badge, timestamp, and pinned marker.",
+    "The original commenter's username and avatar are omitted from the image; the generated post body and caption preserve source attribution and the original discussion link.",
     "The body uses a fixed 58px font scale and 72px line height on the 1536px canvas.",
     "The bottom action row is placed after the final wrapped body line with a 55px lower margin.",
-    "SVG text is escaped and usernames longer than Reddit's 20 character limit are rejected.",
+    "SVG text is XML escaped and oversized content is rejected rather than clipped.",
     "Promo panels remain marketing artwork, not screenshots of a live app."
   ],
-  "note": "The sample SVG is a design reference for the generated PNG renderer. The comment card uses original icons and an original monogram avatar rather than a pixel perfect Reddit interface reproduction."
+  "note": "The card uses ModGlow's existing vector app icon and original vector action icons. The comment layout is a custom feature image, not an app UI screen."
 }

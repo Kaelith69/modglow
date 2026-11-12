@@ -32,7 +32,7 @@ Both menu declarations use `forUserType: "moderator"`. Both form handlers indepe
 
 ## Identity
 
-`runAs: 'APP'` is explicit. The generated post author is the Devvit app account. The card uses an original editorial visual identity and does not reproduce Reddit's native comment interface or use Reddit marks.
+`runAs: 'APP'` is explicit. The generated post author is the Devvit app account. The card uses the ModGlow app icon and name only in its header. The original commenter is attributed in the generated post caption and source link.
 
 ## Locking and duplicate protection
 
@@ -65,7 +65,7 @@ The tombstone closes an important race: a deletion event may arrive before an in
 
 ## Image rendering
 
-The server builds a custom editorial SVG using XML-safe escaped comment text and a restricted Markdown to plain text conversion. Text wrapping rejects invalid width arguments and oversized content rather than looping or silently clipping. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
+The server builds a custom dark comment card SVG using XML-safe escaped comment text and a restricted Markdown to plain text conversion. Text wrapping rejects invalid width arguments and oversized content rather than looping or silently clipping. `@resvg/resvg-wasm` rasterises the SVG to PNG. IBM Plex Sans, Noto Sans Malayalam, and Noto Sans Tamil font files are bundled into the server build. No external rendering endpoint or external AI service is used.
 
 ## Required playtest matrix
 
@@ -91,4 +91,4 @@ The server builds a custom editorial SVG using XML-safe escaped comment text and
 
 ## Comment card layout
 
-The generated image uses a 1536px wide canvas with a compact header row, author monogram avatar, green author name, moderator badge, relative timestamp, pinned marker, comment body, and a bottom action row. It uses near black surfaces with a subtle green highlight and muted blue grey metadata. The layout grows vertically as wrapped comment text requires. The renderer validates Reddit username length, escapes XML content, and rejects text that would exceed the readable line limit. The card uses original vector icon paths and a monogram avatar rather than reproducing Reddit's proprietary UI artwork or a user's avatar.
+The generated image uses a 1536px wide canvas with the ModGlow app icon and name, moderator badge, relative timestamp, pinned marker, comment body, and a bottom action row. The original commenter username and avatar are omitted from the image and remain attributed in the post caption and source link. It uses near black surfaces with a subtle green highlight and muted blue grey metadata. The layout grows vertically as wrapped comment text requires. The renderer validates Reddit username length, escapes XML content, and rejects text that would exceed the readable line limit. The card uses original vector icon paths and a monogram avatar rather than reproducing Reddit's proprietary UI artwork or a user's avatar.

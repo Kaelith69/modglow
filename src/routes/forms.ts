@@ -121,7 +121,6 @@ forms.post('/feature-comment-submit', async (c) => {
 
     const svg = buildCommentSvg({
       subredditName: comment.subredditName,
-      authorName: comment.authorName,
       body: comment.body,
       createdAt: comment.createdAt,
       edited: comment.edited,

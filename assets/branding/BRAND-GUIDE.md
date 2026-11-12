@@ -1,9 +1,9 @@
 # ModGlow brand guide
 
 ## Featured comment card
-The generated image uses a compact dark comment composition inspired by the supplied pinned moderator comment reference. It places an original circular monogram avatar and green author name on the first row, followed by a green moderator badge, muted timestamp, pinned marker, large comment text, and a restrained action row. The background is near black with a subtle green highlight.
+The generated image uses a compact dark comment composition based on the supplied pinned moderator comment reference. The first row contains the ModGlow app icon and ModGlow name, followed by the moderator badge, timestamp, and pinned marker. It does not display the original commenter's avatar or username inside the image. The generated Reddit post body and caption retain clear source author attribution and link to the original discussion.
 
-The layout is 1536px wide and grows vertically to fit wrapped text. The avatar uses the author's initials rather than copying a Reddit avatar. Action icons are original vector paths. The image preserves author attribution without reproducing Reddit's proprietary interface artwork, logo, or Snoo.
+The layout is 1536px wide and grows vertically to fit wrapped comment text. The logo is the existing ModGlow app icon, embedded as original vector artwork. Action icons are custom vector paths. The background is near black with a subtle green highlight.
 
 ## Palette
 - Near black: `#101113`
@@ -12,8 +12,8 @@ The layout is 1536px wide and grows vertically to fit wrapped text. The avatar u
 - Moderator green: `#17380D`
 - Muted blue grey: `#91A3AF`
 - Comment text: `#A9B9C4`
-- Avatar slate: `#335A66`
-- ModGlow gold detail: `#E9B86C`
+- ModGlow gold: `#E9B86C`
+- ModGlow navy: `#101B2E`
 
 ## Typography
 IBM Plex Sans is bundled for Latin glyphs. Noto Sans Malayalam and Noto Sans Tamil remain bundled for those scripts. Header metadata uses a 49px scale on the 1536px canvas. Comment text uses 58px with 72px line height.

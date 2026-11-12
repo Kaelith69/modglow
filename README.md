@@ -10,10 +10,10 @@ The feature action leaves the original comment unchanged. A separate **Remove co
 2. Reddit only displays the action to moderators. The server independently verifies that the caller is a moderator with post moderation permission in the current subreddit.
 3. The moderator confirms that the comment author has explicitly permitted the comment to be featured publicly, including their username and a link to the original discussion.
 4. ModGlow fetches the selected comment again, validates its source subreddit and available author attribution, and rejects removed, deleted, empty, or excessively long comments.
-5. The app renders a compact dark comment style card with a circular monogram avatar, green author name, moderator badge, timestamp, pinned marker, comment text, and a restrained action row. It uses original vector icons and does not reproduce Reddit's proprietary interface artwork, logo, or Snoo.
+5. The app renders a compact dark comment style card with the ModGlow app icon, green ModGlow name, moderator badge, timestamp, pinned marker, comment text, and a restrained action row. It uses original vector icons and does not reproduce Reddit's proprietary interface artwork, logo, or Snoo.
 6. The image is uploaded to Reddit and a post is submitted using `runAs: 'APP'`. The individual moderator's account is not used as the post author.
 7. ModGlow distinguishes the post as a moderator and pins it in an available sticky slot. It verifies both states before reporting success.
-8. The original comment remains unchanged. The new post links back to the original discussion and identifies the original commenter on the image.
+8. The original comment remains unchanged. The new post links back to the original discussion and identifies the original commenter in the post caption and source link.
 9. A separate **Remove comment** action opens a confirmation form and uses Reddit's moderator removal API. It does not hard delete another person's comment. If a ModGlow feature already exists for that comment, the required `CommentDelete` cleanup removes the copied spotlight post too.
 10. If the original comment is later deleted or removed by anyone, Reddit sends a `CommentDelete` event. ModGlow removes the associated spotlight post and its stored mapping as required by Reddit's content deletion rules.
 11. If a moderator deletes or removes the generated spotlight post directly, Reddit sends a `PostDelete` event. ModGlow clears its source mapping so the comment can be featured again.
@@ -29,7 +29,7 @@ The feature action leaves the original comment unchanged. A separate **Remove co
 
 ## Identity and attribution
 
-The new post is created by the **ModGlow Devvit app account**, not by the individual moderator who clicked the action. Devvit does not provide a generic subreddit account identity such as `u/<subreddit>` for app posts. The image identifies the moderation team as the curator and the original commenter as the author of the quoted content. The post body also links to the source discussion.
+The new post is created by the **ModGlow Devvit app account**, not by the individual moderator who clicked the action. Devvit does not provide a generic subreddit account identity such as `u/<subreddit>` for app posts. The image identifies ModGlow as the publisher. The generated post caption clearly identifies the original commenter as the author of the quoted content and links to the source discussion. The post body also links to the source discussion.
 
 ## Failure handling
 
