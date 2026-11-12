@@ -98,6 +98,10 @@ Create a test comment and open its comment menu as a moderator. Confirm the perm
 
 Also test a moderator without post permissions, a removed comment, a deleted author, long content, non Latin scripts, occupied sticky slots, duplicate requests, and simulated upload or pin failures.
 
+## Feature request locking
+
+Feature publication uses a per comment Redis lock to prevent concurrent duplicate posts. Locks use a versioned namespace and a 45 second expiry. The expiry is shorter than the previous 180 second lease and allows recovery when a Devvit Web request is terminated at its 30 second request limit before cleanup can run. A lock contention message means another request is active or a previous request timed out; it does not mean a spotlight post was successfully created. The persistent source to post mapping remains the authoritative duplicate check.
+
 ## Validation and publishing
 
 ```bash
