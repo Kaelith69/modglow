@@ -155,7 +155,7 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
       continue;
     }
 
-    const fence = line.match(/^\s*(`{3,}|~{3,})([A-Za-z0-9_+-]{0,24})\s*$/u);
+    const fence = line.match(/^\s*(`{3,}|~{3,})([A-Za-z0-9_+#.-]{0,24})\s*$/u);
     if (fence) {
       flushParagraph();
       const codeLines: string[] = [];
