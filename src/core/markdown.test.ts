@@ -33,7 +33,7 @@ test('Markdown links are retained as safe HTTP links and images degrade to alt t
   assert.ok(nodes.some((node) => node.type === 'text' && node.text === 'Diagram'));
   assert.ok(!nodes.some((node) => node.type === 'link' && node.url.includes('image.png')));
 
-  const unsafe = parseInlineMarkdown('[unsafe](javascript:alert(1))');
+  const unsafe = parseInlineMarkdown('[unsafe](javascript:alert)');
   assert.deepEqual(unsafe, [{ type: 'text', text: 'unsafe', formatting: 0 }]);
 });
 
@@ -86,6 +86,11 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
   assert.ok(blocks.some((block) => block.type === 'blockquote' && block.paragraphs.length === 1));
   assert.ok(blocks.some((block) => block.type === 'code' && block.language === 'typescript' && block.text === 'const answer = 42;'));
   assert.ok(blocks.some((block) => block.type === 'hr'));
+
+  const nested = parseMarkdown('- parent\\n  - nested child');
+  assert.equal(nested[0]?.type, 'list');
+  assert.equal(nested[1]?.type, 'paragraph');
+  assert.equal(nested[1]?.type === 'paragraph' ? nested[1].content[0]?.text : '', '- nested child');
 });
 
 test('empty Markdown yields no blocks and grapheme limits count visible characters', () => {
