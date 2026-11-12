@@ -46,7 +46,7 @@ The current post menu opens a native Devvit form. Its paragraph field supports m
 
 ## Typography and assets
 
-The SVG declares `Arial, Helvetica, sans-serif` explicitly for all text. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. Embedded body text is bold by default at weight 700, and blockquotes are bold italic. The renderer embeds regular, semibold, italic, bold and bold italic IBM Plex Sans faces, plus Malayalam and Tamil fonts.
+The SVG declares `Arial, Helvetica, sans-serif` explicitly for all text. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. Embedded body text is bold by default at weight 700, and blockquotes are bold italic. The renderer embeds regular, semibold, italic, bold and bold italic IBM Plex Sans faces for Latin text, plus Noto Sans Malayalam and Tamil. Compact SVG mode does not bundle explicit font coverage for other writing systems, so those scripts require visual validation. The native Markdown body uses Reddit's typography.
 
 The four flair themes retain distinct solid backgrounds and accents: IMPORTANT uses `#080605` and `#FF2525`; NOTICE uses `#050D1C` and `#078BFF`; ANNOUNCEMENT uses `#050A05` and `#8CFF00`; REMINDER uses `#090604` and `#FF7900`. No gradients, opacity, filters, external assets, or embedded raster artwork are used in the templates.
 
