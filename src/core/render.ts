@@ -29,7 +29,7 @@ type RenderedBody = {
 type RunStyle = Omit<InlineRun, 'text'>;
 
 const PLAIN_STYLE: RunStyle = {
-  bold: false,
+  bold: true,
   italic: false,
   strike: false,
   code: false,
