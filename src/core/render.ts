@@ -6,7 +6,7 @@ const BODY_FONT = 64;
 const LINE_HEIGHT = 82;
 export const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
-const MIN_HEIGHT = 438;
+const MIN_HEIGHT = 468;
 const BOTTOM_PADDING = 112;
 const BODY_WIDTH = 1384;
 
@@ -34,41 +34,6 @@ const PLAIN_STYLE: RunStyle = {
   code: false,
   accent: false,
 };
-
-function moderatorBadge(x: number): string {
-  return [
-    '<rect x="' + x + '" y="84" width="194" height="68" rx="34" fill="#29230D" stroke="#A88C2C" stroke-width="1.5"/>',
-    '<path d="M' + (x + 25) + ' 103 L' + (x + 43) + ' 97 L' + (x + 61) + ' 103 V123 Q' + (x + 43) + ' 140 ' + (x + 43) + ' 140 Q' + (x + 25) + ' 132 ' + (x + 25) + ' 123 Z" fill="#FFE45C"/>',
-    '<path d="M' + (x + 32) + ' 106 L' + (x + 43) + ' 102 L' + (x + 54) + ' 106 V122 Q' + (x + 43) + ' 132 ' + (x + 43) + ' 132 Q' + (x + 32) + ' 126 ' + (x + 32) + ' 122 Z" fill="none" stroke="#8B741E" stroke-width="2"/>',
-    '<text x="' + (x + 78) + '" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="600" fill="#FFE45C">Mod</text>',
-  ].join('');
-}
-
-function appLogo(): string {
-  return [
-    '<circle cx="132" cy="124" r="61" fill="#080808" stroke="#65551D" stroke-width="3"/>',
-    '<g transform="translate(76 68) scale(.109375)">',
-    '<path d="M512 92 L858 292 L858 692 L512 892 L166 692 L166 292 Z" fill="#FFE45C"/>',
-    '<path d="M512 172 L788 332 L788 652 L512 812 L236 652 L236 332 Z" fill="#080808"/>',
-    '<path d="M512 254 L716 372 L716 612 L512 730 L308 612 L308 372 Z" fill="none" stroke="#FFF4B0" stroke-width="26"/>',
-    '<path d="M512 338 L642 413 L642 571 L512 646 L382 571 L382 413 Z" fill="#FFE45C"/>',
-    '<path d="M512 390 L597 439 L597 545 L512 594 L427 545 L427 439 Z" fill="#17140A"/>',
-    '<path d="M458 496 Q512 430 566 496" fill="none" stroke="#FFF4B0" stroke-width="22" stroke-linecap="round"/>',
-    '<circle cx="512" cy="524" r="18" fill="#FFE45C"/>',
-    '</g>',
-  ].join('');
-}
-
-function separator(x: number, y: number): string {
-  return '<circle cx="' + x + '" cy="' + y + '" r="4" fill="#A99B62"/>';
-}
-
-function pinIcon(x: number, y: number): string {
-  return [
-    '<path d="M' + (x + 23) + ' ' + (y + 4) + ' C' + (x + 31) + ' ' + (y - 4) + ' ' + (x + 45) + ' ' + (y - 4) + ' ' + (x + 51) + ' ' + (y + 4) + ' L' + (x + 54) + ' ' + (y + 8) + ' L' + (x + 46) + ' ' + (y + 17) + ' L' + (x + 51) + ' ' + (y + 31) + ' L' + (x + 43) + ' ' + (y + 39) + ' L' + (x + 29) + ' ' + (y + 25) + ' L' + (x + 16) + ' ' + (y + 39) + ' L' + (x + 9) + ' ' + (y + 32) + ' L' + (x + 22) + ' ' + (y + 19) + ' L' + (x + 17) + ' ' + (y + 12) + ' Z" fill="#FFE45C"/>',
-    '<path d="M' + (x + 28) + ' ' + (y + 27) + ' L' + (x + 3) + ' ' + (y + 52) + '" stroke="#FFE45C" stroke-width="5" stroke-linecap="round"/>',
-  ].join('');
-}
 
 function appendRun(runs: InlineRun[], text: string, style: RunStyle): void {
   if (!text) return;
@@ -203,7 +168,7 @@ function normalizeInlineMarkdown(line: string): string {
     .replace(/[ \t]+$/g, '');
 }
 
-function renderBody(markdown: string): RenderedBody {
+function renderBody(markdown: string, accentColor: string): RenderedBody {
   const source = markdown
     .replace(/\r\n?/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
@@ -275,7 +240,7 @@ function renderBody(markdown: string): RenderedBody {
         const weight = run.bold ? '700' : '400';
         const style = run.italic ? 'italic' : 'normal';
         const family = 'IBM Plex Sans';
-        const fill = run.accent ? '#FFEFA3' : '#F2F0E8';
+        const fill = run.accent ? accentColor : '#F2F0E8';
         const decoration = run.strike ? ' text-decoration="line-through"' : '';
         return '<tspan font-family="' + family + '" font-weight="' + weight + '" font-style="' + style + '" fill="' + fill + '"' + decoration + '>' + escapeXml(run.text) + '</tspan>';
       }).join('');
@@ -292,12 +257,70 @@ function renderBody(markdown: string): RenderedBody {
   };
 }
 
-export function buildAnnouncementSvg(markdown: string): string {
+
+export const ANNOUNCEMENT_FLAIRS = ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT'] as const;
+export type AnnouncementFlair = typeof ANNOUNCEMENT_FLAIRS[number];
+
+type FlairTheme = {
+  accent: string;
+  accentText: string;
+  panel: string;
+  titleText: string;
+  header: string;
+};
+
+const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
+  IMPORTANT: {
+    accent: '#FF4055',
+    accentText: '#FF9AA6',
+    panel: '#21070C',
+    titleText: '#000000',
+    header: '<path d="M54 64 H1482 L1438 190 H98 Z" fill="#FF4055"/><path d="M76 190 H1460" stroke="#FF4055" stroke-width="8"/>',
+  },
+  NOTICE: {
+    accent: '#32B8FF',
+    accentText: '#9CDEFF',
+    panel: '#061522',
+    titleText: '#F2F0E8',
+    header: '<rect x="76" y="58" width="1384" height="142" fill="#061522" stroke="#32B8FF" stroke-width="8"/><rect x="76" y="58" width="28" height="142" fill="#32B8FF"/><rect x="126" y="86" width="8" height="86" fill="#32B8FF"/>',
+  },
+  REMINDER: {
+    accent: '#FF9D28',
+    accentText: '#FFD09A',
+    panel: '#1C1004',
+    titleText: '#F2F0E8',
+    header: '<rect x="76" y="58" width="1384" height="142" fill="#1C1004" stroke="#FF9D28" stroke-width="8"/><path d="M76 94 H1460" stroke="#FF9D28" stroke-width="8"/><rect x="112" y="42" width="34" height="44" fill="#FF9D28"/><rect x="1388" y="42" width="34" height="44" fill="#FF9D28"/>',
+  },
+  ANNOUNCEMENT: {
+    accent: '#FFE34F',
+    accentText: '#FFF0A0',
+    panel: '#1B1700',
+    titleText: '#000000',
+    header: '<rect x="76" y="58" width="1384" height="142" fill="#FFE34F"/><rect x="94" y="76" width="1348" height="106" fill="none" stroke="#000000" stroke-width="5"/><path d="M76 214 H1460" stroke="#FFE34F" stroke-width="8"/>',
+  },
+};
+
+function flairHeader(flair: AnnouncementFlair, theme: FlairTheme): string {
+  const titleX = flair === 'IMPORTANT' ? 118 : flair === 'NOTICE' ? 166 : flair === 'REMINDER' ? 112 : 112;
+  const titleY = flair === 'REMINDER' ? 156 : 151;
+  const fontSize = flair === 'ANNOUNCEMENT' ? 68 : 76;
+  return [
+    '<text x="76" y="34" font-family="IBM Plex Sans" font-size="25" font-weight="700" letter-spacing="5" fill="#F2F0E8">MODGLOW</text>',
+    theme.header,
+    '<text x="' + titleX + '" y="' + titleY + '" font-family="IBM Plex Sans" font-size="' + fontSize + '" font-weight="700" letter-spacing="2" fill="' + theme.titleText + '">' + flair + '</text>',
+  ].join('');
+}
+
+export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
   if (typeof markdown !== 'string' || markdown.length > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
+  if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {
+    throw new Error('Choose one of the four supported announcement flairs.');
+  }
 
-  const rendered = renderBody(markdown);
+  const theme = FLAIR_THEMES[flair];
+  const rendered = renderBody(markdown, theme.accentText);
   if (rendered.visibleCharacters === 0) {
     throw new Error('The announcement has no renderable text.');
   }
@@ -305,35 +328,18 @@ export function buildAnnouncementSvg(markdown: string): string {
     throw new Error('The announcement needs more than ' + MAX_LINES + ' rendered lines. Shorten it to keep the image readable.');
   }
 
-  const bodyStartY = 252;
+  const bodyStartY = 292;
   const bodyEndY = bodyStartY + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + BODY_FONT;
   const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING);
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
-    '<title>ModGlow moderator announcement</title>',
-    '<defs>',
-    '<linearGradient id="smokedSurface" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101010" stop-opacity=".98"/><stop offset=".5" stop-color="#080808" stop-opacity=".99"/><stop offset="1" stop-color="#050505"/></linearGradient>',
-    '<radialGradient id="yellowSmoke"><stop offset="0" stop-color="#FFE45C" stop-opacity=".105"/><stop offset=".48" stop-color="#FFE45C" stop-opacity=".035"/><stop offset="1" stop-color="#FFE45C" stop-opacity="0"/></radialGradient>',
-    '<linearGradient id="neonEdge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE45C" stop-opacity=".62"/><stop offset=".5" stop-color="#A58A2C" stop-opacity=".22"/><stop offset="1" stop-color="#FFE45C" stop-opacity=".48"/></linearGradient>',
-    '<filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
-    '<filter id="textShadow" x="-20%" y="-30%" width="140%" height="160%"><feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/><feOffset dy="2" result="offset"/><feComponentTransfer><feFuncA type="linear" slope=".42"/></feComponentTransfer><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>',
-    '</defs>',
+    '<title>ModGlow ' + flair.toLowerCase() + '</title>',
     '<rect width="' + WIDTH + '" height="' + height + '" fill="#000000"/>',
-    '<rect x="10" y="10" width="1516" height="' + (height - 20) + '" rx="25" fill="url(#smokedSurface)" stroke="url(#neonEdge)" stroke-width="2"/>',
-    '<ellipse cx="1110" cy="125" rx="640" ry="270" fill="url(#yellowSmoke)"/>',
-    '<rect x="10" y="10" width="4" height="' + (height - 20) + '" rx="2" fill="#FFE45C" opacity=".78" filter="url(#softGlow)"/>',
-    appLogo(),
-    '<text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#FFE45C" filter="url(#textShadow)">ModGlow</text>',
-    separator(456, 111),
-    moderatorBadge(478),
-    separator(696, 111),
-    '<text x="722" y="121" font-family="IBM Plex Sans" font-size="38" font-weight="700" letter-spacing="2" fill="#FFEFA3">ANNOUNCEMENT</text>',
-    separator(1090, 111),
-    pinIcon(1110, 78),
-    '<text x="1180" y="121" font-family="IBM Plex Sans" font-size="42" font-weight="600" fill="#FFEFA3">Pinned</text>',
-    '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8" filter="url(#textShadow)">' + rendered.markup + '</text>',
+    '<rect x="32" y="32" width="1472" height="' + (height - 64) + '" fill="' + theme.panel + '" stroke="' + theme.accent + '" stroke-width="6"/>',
+    flairHeader(flair, theme),
+    '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8">' + rendered.markup + '</text>',
     '</svg>',
   ].join('\n');
 }

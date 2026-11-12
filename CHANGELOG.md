@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0
+
+- Added exactly four selectable announcement flairs: IMPORTANT, NOTICE, REMINDER, and ANNOUNCEMENT.
+- Added a distinct solid colour comic book template for each flair.
+- Replaced smoked surfaces, gradients, blends, transparency, glow, and shadows with clean AMOLED black canvases and high contrast solid fills.
+- Added flair validation and regression tests for all four templates.
+- Updated the implementation notes, README, and brand guide.
+
 ## 0.3.0
 
 - Replaced the selected-comment spotlight workflow with a moderator-only post menu announcement composer.

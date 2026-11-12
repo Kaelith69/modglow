@@ -15,21 +15,39 @@ test('escapeXml removes XML-invalid control and surrogate characters', () => {
   assert.equal(escapeXml(input), 'safetext\nline');
 });
 
-test('announcement SVG uses the AMOLED smoked yellow ModGlow identity', () => {
+test('default announcement uses the solid AMOLED comic template', () => {
   const svg = buildAnnouncementSvg('A moderator announcement.');
-  assert.match(svg, /width="1536" height="438" viewBox="0 0 1536 438"/);
-  assert.match(svg, /<title>ModGlow moderator announcement<\/title>/);
+  assert.match(svg, /width="1536" height="468" viewBox="0 0 1536 468"/);
+  assert.match(svg, /<title>ModGlow announcement<\/title>/);
   assert.match(svg, /fill="#000000"/);
-  assert.match(svg, /url\(#smokedSurface\)/);
-  assert.match(svg, /url\(#yellowSmoke\)/);
-  assert.match(svg, /url\(#neonEdge\)/);
-  assert.match(svg, /filter="url\(#softGlow\)"/);
-  assert.match(svg, /filter="url\(#textShadow\)"/);
-  assert.match(svg, />ModGlow</);
-  assert.match(svg, />Mod</);
+  assert.match(svg, /fill="#1B1700"/);
+  assert.match(svg, /fill="#FFE34F"/);
   assert.match(svg, />ANNOUNCEMENT</);
-  assert.match(svg, />Pinned</);
-  assert.doesNotMatch(svg, /Reply|Vote|<script>/);
+  assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<script>/);
+  assert.doesNotMatch(svg, /Reply|Vote|Pinned/);
+});
+
+
+test('the four supported flairs use distinct solid comic templates', async () => {
+  const { ANNOUNCEMENT_FLAIRS } = await import('./render.ts');
+  assert.deepEqual(ANNOUNCEMENT_FLAIRS, ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT']);
+  const cards = ANNOUNCEMENT_FLAIRS.map((flair) => buildAnnouncementSvg('Read this update.', flair));
+  assert.equal(new Set(cards).size, 4);
+  for (const card of cards) {
+    assert.match(card, /fill="#000000"/);
+    assert.doesNotMatch(card, /linearGradient|radialGradient|filter=|opacity=/);
+  }
+  assert.match(cards[0], /fill="#FF4055"/);
+  assert.match(cards[1], /stroke="#32B8FF"/);
+  assert.match(cards[2], /stroke="#FF9D28"/);
+  assert.match(cards[3], /fill="#FFE34F"/);
+});
+
+test('unsupported flair values are rejected', () => {
+  assert.throws(
+    () => buildAnnouncementSvg('Not allowed.', 'URGENT' as never),
+    /four supported announcement flairs/,
+  );
 });
 
 test('inline Markdown preserves bold, italic, bold italic, and strikethrough', () => {
@@ -54,7 +72,7 @@ test('headings, quotes, ordered lists, and unordered lists retain block styling'
   const svg = buildAnnouncementSvg(
     '# Important\n> Please read this.\n- First item\n2. Second item',
   );
-  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFEFA3">Important<\/tspan>/);
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF0A0">Important<\/tspan>/);
   assert.match(svg, /› /);
   assert.match(svg, /• /);
   assert.match(svg, /2\. /);
@@ -65,7 +83,7 @@ test('inline and fenced code remain literal and use highlighted text styling', (
   const svg = buildAnnouncementSvg(
     'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
   );
-  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#FFEFA3"/);
+  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#FFF0A0"/);
   assert.match(svg, /\*\*not bold\*\*/);
   assert.match(svg, /\*\*literal\*\*/);
   assert.doesNotMatch(svg, /font-weight="700" font-style="normal"[^>]*>not bold</);
@@ -99,7 +117,7 @@ test('the card grows with wrapped text and preserves bottom breathing room', () 
   const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
   const lineCount = svg.match(/<tspan x="76" dy="/g)?.length ?? 1;
-  const bodyEndY = 252 + (lineCount - 1) * 82 + 64;
+  const bodyEndY = 292 + (lineCount - 1) * 82 + 64;
   assert.ok(height > 438);
   assert.ok(height >= bodyEndY + 112);
 });

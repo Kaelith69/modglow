@@ -8,6 +8,21 @@ export const menu = new Hono();
 
 const announcementFields = (): FormField[] => [
   {
+    name: 'flair',
+    label: 'Announcement flair',
+    type: 'select',
+    options: [
+      { label: 'IMPORTANT', value: 'IMPORTANT' },
+      { label: 'NOTICE', value: 'NOTICE' },
+      { label: 'REMINDER', value: 'REMINDER' },
+      { label: 'ANNOUNCEMENT', value: 'ANNOUNCEMENT' },
+    ],
+    defaultValue: ['ANNOUNCEMENT'],
+    multiSelect: false,
+    required: true,
+    helpText: 'Each flair uses its own solid colour comic book template.',
+  },
+  {
     name: 'announcement',
     label: 'Announcement (Markdown supported)',
     type: 'paragraph',
@@ -38,7 +53,7 @@ menu.post('/create-announcement', async (c) => {
       name: 'createAnnouncement',
       form: {
         title: 'Create a ModGlow announcement',
-        description: 'Write the announcement in Markdown. ModGlow renders it as a smoked black, yellow neon image comment, posts it as the app, and pins it as a moderator comment.',
+        description: 'Choose one of four flairs and write the announcement in Markdown. ModGlow renders it in a distinct solid colour comic book template, posts it as the app, and pins it as a moderator comment.',
         fields: announcementFields(),
         acceptLabel: 'Generate and pin comment',
         cancelLabel: 'Cancel',
