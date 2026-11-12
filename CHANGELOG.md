@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+
+- Replaced the selected-comment spotlight workflow with a moderator-only post menu announcement composer.
+- Rendered moderator-authored Markdown as an AMOLED black, smoked, yellow-neon image and publish it as one top-level comment from the ModGlow app account.
+- Added headings, quotes, ordered and unordered lists, inline and fenced code, strikethrough, safer escaped Markdown markers, and wrapped style preservation.
+- Bundled true IBM Plex Sans italic and bold-italic font faces.
+- Removed retired comment conversion, comment removal, source deletion triggers, and unused formatting helpers.
+- Added focused renderer regression tests and aligned the documentation and sample artwork with the announcement flow.
+
+# Changelog
+
 ## 0.2.3
 
 - Added `onPostDelete` cleanup so manually deleted or moderator removed spotlight posts no longer leave stale source mappings.
@@ -35,9 +46,3 @@
 - Aligned the generated image mark with the official ModGlow aperture logo.
 - Added moderator permission and identifier guard tests.
 
-## Unreleased
-
-- Replaced the comment menu spotlight workflow with a moderator-only post menu announcement composer.
-- Moderator Markdown is rendered into an AMOLED black, smoked, yellow neon image and published as one top-level comment by the ModGlow app account.
-- The app distinguishes and pins the generated comment, then verifies both states.
-- Removed the separate image-post creation and comment removal workflows.
