@@ -17,7 +17,7 @@ test('escapeXml removes XML-invalid control and surrogate characters', () => {
 
 test('default announcement uses the solid AMOLED comic template', () => {
   const svg = buildAnnouncementSvg('A moderator announcement.');
-  assert.match(svg, /width="1536" height="438" viewBox="0 0 1536 438"/);
+  assert.match(svg, /width="1536" height="468" viewBox="0 0 1536 468"/);
   assert.match(svg, /<title>ModGlow announcement<\/title>/);
   assert.match(svg, /fill="#000000"/);
   assert.match(svg, /fill="#1B1700"/);
