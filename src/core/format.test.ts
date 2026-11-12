@@ -130,3 +130,11 @@ test('announcement card renders moderator-authored Markdown as a pinned image co
   assert.match(svg, /url\(#yellowSmoke\)/);
   assert.match(svg, /url\(#neonEdge\)/);
 });
+
+test('announcement Markdown emphasis survives wrapping across multiple SVG lines', () => {
+  const svg = buildAnnouncementSvg(`**${'W'.repeat(120)}** and *${'i'.repeat(120)}*`);
+  const boldLines = [...svg.matchAll(/<tspan font-weight="700" font-style="normal">/g)];
+  const italicLines = [...svg.matchAll(/<tspan font-weight="400" font-style="italic">/g)];
+  assert.ok(boldLines.length >= 2);
+  assert.ok(italicLines.length >= 2);
+});
