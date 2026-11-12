@@ -124,6 +124,16 @@ test('XML sensitive text is escaped and unsupported HTML is not emitted', () => 
   assert.match(svg, /Text alert\(1\) &amp; 2 &lt; 3/);
 });
 
+
+test('wrapping and input limits preserve Unicode grapheme clusters', () => {
+  const family = '👨‍👩‍👧‍👦';
+  const svg = buildAnnouncementSvg(family.repeat(100), 'NOTICE');
+  assert.ok((svg.match(/<tspan x="195" dy="/g) ?? []).length > 1);
+  assert.match(svg, new RegExp(family));
+  assert.throws(() => buildAnnouncementSvg(family.repeat(2600), 'NOTICE'), /more than 24 rendered lines/);
+  assert.throws(() => buildAnnouncementSvg(family.repeat(2601), 'NOTICE'), /2600 character limit/);
+});
+
 test('empty, overlong and excessively tall announcements are rejected', () => {
   assert.throws(() => buildAnnouncementSvg('   '), /no renderable text/);
   assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
