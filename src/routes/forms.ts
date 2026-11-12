@@ -4,7 +4,7 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS, type AnnouncementFlair } from '../core/render.ts';
+import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
@@ -57,7 +57,7 @@ forms.post('/create-announcement-submit', async (c) => {
     ? values.announcement.trim()
     : '';
   const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
-  const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair) as AnnouncementFlair | undefined;
+  const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Write an announcement before publishing.'));
