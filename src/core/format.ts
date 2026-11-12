@@ -1,6 +1,15 @@
 /** Escape user supplied content before placing it in SVG text nodes. */
 export function escapeXml(value: string): string {
-  return value
+  // XML 1.0 forbids most C0 controls and unpaired UTF-16 surrogate code points.
+  const xmlSafe = Array.from(value).filter((character) => {
+    const codePoint = character.codePointAt(0)!;
+    return codePoint === 0x09 || codePoint === 0x0a || codePoint === 0x0d
+      || (codePoint >= 0x20 && codePoint <= 0xd7ff)
+      || (codePoint >= 0xe000 && codePoint <= 0xfffd)
+      || (codePoint >= 0x10000 && codePoint <= 0x10ffff);
+  }).join('');
+
+  return xmlSafe
     .replaceAll('&', '&amp;')
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;')
@@ -38,6 +47,10 @@ export function markdownToPlainText(markdown: string): string {
 
 /** Wrap text without splitting words; long URLs/tokens are split safely. */
 export function wrapText(text: string, maxCharacters: number): string[] {
+  if (!Number.isInteger(maxCharacters) || maxCharacters < 1) {
+    throw new RangeError('maxCharacters must be a positive integer.');
+  }
+
   const output: string[] = [];
   const paragraphs = text.split('\n');
 
@@ -78,6 +91,7 @@ export function wrapText(text: string, maxCharacters: number): string[] {
 }
 
 export function relativeTime(date: Date, now = new Date()): string {
+  if (!Number.isFinite(date.getTime())) return 'date unavailable';
   const seconds = Math.max(0, Math.floor((now.getTime() - date.getTime()) / 1000));
   if (seconds < 60) return 'just now';
   if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
@@ -88,6 +102,13 @@ export function relativeTime(date: Date, now = new Date()): string {
 
 /** Estimate IBM Plex Sans glyph width to keep rendered SVG lines inside the card. */
 export function wrapTextByWidth(text: string, maxWidthPx: number, fontSizePx: number): string[] {
+  if (!Number.isFinite(maxWidthPx) || maxWidthPx <= 0) {
+    throw new RangeError('maxWidthPx must be a positive finite number.');
+  }
+  if (!Number.isFinite(fontSizePx) || fontSizePx <= 0) {
+    throw new RangeError('fontSizePx must be a positive finite number.');
+  }
+
   const glyphWidth = (character: string): number => {
     if (/\s/.test(character)) return fontSizePx * 0.28;
     if (/[ilI.,'`!:;|]/.test(character)) return fontSizePx * 0.28;
