@@ -171,7 +171,7 @@ test('wide lowercase glyphs wrap conservatively within the message width', () =>
 
 test('message lines, marker, and frame remain inside the SVG viewBox', () => {
   const svg = buildAnnouncementSvg('A long message with many words. '.repeat(20), 'IMPORTANT');
-  const height = Number(svg.match(/height="(\\d+)"/)?.[1]);
+  const height = Number(svg.match(/height="(\d+)"/)?.[1]);
   const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
   const finalBaseline = 350 + (lineCount - 1) * 78;
   const markerEnd = finalBaseline + 28;
