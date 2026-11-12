@@ -30,7 +30,7 @@ export function markdownToPlainText(markdown: string): string {
     .replace(/\*(.*?)\*/g, '$1')
     .replace(/_(.*?)_/g, '$1')
     .replace(/~~(.*?)~~/g, '$1')
-    .replace(/\\([\\`*_{}\[\]()#+\-.!>])/g, '$1')
+    .replace(/\\([\\`*_{}[\]()#+\-.!>])/g, '$1')
     .replace(/[ \t]+\n/g, '\n')
     .replace(/\n{3,}/g, '\n\n')
     .trim();
@@ -116,7 +116,6 @@ export function wrapTextByWidth(text: string, maxWidthPx: number, fontSizePx: nu
       }
 
       if (line) output.push(line);
-      line = '';
 
       if (widthOf(word) <= maxWidthPx) {
         line = word;

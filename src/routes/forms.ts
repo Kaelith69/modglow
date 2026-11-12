@@ -14,7 +14,9 @@ type FeatureFormValues = {
 
 export const forms = new Hono();
 
-const LOCK_PREFIX = 'modglow:v3:lock:';
+// v4 bypasses stale v3 locks left by requests terminated before cleanup.
+const LOCK_PREFIX = 'modglow:v4:lock:';
+const LOCK_TTL_SECONDS = 45;
 const CONVERSION_HASH = 'modglow:v2:features';
 
 function toast(message: string): UiResponse {
@@ -24,24 +26,23 @@ function toast(message: string): UiResponse {
 async function acquireCommentLock(commentId: string): Promise<string | undefined> {
   const key = `${LOCK_PREFIX}${commentId}`;
   const token = `${Date.now()}:${randomUUID()}`;
-  const transaction = await redis.watch(key);
-  const existing = await transaction.get(key);
-  if (existing) {
-    await transaction.unwatch();
-    return undefined;
-  }
 
-  await transaction.multi();
-  await transaction.set(key, token);
-  await transaction.expire(key, 180);
-  const committed = await transaction.exec();
-  return committed === null ? undefined : token;
+  // SET NX with an expiry is atomic. It avoids reading through TxClientLike,
+  // whose GET method queues a command and returns the transaction handle.
+  const result = await redis.set(key, token, {
+    nx: true,
+    expiration: new Date(Date.now() + LOCK_TTL_SECONDS * 1000),
+  });
+
+  return result === 'OK' ? token : undefined;
 }
 
 async function releaseCommentLock(commentId: string, token: string): Promise<void> {
   const key = `${LOCK_PREFIX}${commentId}`;
   const transaction = await redis.watch(key);
-  const current = await transaction.get(key);
+  // Read through the root client. TxClientLike.get() queues a command and
+  // returns the transaction handle, not the stored string value.
+  const current = await redis.get(key);
   if (current !== token) {
     await transaction.unwatch();
     return;
@@ -95,7 +96,7 @@ forms.post('/feature-comment-submit', async (c) => {
 
     lockToken = await acquireCommentLock(comment.id);
     if (!lockToken) {
-      return c.json<UiResponse>(toast('This comment is already being featured. Please wait and try again.'));
+      return c.json<UiResponse>(toast('A ModGlow request for this comment is still running, or a previous request timed out. The temporary lock expires within 45 seconds. Wait briefly and try again. This message does not mean a feature post was published.'));
     }
 
     const existingPostId = await redis.hGet(CONVERSION_HASH, comment.id);
@@ -131,13 +132,12 @@ forms.post('/feature-comment-submit', async (c) => {
       .paragraph((paragraph) => {
         paragraph.text({ text: `Original discussion: https://www.reddit.com${comment.permalink}` });
       })
-      .build();
+      ;
 
     replacementPost = await reddit.submitPost({
       subredditName: comment.subredditName,
       title: `Community spotlight: u/${comment.authorName}`,
       richtext,
-      runAs: 'APP',
     });
 
     await replacementPost.distinguish();
