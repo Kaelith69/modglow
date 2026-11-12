@@ -69,9 +69,6 @@ forms.post('/create-announcement-submit', async (c) => {
   if (!flair) {
     return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
   }
-  if (bodyBelowSvg && !hasMarkdownContent(announcement)) {
-    return c.json<UiResponse>(toast('Write some Markdown text before publishing.'));
-  }
   const announcementLength = countGraphemes(announcement);
   const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
   if (announcementLength > characterLimit) {
@@ -80,6 +77,9 @@ forms.post('/create-announcement-submit', async (c) => {
         ? `The Markdown body is too long. The limit is ${MAX_ANNOUNCEMENT_BODY_CHARS} characters.`
         : `The SVG announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters. Enable the separate Markdown body option for longer announcements.`,
     ));
+  }
+  if (bodyBelowSvg && !hasMarkdownContent(announcement)) {
+    return c.json<UiResponse>(toast('Write some Markdown text before publishing.'));
   }
   if (!isPostId(postId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
     return c.json<UiResponse>(toast('The post or moderator context is invalid. Reopen ModGlow from the post menu and try again.'));
