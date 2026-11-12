@@ -181,15 +181,23 @@ function normalizeInlineMarkdown(line: string): string {
 function renderBody(markdown: string, accentColor: string): RenderedBody {
   const source = markdown.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   const renderedLines: string[] = [];
-  let inCodeBlock = false;
+  let activeFence: { character: string; length: number } | undefined;
   let visibleCharacters = 0;
 
   for (const originalLine of source.split('\n')) {
-    if (/^\s*```/.test(originalLine)) {
-      inCodeBlock = !inCodeBlock;
-      continue;
+    const fence = originalLine.match(/^\s*(`{3,}|~{3,})([A-Za-z0-9_+#.-]{0,24})\s*$/u);
+    if (fence) {
+      if (!activeFence) {
+        activeFence = { character: fence[1][0], length: fence[1].length };
+        continue;
+      }
+      if (fence[1][0] === activeFence.character && fence[1].length >= activeFence.length && !fence[2]) {
+        activeFence = undefined;
+        continue;
+      }
     }
 
+    const inCodeBlock = Boolean(activeFence);
     let line = originalLine;
     let baseStyle = PLAIN_STYLE;
     let prefix = '';
