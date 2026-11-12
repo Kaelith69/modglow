@@ -1,27 +1,39 @@
-import { escapeXml, relativeTime } from './format.ts';
-
-export type CommentCardInput = {
-  subredditName: string;
-  body: string;
-  createdAt: Date;
-  edited: boolean;
-};
+import { escapeXml } from './format.ts';
 
 const WIDTH = 1536;
 const BODY_X = 76;
 const BODY_FONT = 64;
 const LINE_HEIGHT = 82;
-const MAX_BODY_CHARS = 2600;
+const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
 const MIN_HEIGHT = 438;
 const BOTTOM_PADDING = 112;
 const BODY_WIDTH = 1384;
 
-type InlineRun = { text: string; bold: boolean; italic: boolean };
+type InlineRun = {
+  text: string;
+  bold: boolean;
+  italic: boolean;
+  strike: boolean;
+  code: boolean;
+  accent: boolean;
+};
 
-function separator(x: number, y: number): string {
-  return '<circle cx="' + x + '" cy="' + y + '" r="4" fill="#A99B62"/>';
-}
+type RenderedBody = {
+  markup: string;
+  lineCount: number;
+  visibleCharacters: number;
+};
+
+type RunStyle = Omit<InlineRun, 'text'>;
+
+const PLAIN_STYLE: RunStyle = {
+  bold: false,
+  italic: false,
+  strike: false,
+  code: false,
+  accent: false,
+};
 
 function moderatorBadge(x: number): string {
   return [
@@ -47,6 +59,10 @@ function appLogo(): string {
   ].join('');
 }
 
+function separator(x: number, y: number): string {
+  return '<circle cx="' + x + '" cy="' + y + '" r="4" fill="#A99B62"/>';
+}
+
 function pinIcon(x: number, y: number): string {
   return [
     '<path d="M' + (x + 23) + ' ' + (y + 4) + ' C' + (x + 31) + ' ' + (y - 4) + ' ' + (x + 45) + ' ' + (y - 4) + ' ' + (x + 51) + ' ' + (y + 4) + ' L' + (x + 54) + ' ' + (y + 8) + ' L' + (x + 46) + ' ' + (y + 17) + ' L' + (x + 51) + ' ' + (y + 31) + ' L' + (x + 43) + ' ' + (y + 39) + ' L' + (x + 29) + ' ' + (y + 25) + ' L' + (x + 16) + ' ' + (y + 39) + ' L' + (x + 9) + ' ' + (y + 32) + ' L' + (x + 22) + ' ' + (y + 19) + ' L' + (x + 17) + ' ' + (y + 12) + ' Z" fill="#FFE45C"/>',
@@ -54,70 +70,77 @@ function pinIcon(x: number, y: number): string {
   ].join('');
 }
 
-function prepareMarkdown(markdown: string): string {
-  return markdown
-    .replace(/\r\n?/g, '\n')
-    .replace(/```[^\n]*\n?/g, '')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g, '$1')
-    .replace(/<https?:\/\/([^>]+)>/g, 'https://$1')
-    .replace(/<\/?[A-Za-z][^>]*>/g, '')
-    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
-    .replace(/^\s{0,3}>\s?/gm, '')
-    .replace(/^\s*[-*+]\s+/gm, '• ')
-    .replace(/^\s*\d+[.)]\s+/gm, '• ')
-    .replace(/~~(.*?)~~/g, '$1')
-    .replace(/\\([\\`*_{}()#+.!>])/g, '$1')
-    .replace(/[ \t]+\n/g, '\n')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim();
+function appendRun(runs: InlineRun[], text: string, style: RunStyle): void {
+  if (!text) return;
+  const previous = runs[runs.length - 1];
+  const sameStyle = previous
+    && previous.bold === style.bold
+    && previous.italic === style.italic
+    && previous.strike === style.strike
+    && previous.code === style.code
+    && previous.accent === style.accent;
+
+  if (sameStyle) {
+    previous.text += text;
+  } else {
+    runs.push({ text, ...style });
+  }
 }
 
-function parseInlineRuns(value: string): InlineRun[] {
+/** Parse the inline Markdown styles ModGlow renders without interpreting HTML. */
+function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
   const runs: InlineRun[] = [];
-  const pattern = /\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
+  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
   let cursor = 0;
+
   for (const match of value.matchAll(pattern)) {
     const index = match.index ?? 0;
-    if (index > cursor) runs.push({ text: value.slice(cursor, index), bold: false, italic: false });
-    const triple = match[1] ?? match[2];
-    const bold = match[3] ?? match[4];
-    const italic = match[5] ?? match[6];
-    runs.push({
-      text: triple ?? bold ?? italic ?? '',
-      bold: Boolean(triple || bold),
-      italic: Boolean(triple || italic),
-    });
+    if (index > cursor) appendRun(runs, value.slice(cursor, index), baseStyle);
+
+    if (match[1] !== undefined) {
+      appendRun(runs, match[1], baseStyle);
+    } else if (match[2] !== undefined) {
+      appendRun(runs, match[2], { ...baseStyle, code: true, accent: true });
+    } else if (match[3] !== undefined) {
+      appendRun(runs, match[3], { ...baseStyle, strike: true });
+    } else if (match[4] !== undefined || match[5] !== undefined) {
+      appendRun(runs, match[4] ?? match[5] ?? '', { ...baseStyle, bold: true, italic: true });
+    } else if (match[6] !== undefined || match[7] !== undefined) {
+      appendRun(runs, match[6] ?? match[7] ?? '', { ...baseStyle, bold: true });
+    } else {
+      appendRun(runs, match[8] ?? match[9] ?? '', { ...baseStyle, italic: true });
+    }
+
     cursor = index + match[0].length;
   }
-  if (cursor < value.length) runs.push({ text: value.slice(cursor), bold: false, italic: false });
-  return runs.length ? runs : [{ text: value, bold: false, italic: false }];
+
+  if (cursor < value.length) appendRun(runs, value.slice(cursor), baseStyle);
+  return runs.length ? runs : [{ text: value, ...baseStyle }];
 }
 
-function glyphWidth(character: string, fontSize: number): number {
-  if (/\s/.test(character)) return fontSize * 0.28;
-  if (/[ilI.,'`!:;|]/.test(character)) return fontSize * 0.28;
-  if (/[MW@%#&]/.test(character)) return fontSize * 0.86;
-  if (/[A-Z]/.test(character)) return fontSize * 0.64;
-  if (/[0-9]/.test(character)) return fontSize * 0.56;
-  if (character.codePointAt(0)! > 0xffff) return fontSize;
-  return fontSize * 0.52;
+function glyphWidth(character: string, fontSize: number, style: RunStyle): number {
+  if (/\p{Mark}/u.test(character)) return 0;
+
+  let width: number;
+  if (/\s/u.test(character)) width = fontSize * 0.28;
+  else if (style.code) width = fontSize * 0.61;
+  else if (/[ilI.,'`!:;|]/u.test(character)) width = fontSize * 0.28;
+  else if (/[MW@%#&]/u.test(character)) width = fontSize * 0.86;
+  else if (/[A-Z]/u.test(character)) width = fontSize * 0.64;
+  else if (/[0-9]/u.test(character)) width = fontSize * 0.56;
+  else if (character.codePointAt(0)! > 0xffff) width = fontSize;
+  else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.76;
+  else width = fontSize * 0.52;
+
+  return width * (style.bold ? 1.045 : 1);
 }
 
 function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): InlineRun[][] {
   const lines: InlineRun[][] = [[]];
   let lineWidth = 0;
 
-  const append = (text: string, style: Omit<InlineRun, 'text'>): void => {
-    if (!text) return;
-    const line = lines[lines.length - 1];
-    const previous = line[line.length - 1];
-    if (previous && previous.bold === style.bold && previous.italic === style.italic) {
-      previous.text += text;
-    } else {
-      line.push({ text, ...style });
-    }
+  const append = (text: string, style: RunStyle): void => {
+    appendRun(lines[lines.length - 1], text, style);
   };
 
   const nextLine = (): void => {
@@ -128,11 +151,18 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
   };
 
   for (const run of runs) {
+    const style: RunStyle = {
+      bold: run.bold,
+      italic: run.italic,
+      strike: run.strike,
+      code: run.code,
+      accent: run.accent,
+    };
     const tokens = run.text.match(/\s+|[^\s]+/gu) ?? [];
+
     for (const token of tokens) {
-      const style = { bold: run.bold, italic: run.italic };
       if (/^\s+$/u.test(token)) {
-        const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize), 0);
+        const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize, style), 0);
         if (lineWidth > 0 && lineWidth + width > maxWidth) {
           nextLine();
         } else if (lineWidth > 0) {
@@ -142,7 +172,7 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
         continue;
       }
 
-      const tokenWidth = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize), 0);
+      const tokenWidth = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize, style), 0);
       if (lineWidth > 0 && lineWidth + tokenWidth > maxWidth) nextLine();
 
       if (tokenWidth <= maxWidth) {
@@ -152,7 +182,7 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
       }
 
       for (const character of token) {
-        const width = glyphWidth(character, fontSize);
+        const width = glyphWidth(character, fontSize, style);
         if (lineWidth > 0 && lineWidth + width > maxWidth) nextLine();
         append(character, style);
         lineWidth += width;
@@ -163,60 +193,125 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
   return lines.filter((line, index) => line.length > 0 || index === 0);
 }
 
-function renderBody(markdown: string): { markup: string; lineCount: number } {
-  const prepared = prepareMarkdown(markdown);
-  const renderedLines: string[] = [];
+function normalizeInlineMarkdown(line: string): string {
+  return line
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1')
+    .replace(/<https?:\/\/([^>]+)>/g, 'https://$1')
+    .replace(/<\/?[A-Za-z][^>]*>/g, '')
+    .replace(/[ \t]+$/g, '');
+}
 
-  for (const paragraph of prepared.split('\n')) {
-    if (!paragraph) {
-      renderedLines.push('<tspan x="' + BODY_X + '" dy="' + LINE_HEIGHT + '"> </tspan>');
+function renderBody(markdown: string): RenderedBody {
+  const source = markdown
+    .replace(/\r\n?/g, '\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+  const renderedLines: string[] = [];
+  let inCodeBlock = false;
+  let visibleCharacters = 0;
+
+  for (const originalLine of source.split('\n')) {
+    if (/^\s*```/.test(originalLine)) {
+      inCodeBlock = !inCodeBlock;
       continue;
     }
 
-    const wrapped = wrapInlineRuns(parseInlineRuns(paragraph), BODY_WIDTH, BODY_FONT);
-    for (const line of wrapped) {
-      const content = line.map((run) => {
+    let line = originalLine;
+    let baseStyle = PLAIN_STYLE;
+    let prefix = '';
+
+    if (!inCodeBlock) {
+      const heading = line.match(/^\s{0,3}(#{1,6})\s+(.+)$/);
+      const quote = line.match(/^\s{0,3}>\s?(.*)$/);
+      const unordered = line.match(/^\s*[-*+]\s+(.+)$/);
+      const ordered = line.match(/^\s*(\d+[.)])\s+(.+)$/);
+
+      if (heading) {
+        line = heading[2];
+        baseStyle = { ...PLAIN_STYLE, bold: true, accent: true };
+      } else if (quote) {
+        line = quote[1];
+        prefix = '› ';
+        baseStyle = { ...PLAIN_STYLE, italic: true };
+      } else if (unordered) {
+        line = unordered[1];
+        prefix = '• ';
+        baseStyle = { ...PLAIN_STYLE };
+      } else if (ordered) {
+        line = ordered[2];
+        prefix = ordered[1] + ' ';
+        baseStyle = { ...PLAIN_STYLE };
+      }
+
+      line = normalizeInlineMarkdown(line);
+    } else {
+      baseStyle = { ...PLAIN_STYLE, code: true, accent: true };
+    }
+
+    if (!line.trim() && !prefix) {
+      if (renderedLines.length > 0) {
+        renderedLines.push('<tspan x="' + BODY_X + '" dy="' + LINE_HEIGHT + '"> </tspan>');
+      }
+      continue;
+    }
+
+    const runs = parseInlineRuns(line, baseStyle);
+    if (prefix) {
+      runs.unshift({
+        text: prefix,
+        bold: true,
+        italic: false,
+        strike: false,
+        code: false,
+        accent: true,
+      });
+    }
+
+    const wrapped = wrapInlineRuns(runs, BODY_WIDTH, BODY_FONT);
+    for (const wrappedLine of wrapped) {
+      const content = wrappedLine.map((run) => {
         const weight = run.bold ? '700' : '400';
         const style = run.italic ? 'italic' : 'normal';
-        return '<tspan font-weight="' + weight + '" font-style="' + style + '">' + escapeXml(run.text) + '</tspan>';
+        const family = run.code ? 'monospace' : 'IBM Plex Sans';
+        const fill = run.accent ? '#FFEFA3' : '#F2F0E8';
+        const decoration = run.strike ? ' text-decoration="line-through"' : '';
+        return '<tspan font-family="' + family + '" font-weight="' + weight + '" font-style="' + style + '" fill="' + fill + '"' + decoration + '>' + escapeXml(run.text) + '</tspan>';
       }).join('');
+
       renderedLines.push('<tspan x="' + BODY_X + '" dy="' + (renderedLines.length === 0 ? 0 : LINE_HEIGHT) + '">' + content + '</tspan>');
+      visibleCharacters += wrappedLine.reduce((sum, run) => sum + [...run.text].filter((character) => !/\s/u.test(character)).length, 0);
     }
   }
 
-  return { markup: renderedLines.join(''), lineCount: renderedLines.length };
+  return {
+    markup: renderedLines.join(''),
+    lineCount: renderedLines.length,
+    visibleCharacters,
+  };
 }
 
-export function buildCommentSvg(input: CommentCardInput): string {
-  if (input.body.length > MAX_BODY_CHARS) {
-    throw new Error('This comment is too long to feature safely (' + MAX_BODY_CHARS + ' character limit).');
+export function buildAnnouncementSvg(markdown: string): string {
+  if (typeof markdown !== 'string' || markdown.length > MAX_ANNOUNCEMENT_CHARS) {
+    throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
 
-  const prepared = prepareMarkdown(input.body);
-  if (!prepared) throw new Error('The comment has no renderable text.');
-  const rendered = renderBody(input.body);
+  const rendered = renderBody(markdown);
+  if (rendered.visibleCharacters === 0) {
+    throw new Error('The announcement has no renderable text.');
+  }
   if (rendered.lineCount > MAX_LINES) {
-    throw new Error('This comment needs more than ' + MAX_LINES + ' lines. Shorter comments are required for a readable image.');
+    throw new Error('The announcement needs more than ' + MAX_LINES + ' rendered lines. Shorten it to keep the image readable.');
   }
 
   const bodyStartY = 252;
   const bodyEndY = bodyStartY + Math.max(0, rendered.lineCount - 1) * LINE_HEIGHT + BODY_FONT;
   const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING);
-  const timeValue = relativeTime(input.createdAt);
-  const timeLabel = timeValue === 'just now'
-    ? 'Now'
-    : (timeValue.match(/^([A-Za-z]{3} \d{1,2}),/)?.[1] ?? (timeValue.length > 8 ? 'Earlier' : timeValue));
-  const time = escapeXml(timeLabel);
-  const timeWidth = Math.max(95, [...timeLabel].length * 24);
-  const editedWidth = input.edited ? 94 : 0;
-  const dotThreeX = 850 + timeWidth + editedWidth - 95;
-  const pinX = dotThreeX + 20;
-  const pinTextX = pinX + 72;
 
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
-    '<title>ModGlow moderator authored image comment</title>',
+    '<title>ModGlow moderator announcement</title>',
     '<defs>',
     '<linearGradient id="smokedSurface" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101010" stop-opacity=".98"/><stop offset=".5" stop-color="#080808" stop-opacity=".99"/><stop offset="1" stop-color="#050505"/></linearGradient>',
     '<radialGradient id="yellowSmoke"><stop offset="0" stop-color="#FFE45C" stop-opacity=".105"/><stop offset=".48" stop-color="#FFE45C" stop-opacity=".035"/><stop offset="1" stop-color="#FFE45C" stop-opacity="0"/></radialGradient>',
@@ -233,30 +328,11 @@ export function buildCommentSvg(input: CommentCardInput): string {
     separator(456, 111),
     moderatorBadge(478),
     separator(696, 111),
-    '<text x="722" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="400" fill="#C9C5B5">' + time + '</text>',
-    input.edited ? '<text x="' + (722 + timeWidth + 8) + '" y="121" font-family="IBM Plex Sans" font-size="27" font-weight="400" fill="#A99B62">edited</text>' : '',
-    separator(dotThreeX, 111),
-    pinIcon(pinX, 78),
-    '<text x="' + pinTextX + '" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="500" fill="#FFEFA3">Pinned</text>',
+    '<text x="722" y="121" font-family="IBM Plex Sans" font-size="38" font-weight="700" letter-spacing="2" fill="#FFEFA3">ANNOUNCEMENT</text>',
+    separator(1090, 111),
+    pinIcon(1110, 78),
+    '<text x="1180" y="121" font-family="IBM Plex Sans" font-size="42" font-weight="600" fill="#FFEFA3">Pinned</text>',
     '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#F2F0E8" filter="url(#textShadow)">' + rendered.markup + '</text>',
     '</svg>',
   ].join('\n');
-}
-
-/**
- * Render moderator-authored Markdown as the visual payload of a top-level
- * ModGlow image comment. The underlying renderer supplies the smoked AMOLED
- * surface, yellow neon edge, readable type scale, shadows, and Markdown
- * emphasis. The neutral INFO label replaces the source-comment timestamp.
- */
-export function buildAnnouncementSvg(markdown: string): string {
-  const svg = buildCommentSvg({
-    subredditName: '',
-    body: markdown,
-    createdAt: new Date(),
-    edited: false,
-  });
-  return svg
-    .replace('ModGlow moderator authored image comment', 'ModGlow moderator announcement')
-    .replace('>Now</text>', '>INFO</text>');
 }
