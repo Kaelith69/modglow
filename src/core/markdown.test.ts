@@ -38,6 +38,18 @@ test('Markdown links are retained as safe HTTP links and images degrade to alt t
   assert.deepEqual(unsafe, [{ type: 'text', text: 'unsafe', formatting: 0 }]);
 });
 
+test('inline parser preserves identifier underscores and balanced link parentheses', () => {
+  const nodes = parseInlineMarkdown('Use snake_case_value and [the article](https://example.com/path_(part)).');
+  assert.ok(nodes.some((node) => node.type === 'text' && node.text.includes('snake_case_value') && node.formatting === 0));
+  assert.deepEqual(
+    nodes.find((node) => node.type === 'link'),
+    { type: 'link', text: 'the article', url: 'https://example.com/path_(part)', formatting: 0 },
+  );
+
+  const unsafe = parseInlineMarkdown('[unsafe](javascript:alert(1))');
+  assert.deepEqual(unsafe, [{ type: 'text', text: 'unsafe', formatting: 0 }]);
+});
+
 test('escaped Markdown markers stay literal', () => {
   assert.deepEqual(parseInlineMarkdown('\\*literal\\*'), [
     { type: 'text', text: '*literal*', formatting: 0 },
