@@ -65,7 +65,7 @@ test('inline and fenced code remain literal and use monospace styling', () => {
   const svg = buildAnnouncementSvg(
     'Run `**not bold**` now.\n\n```ts\nconst value = `**literal**`;\n```',
   );
-  assert.match(svg, /font-family="monospace"/);
+  assert.match(svg, /font-family="IBM Plex Sans"[^>]*fill="#FFEFA3"/);
   assert.match(svg, /\*\*not bold\*\*/);
   assert.match(svg, /\*\*literal\*\*/);
   assert.doesNotMatch(svg, /font-weight="700" font-style="normal"[^>]*>not bold</);
