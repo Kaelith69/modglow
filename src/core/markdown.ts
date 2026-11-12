@@ -48,10 +48,10 @@ function safeHttpUrl(value: string): boolean {
   }
 }
 
-/** Parse the inline Markdown subset supported by Reddit rich text comments. */
+/** Parse the inline Markdown subset supported by Reddit rich text comments. Balanced single level parentheses in link URLs are supported. */
 export function parseInlineMarkdown(value: string): MarkdownInline[] {
   const nodes: MarkdownInline[] = [];
-  const pattern = /\\([\\`*_{}\x5B\]()#+.!>~-])|!\[([^\]]*)\]\(([^\s)]+)\)|\[([^\]]+)\]\(([^\s)]+)\)|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|~~(.+?)~~|`([^`]+)`|\*(.+?)\*|_(.+?)_/gu;
+  const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
