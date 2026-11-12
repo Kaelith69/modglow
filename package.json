@@ -39,5 +39,17 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.2",
     "vite": "8.3.7"
+  },
+  "overrides": {
+    "devvit": {
+      "isomorphic-git": "1.38.6",
+      "tmp": "0.2.7"
+    },
+    "eslint": {
+      "minimatch": "11.0.8"
+    },
+    "typescript-eslint": {
+      "minimatch": "11.0.8"
+    }
   }
 }
