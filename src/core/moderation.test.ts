@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { belongsToSubreddit, hasCommentModerationPermission, isCommentId } from './moderation.ts';
+import { belongsToSubreddit, hasCommentModerationPermission, isCommentId, isPostId } from './moderation.ts';
 
 test('comment moderation requires all or posts permission', () => {
   assert.equal(hasCommentModerationPermission(['posts']), true);
@@ -20,4 +20,12 @@ test('comment identifiers must be valid fullnames', () => {
 test('subreddit comparison is case insensitive and whitespace safe', () => {
   assert.equal(belongsToSubreddit('Coconaad', ' coconaad '), true);
   assert.equal(belongsToSubreddit('Coconaad', 'OtherSub'), false);
+});
+
+test('post identifiers must be valid post fullnames', () => {
+  assert.equal(isPostId('t3_abc123'), true);
+  assert.equal(isPostId('t1_abc123'), false);
+  assert.equal(isPostId('abc123'), false);
+  assert.equal(isPostId('t3_'), false);
+  assert.equal(isPostId(null), false);
 });
