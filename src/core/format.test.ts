@@ -131,6 +131,16 @@ test('links and images display readable labels rather than external resources', 
   assert.doesNotMatch(svg, /https?:\/\//u);
 });
 
+test('compact SVG code fences close only with matching fence character and length', () => {
+  const svg = buildAnnouncementSvg(
+    '````text\\n``` literal\\n````\\n\\n~~~js\\nconst ready = true;\\n~~~',
+    'NOTICE',
+  );
+  assert.match(svg, />``` literal<\\/tspan>/);
+  assert.match(svg, />const ready = true;<\\/tspan>/);
+  assert.doesNotMatch(svg, />text<\\/tspan>/);
+});
+
 test('compact SVG Markdown preserves identifier underscores and balanced link parentheses', () => {
   const svg = buildAnnouncementSvg(
     'Use snake_case_value and [the article](https://example.com/path_(part)). ![diagram](https://example.com/image_(a).png)',
