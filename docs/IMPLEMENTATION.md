@@ -7,7 +7,7 @@
 3. The native Devvit form collects the flair, Markdown source, and a Boolean option named `bodyBelowSvg`.
 4. The submission handler validates the character limit for the selected layout and independently verifies the moderator's `posts` or `all` permission.
 5. The handler acquires a per post Redis lock using atomic `SET NX` with a 45 second expiry and token readback.
-6. It fetches the post and verifies its subreddit name, immutable subreddit ID, and removal state.
+6. It fetches the post and verifies its subreddit name, immutable subreddit ID, removal state, and archive state before rendering or uploading. Archived posts are rejected early because they cannot receive new comments; locked posts remain eligible because moderators can still comment on them.
 7. The SVG renderer creates either the existing dynamic body card or a fixed 2000 by 600 title banner. Both variants reuse the four individual flair header designs.
 8. The SVG is rasterised to PNG using bundled WebAssembly and font files, then uploaded through Devvit's Reddit media capability.
 9. ModGlow builds one rich text comment. In both modes the image is the first paragraph and first content node. In separate body mode, parsed Markdown blocks follow it as native Reddit rich text.
