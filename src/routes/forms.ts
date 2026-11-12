@@ -4,7 +4,7 @@ import { context, media, reddit, redis } from '@devvit/web/server';
 import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
-import { buildAnnouncementSvg } from '../core/render.ts';
+import { buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, hasPostModerationPermission, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
 
@@ -16,7 +16,6 @@ export const forms = new Hono();
 
 const LOCK_PREFIX = 'modglow:v1:announcement-lock:';
 const LOCK_TTL_SECONDS = 45;
-const MAX_ANNOUNCEMENT_CHARS = 2600;
 
 function toast(message: string): UiResponse {
   return { showToast: message };
