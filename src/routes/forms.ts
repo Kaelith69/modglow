@@ -87,6 +87,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
   let lockToken: string | undefined;
   let publishedComment: Awaited<ReturnType<typeof reddit.submitComment>> | undefined;
+  let commentSubmissionStarted = false;
   let pinnedAndVerified = false;
   let pinMismatchConfirmed = false;
   let cleanupFailed = false;
@@ -130,6 +131,7 @@ forms.post('/create-announcement-submit', async (c) => {
         });
       });
 
+    commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
       id: postId,
       richtext,
@@ -168,6 +170,12 @@ forms.post('/create-announcement-submit', async (c) => {
           console.error('[ModGlow] Could not remove an announcement that failed pin verification.', cleanupError);
         }
       }
+    }
+
+    if (commentSubmissionStarted && !publishedComment) {
+      return c.json<UiResponse>(toast(
+        'Reddit may have received the comment request, but ModGlow did not receive a confirmation. Check the post before retrying to avoid duplicate announcements.',
+      ));
     }
 
     if (publishedComment && !pinnedAndVerified && !pinMismatchConfirmed) {
