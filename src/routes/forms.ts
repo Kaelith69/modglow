@@ -17,8 +17,6 @@ export const forms = new Hono();
 // v5 bypasses stale v4 locks left by requests terminated before cleanup.
 const LOCK_PREFIX = 'modglow:v5:lock:';
 const LOCK_TTL_SECONDS = 45;
-const CONVERSION_HASH = 'modglow:v2:features';
-const POST_SOURCE_HASH = 'modglow:v1:feature-post-sources';
 const COMMENT_REPLY_HASH = 'modglow:v1:comment-replies';
 const DELETED_COMMENT_PREFIX = 'modglow:v1:deleted:';
 const DELETED_COMMENT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
