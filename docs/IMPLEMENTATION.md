@@ -37,10 +37,14 @@ Both menu declarations use `forUserType: "moderator"`. Both form handlers indepe
 
 - Feature and removal actions share a per comment Redis lock key with a 45 second expiry.
 - Acquisition uses atomic `SET NX`, then reads back the unique token. The SET return value alone is not trusted as proof of lock ownership.
-- Release uses `WATCH`, reads with the transaction client, and deletes only if the stored token still matches.
+- Release reads the key and deletes it only if the stored token still matches. The 45 second lease exceeds Devvit's 30 second request limit, so a live request cannot reach expiry between its token check and delete.
 - The short lease recovers when a Devvit Web request is terminated before cleanup can run. It is longer than the platform's 30 second request limit.
 - Redis hash `modglow:v2:features` stores the source comment to generated post mapping.
 - A completed mapping blocks duplicate feature posts.
+
+## Dependency security
+
+The lockfile overrides vulnerable transitive packages used by the Devvit CLI and lint toolchain: `isomorphic-git` 1.38.6, `tmp` 0.2.7, and `minimatch` 11.0.8. These overrides retain the Devvit 0.15.3 SDK. CI enforces `npm audit --audit-level=moderate`.
 
 ## Sticky behavior
 
