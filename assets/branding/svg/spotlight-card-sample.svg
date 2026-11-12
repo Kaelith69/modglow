@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1536" height="410" viewBox="0 0 1536 410">
 <defs>
-<linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171B1F"/><stop offset="1" stop-color="#121619"/></linearGradient>
-<radialGradient id="highlight"><stop offset="0" stop-color="#2D7B43" stop-opacity=".13"/><stop offset="1" stop-color="#2D7B43" stop-opacity="0"/></radialGradient>
+<linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B1B1B"/><stop offset=".56" stop-color="#17191A"/><stop offset="1" stop-color="#121619"/></linearGradient>
+<radialGradient id="highlight"><stop offset="0" stop-color="#D9E83F" stop-opacity=".105"/><stop offset="1" stop-color="#D9E83F" stop-opacity="0"/></radialGradient>
+<linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8C83B" stop-opacity=".48"/><stop offset=".48" stop-color="#66732A" stop-opacity=".20"/><stop offset="1" stop-color="#B8C83B" stop-opacity=".34"/></linearGradient>
 </defs>
 <rect width="1536" height="410" fill="#101113"/>
-<rect x="10" y="10" width="1516" height="390" rx="24" fill="url(#surface)" stroke="#293138" stroke-width="2"/>
-<ellipse cx="1160" cy="104" rx="500" ry="210" fill="url(#highlight)"/>
-<rect x="10" y="10" width="5" height="390" rx="2.5" fill="#2B8A45" opacity=".72"/>
+<rect x="10" y="10" width="1516" height="390" rx="24" fill="url(#surface)" stroke="url(#edge)" stroke-width="2"/>
+<ellipse cx="1160" cy="104" rx="560" ry="250" fill="url(#highlight)"/>
+<rect x="10" y="10" width="5" height="390" rx="2.5" fill="#C4D83F" opacity=".62"/>
 <circle cx="132" cy="124" r="61" fill="#101B2E" stroke="#26313A" stroke-width="3"/>
 <g transform="translate(76 68) scale(.109375)">
 <path d="M512 92 L858 292 L858 692 L512 892 L166 692 L166 292 Z" fill="#E9B86C"/>
@@ -31,14 +32,4 @@
 <path d="M898 105 L873 130" stroke="#91A3AF" stroke-width="5" stroke-linecap="round"/>
 <text x="945" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="400" fill="#91A3AF">Pinned</text>
 <text x="68" y="246" font-family="IBM Plex Sans" font-size="58" font-weight="400" fill="#A9B9C4"><tspan x="68" dy="0">This is an example</tspan></text>
-<g fill="none" stroke="#91A3AF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-<circle cx="654" cy="335" r="5" fill="#91A3AF" stroke="none"/>
-<circle cx="654" cy="355" r="5" fill="#91A3AF" stroke="none"/>
-<circle cx="654" cy="375" r="5" fill="#91A3AF" stroke="none"/>
-<path d="M818 329 L792 354 L818 378 M792 354 H818 Q849 354 849 385 V391"/>
-<path d="M1127 316 L1153 343 H1139 V385 H1115 V343 H1101 Z"/>
-<path d="M1380 394 L1354 367 H1368 V325 H1392 V367 H1406 Z"/>
-</g>
-<text x="883" y="370" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Reply</text>
-<text x="1210" y="370" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Vote</text>
 </svg>

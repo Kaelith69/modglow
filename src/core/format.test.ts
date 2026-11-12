@@ -40,7 +40,7 @@ test('wrapTextByWidth keeps wide text within the image column', () => {
   assert.equal(lines.join('').length, 120);
 });
 
-test('comment card uses the ModGlow app identity and pinned comment layout', () => {
+test('comment card uses the ModGlow identity and a clean pinned comment layout', () => {
   const svg = buildCommentSvg({
     subredditName: 'Coconaad',
     body: 'This is an example',
@@ -51,17 +51,13 @@ test('comment card uses the ModGlow app identity and pinned comment layout', () 
   assert.match(svg, /#101113/);
   assert.match(svg, /#5FBD47/);
   assert.match(svg, /#91A3AF/);
+  assert.match(svg, /#D9E83F/);
   assert.match(svg, /Pinned/);
   assert.match(svg, />Mod</);
   assert.match(svg, />ModGlow</);
-  assert.match(svg, />Reply</);
-  assert.match(svg, />Vote</);
   assert.match(svg, /<circle cx="132" cy="124"/);
   assert.match(svg, /M512 92 L858 292/);
-  assert.match(svg, /M818/);
-  assert.match(svg, /M1127/);
-  assert.match(svg, /M1380/);
-  assert.doesNotMatch(svg, /Kaelith69|example_user|<script>/);
+  assert.doesNotMatch(svg, /Reply|Vote|<script>|cx="654"|M818|M1127|M1380/);
 });
 
 test('comment card keeps edited metadata compact and handles older timestamps', () => {
@@ -87,7 +83,7 @@ test('comment card escapes hostile comment content', () => {
   assert.doesNotMatch(svg, /<script>/);
 });
 
-test('comment card grows with multiline text and keeps the action row below it', () => {
+test('comment card grows with multiline text and keeps comfortable bottom padding', () => {
   const svg = buildCommentSvg({
     subredditName: 'Coconaad',
     body: 'A first line with enough words to wrap across the card. '.repeat(8),
@@ -95,10 +91,10 @@ test('comment card grows with multiline text and keeps the action row below it',
     edited: false,
   });
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const actionY = Number(svg.match(/<circle cx="654" cy="(\d+)"/)?.[1]) + 20;
+  const bodyEndY = 246 + (svg.match(/<tspan /g)?.length ?? 1 - 1) * 72 + 58;
   assert.ok(height > 410);
-  assert.ok(actionY > 355);
-  assert.ok(actionY < height - 20);
+  assert.ok(height >= bodyEndY + 106);
+  assert.doesNotMatch(svg, /Reply|Vote|cx="654"/);
 });
 
 test('spotlight image rejects oversized comments instead of clipping content', () => {

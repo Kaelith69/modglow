@@ -13,6 +13,8 @@ const BODY_FONT = 58;
 const LINE_HEIGHT = 72;
 const MAX_BODY_CHARS = 2600;
 const MAX_LINES = 24;
+const MIN_HEIGHT = 410;
+const BOTTOM_PADDING = 106;
 
 function separator(x: number, y: number): string {
   return '<circle cx="' + x + '" cy="' + y + '" r="4" fill="#8C9EAA"/>';
@@ -50,21 +52,6 @@ function pinIcon(x: number, y: number): string {
   ].join('');
 }
 
-function actionRow(y: number): string {
-  return [
-    '<g fill="none" stroke="#91A3AF" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">',
-    '<circle cx="654" cy="' + (y - 20) + '" r="5" fill="#91A3AF" stroke="none"/>',
-    '<circle cx="654" cy="' + y + '" r="5" fill="#91A3AF" stroke="none"/>',
-    '<circle cx="654" cy="' + (y + 20) + '" r="5" fill="#91A3AF" stroke="none"/>',
-    '<path d="M818 ' + (y - 26) + ' L792 ' + (y - 1) + ' L818 ' + (y + 23) + ' M792 ' + (y - 1) + ' H818 Q849 ' + (y - 1) + ' 849 ' + (y + 30) + ' V' + (y + 36) + '"/>',
-    '<path d="M1127 ' + (y - 39) + ' L1153 ' + (y - 12) + ' H1139 V' + (y + 30) + ' H1115 V' + (y - 12) + ' H1101 Z"/>',
-    '<path d="M1380 ' + (y + 39) + ' L1354 ' + (y + 12) + ' H1368 V' + (y - 30) + ' H1392 V' + (y + 12) + ' H1406 Z"/>',
-    '</g>',
-    '<text x="883" y="' + (y + 15) + '" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Reply</text>',
-    '<text x="1210" y="' + (y + 15) + '" font-family="IBM Plex Sans" font-size="43" font-weight="700" fill="#91A3AF">Vote</text>',
-  ].join('');
-}
-
 export function buildCommentSvg(input: CommentCardInput): string {
   if (input.body.length > MAX_BODY_CHARS) {
     throw new Error('This comment is too long to feature safely (' + MAX_BODY_CHARS + ' character limit).');
@@ -80,8 +67,7 @@ export function buildCommentSvg(input: CommentCardInput): string {
 
   const bodyStartY = 246;
   const bodyEndY = bodyStartY + Math.max(0, lines.length - 1) * LINE_HEIGHT + BODY_FONT;
-  const actionY = Math.max(355, bodyEndY + 50);
-  const height = actionY + 55;
+  const height = Math.max(MIN_HEIGHT, bodyEndY + BOTTOM_PADDING);
   const timeValue = relativeTime(input.createdAt);
   const timeLabel = timeValue === 'just now'
     ? 'Now'
@@ -102,13 +88,14 @@ export function buildCommentSvg(input: CommentCardInput): string {
     '<svg xmlns="http://www.w3.org/2000/svg" width="' + WIDTH + '" height="' + height + '" viewBox="0 0 ' + WIDTH + ' ' + height + '">',
     '<title>ModGlow featured community comment</title>',
     '<defs>',
-    '<linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#171B1F"/><stop offset="1" stop-color="#121619"/></linearGradient>',
-    '<radialGradient id="highlight"><stop offset="0" stop-color="#2D7B43" stop-opacity=".13"/><stop offset="1" stop-color="#2D7B43" stop-opacity="0"/></radialGradient>',
+    '<linearGradient id="surface" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B1B1B"/><stop offset=".56" stop-color="#17191A"/><stop offset="1" stop-color="#121619"/></linearGradient>',
+    '<radialGradient id="highlight"><stop offset="0" stop-color="#D9E83F" stop-opacity=".105"/><stop offset="1" stop-color="#D9E83F" stop-opacity="0"/></radialGradient>',
+    '<linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B8C83B" stop-opacity=".48"/><stop offset=".48" stop-color="#66732A" stop-opacity=".20"/><stop offset="1" stop-color="#B8C83B" stop-opacity=".34"/></linearGradient>',
     '</defs>',
     '<rect width="' + WIDTH + '" height="' + height + '" fill="#101113"/>',
-    '<rect x="10" y="10" width="1516" height="' + (height - 20) + '" rx="24" fill="url(#surface)" stroke="#293138" stroke-width="2"/>',
-    '<ellipse cx="1160" cy="104" rx="500" ry="210" fill="url(#highlight)"/>',
-    '<rect x="10" y="10" width="5" height="' + (height - 20) + '" rx="2.5" fill="#2B8A45" opacity=".72"/>',
+    '<rect x="10" y="10" width="1516" height="' + (height - 20) + '" rx="24" fill="url(#surface)" stroke="url(#edge)" stroke-width="2"/>',
+    '<ellipse cx="1160" cy="104" rx="560" ry="250" fill="url(#highlight)"/>',
+    '<rect x="10" y="10" width="5" height="' + (height - 20) + '" rx="2.5" fill="#C4D83F" opacity=".62"/>',
     appLogo(),
     '<text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#5FBD47">ModGlow</text>',
     separator(456, 111),
@@ -120,7 +107,6 @@ export function buildCommentSvg(input: CommentCardInput): string {
     pinIcon(pinX, 78),
     '<text x="' + pinTextX + '" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="400" fill="#91A3AF">Pinned</text>',
     '<text x="' + BODY_X + '" y="' + bodyStartY + '" font-family="IBM Plex Sans" font-size="' + BODY_FONT + '" font-weight="400" fill="#A9B9C4">' + bodyMarkup + '</text>',
-    actionRow(actionY),
     '</svg>',
   ].join('\n');
 }

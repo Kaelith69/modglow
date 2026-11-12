@@ -50,7 +50,7 @@ The new post is created by the **ModGlow Devvit app account**, not by the indivi
 
 ## Visual design
 
-The image uses a 1536px wide dark comment composition inspired by the hierarchy in a pinned moderator comment: author and moderator metadata at the top, pinned status, large readable body text, and a compact bottom action row. A subtle green highlight separates the card from the near black canvas. The avatar is a generated monogram rather than a copied user avatar. Original vector action icons are used. It is a custom community card, not a pixel perfect Reddit interface clone. IBM Plex Sans is used for Latin text, with Noto Sans Malayalam and Noto Sans Tamil bundled for those scripts.
+The image uses a 1536px wide dark comment composition inspired by the hierarchy in a pinned moderator comment: ModGlow and moderator metadata at the top, pinned status, and large readable body text. The overflow menu, reply control, vote label, upvote arrow, and downvote arrow are intentionally omitted. A restrained neon yellow green glow accents the near black canvas. The ModGlow app icon and original vector branding are used. It is a custom community card, not a full Reddit interface clone. IBM Plex Sans is used for Latin text, with Noto Sans Malayalam and Noto Sans Tamil bundled for those scripts.
 
 The image is static. Its text, timestamp, and attribution do not update after publishing. Comments longer than 2,600 characters or 24 rendered lines are rejected rather than silently clipped.
 

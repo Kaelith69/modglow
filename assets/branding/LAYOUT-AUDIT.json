@@ -21,10 +21,12 @@
     "The featured comment card uses a 1536px wide dark composition and grows vertically with wrapped comment text.",
     "The header uses the ModGlow app icon and ModGlow name only, followed by the moderator badge, timestamp, and pinned marker.",
     "The original commenter's username and avatar are omitted from the image; the generated post body and caption preserve source attribution and the original discussion link.",
+    "The card contains no overflow menu, reply control, vote label, upvote arrow, or downvote arrow.",
+    "The bottom of the card keeps 106px of breathing room after the final comment text baseline.",
+    "A restrained neon yellow green glow accents the dark surface and edge without changing the ModGlow green wordmark or moderator badge.",
     "The body uses a fixed 58px font scale and 72px line height on the 1536px canvas.",
-    "The bottom action row is placed after the final wrapped body line with a 55px lower margin.",
     "SVG text is XML escaped and oversized content is rejected rather than clipped.",
     "Promo panels remain marketing artwork, not screenshots of a live app."
   ],
-  "note": "The card uses ModGlow's existing vector app icon and original vector action icons. The comment layout is a custom feature image, not an app UI screen."
+  "note": "The card uses ModGlow's existing vector app icon and original vector branding. The action row is intentionally omitted."
 }
