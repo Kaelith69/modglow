@@ -13,7 +13,7 @@ All four announcement flairs use the supplied reference composition: a clipped a
 - Message: x=145, first baseline y=350, 64px type, 78px line spacing.
 - Message marker: x=96, begins at y=306 and ends 28px below the final baseline.
 
-The four templates share these coordinates. Only the accent colour, title panel fill, icon tile fill, icon and title change. The bottom frame edge and marker are calculated from the wrapped message height. The frame keeps at least 32px of clear space below the text.
+The four templates share these coordinates. Only the accent colour, title panel fill, icon tile fill, icon and title change. The bottom frame edge and marker are calculated from the wrapped message height. The inner bottom edge of the frame keeps at least 32px of clear space below the text.
 
 ## Flair accents
 
@@ -26,7 +26,7 @@ The four templates share these coordinates. Only the accent colour, title panel 
 
 ## Shared visual rules
 
-- Solid near black canvas: `#050505`.
+- Solid near black tinted canvases: IMPORTANT `#050000`, NOTICE `#02091B`, REMINDER `#070300`, ANNOUNCEMENT `#010703`.
 - Solid fills and strokes only. No gradients, blended colours, transparency, glow, or drop shadows.
 - Warm cream: `#F5F0E6`. Body text and wordmark use warm cream. IMPORTANT and NOTICE use cream title panels with dark italic titles. REMINDER and ANNOUNCEMENT use accent title panels with dark italic titles.
 - One matching line icon per flair, placed at the same coordinates.

@@ -66,7 +66,7 @@ test('frame grows with body lines and retains bottom clearance', () => {
 });
 
 test('long unbroken words wrap rather than crossing the body width', () => {
-  const svg = buildAnnouncementSvg('W'.repeat(500), 'IMPORTANT');
+  const svg = buildAnnouncementSvg('W'.repeat(400), 'IMPORTANT');
   const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
   assert.ok(lineCount > 1);
   assert.ok(lineCount <= 24);
@@ -144,10 +144,11 @@ test('long Markdown runs wrap across lines without losing emphasis', () => {
 test('the card grows with wrapped text and preserves bottom breathing room', () => {
   const svg = buildAnnouncementSvg('A first line with enough words to wrap across the card. '.repeat(8));
   const height = Number(svg.match(/width="1536" height="(\d+)"/)?.[1]);
-  const lineCount = svg.match(/<tspan x="88" dy="/g)?.length ?? 1;
-  const bodyEndY = 340 + (lineCount - 1) * 78 + 64;
-  assert.ok(height > 438);
-  assert.ok(height >= bodyEndY + 103);
+  const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 1;
+  const bodyEndY = 350 + (lineCount - 1) * 78 + 64;
+  const innerBottomFrameEdge = height - 60 - 7;
+  assert.ok(height > 584);
+  assert.ok(innerBottomFrameEdge - bodyEndY >= 32);
 });
 
 test('empty, markup-only, overlong, and excessively tall announcements are rejected', () => {
@@ -155,4 +156,28 @@ test('empty, markup-only, overlong, and excessively tall announcements are rejec
   assert.throws(() => buildAnnouncementSvg('<b></b>'), /no renderable text/);
   assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
   assert.throws(() => buildAnnouncementSvg('W '.repeat(650)), /more than 24 rendered lines/);
+});
+
+
+test('wide lowercase glyphs wrap conservatively within the message width', () => {
+  const wideM = buildAnnouncementSvg('m'.repeat(500), 'NOTICE');
+  const wideW = buildAnnouncementSvg('w'.repeat(500), 'NOTICE');
+  const countLines = (svg: string) => svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
+  assert.ok(countLines(wideM) >= 20);
+  assert.ok(countLines(wideW) >= 20);
+  assert.ok(countLines(wideM) <= 24);
+  assert.ok(countLines(wideW) <= 24);
+});
+
+test('message lines, marker, and frame remain inside the SVG viewBox', () => {
+  const svg = buildAnnouncementSvg('A long message with many words. '.repeat(20), 'IMPORTANT');
+  const height = Number(svg.match(/height="(\d+)"/)?.[1]);
+  const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
+  const finalBaseline = 350 + (lineCount - 1) * 78;
+  const markerEnd = finalBaseline + 28;
+  const frameBottom = height - 60;
+  assert.ok(lineCount > 1);
+  assert.ok(markerEnd < frameBottom);
+  assert.ok(frameBottom < height);
+  assert.match(svg, new RegExp('M96 306 V' + markerEnd));
 });

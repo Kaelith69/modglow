@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.3
+
+- Replaced the stale smoked announcement sample with the current solid reference template.
+- Rewrote the layout audit to match the four exact backgrounds, accents, geometry, and typography.
+- Tightened glyph width estimates for lowercase wide letters and non Latin characters to reduce text overflow risk.
+- Increased lower frame clearance and corrected stale tests to assert the current body coordinates.
+- Added regression tests for wide lowercase text and content, marker, and frame bounds.
+
 ## 0.4.2
 
 - Rebuilt all four flair cards to match the supplied comic reference artwork.

@@ -1,62 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="592" viewBox="0 0 1536 592">
-  <title>ModGlow announcement card sample</title>
-  <defs>
-    <linearGradient id="smokedSurface" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#101010" stop-opacity=".98"/>
-      <stop offset=".5" stop-color="#080808" stop-opacity=".99"/>
-      <stop offset="1" stop-color="#050505"/>
-    </linearGradient>
-    <radialGradient id="yellowSmoke">
-      <stop offset="0" stop-color="#FFE45C" stop-opacity=".105"/>
-      <stop offset=".48" stop-color="#FFE45C" stop-opacity=".035"/>
-      <stop offset="1" stop-color="#FFE45C" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="neonEdge" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFE45C" stop-opacity=".62"/>
-      <stop offset=".5" stop-color="#A58A2C" stop-opacity=".22"/>
-      <stop offset="1" stop-color="#FFE45C" stop-opacity=".48"/>
-    </linearGradient>
-    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="12" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="textShadow" x="-20%" y="-30%" width="140%" height="160%">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="2.2" result="blur"/>
-      <feOffset dy="2" result="offset"/>
-      <feComponentTransfer><feFuncA type="linear" slope=".42"/></feComponentTransfer>
-      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-  <rect width="1536" height="592" fill="#000000"/>
-  <rect x="10" y="10" width="1516" height="572" rx="25" fill="url(#smokedSurface)" stroke="url(#neonEdge)" stroke-width="2"/>
-  <ellipse cx="1110" cy="125" rx="640" ry="270" fill="url(#yellowSmoke)"/>
-  <rect x="10" y="10" width="4" height="572" rx="2" fill="#FFE45C" opacity=".78" filter="url(#softGlow)"/>
-  <circle cx="132" cy="124" r="61" fill="#080808" stroke="#65551D" stroke-width="3"/>
-  <g transform="translate(76 68) scale(.109375)">
-    <path d="M512 92 L858 292 L858 692 L512 892 L166 692 L166 292 Z" fill="#FFE45C"/>
-    <path d="M512 172 L788 332 L788 652 L512 812 L236 652 L236 332 Z" fill="#080808"/>
-    <path d="M512 254 L716 372 L716 612 L512 730 L308 612 L308 372 Z" fill="none" stroke="#FFF4B0" stroke-width="26"/>
-    <path d="M512 338 L642 413 L642 571 L512 646 L382 571 L382 413 Z" fill="#FFE45C"/>
-    <path d="M512 390 L597 439 L597 545 L512 594 L427 545 L427 439 Z" fill="#17140A"/>
-    <path d="M458 496 Q512 430 566 496" fill="none" stroke="#FFF4B0" stroke-width="22" stroke-linecap="round"/>
-    <circle cx="512" cy="524" r="18" fill="#FFE45C"/>
-  </g>
-  <text x="240" y="121" font-family="IBM Plex Sans" font-size="49" font-weight="700" fill="#FFE45C" filter="url(#textShadow)">ModGlow</text>
-  <circle cx="456" cy="111" r="4" fill="#A99B62"/>
-  <rect x="478" y="84" width="194" height="68" rx="34" fill="#29230D" stroke="#A88C2C" stroke-width="1.5"/>
-  <path d="M503 103 L521 97 L539 103 V123 Q521 140 521 140 Q503 132 503 123 Z" fill="#FFE45C"/>
-  <path d="M510 106 L521 102 L532 106 V122 Q521 132 521 132 Q510 126 510 122 Z" fill="none" stroke="#8B741E" stroke-width="2"/>
-  <text x="556" y="132" font-family="IBM Plex Sans" font-size="43" font-weight="600" fill="#FFE45C">Mod</text>
-  <circle cx="696" cy="111" r="4" fill="#A99B62"/>
-  <text x="722" y="121" font-family="IBM Plex Sans" font-size="38" font-weight="700" letter-spacing="2" fill="#FFEFA3">ANNOUNCEMENT</text>
-  <circle cx="1090" cy="111" r="4" fill="#A99B62"/>
-  <path d="M1133 82 C1141 74 1155 74 1161 82 L1164 86 L1156 95 L1161 109 L1153 117 L1139 103 L1126 117 L1119 110 L1132 97 L1127 90 Z" fill="#FFE45C"/>
-  <path d="M1138 105 L1113 130" stroke="#FFE45C" stroke-width="5" stroke-linecap="round"/>
-  <text x="1200" y="121" font-family="IBM Plex Sans" font-size="42" font-weight="600" fill="#FFEFA3">Pinned</text>
-  <text x="76" y="252" font-family="IBM Plex Sans" font-size="64" fill="#F2F0E8" filter="url(#textShadow)">
-    <tspan x="76" dy="0"><tspan font-weight="700" font-style="normal" fill="#FFEFA3">Important update</tspan></tspan>
-    <tspan x="76" dy="82"> </tspan>
-    <tspan x="76" dy="82"><tspan font-weight="400" font-style="normal" fill="#F2F0E8">Please read the guidelines before posting.</tspan></tspan>
-  </text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1536" height="584" viewBox="0 0 1536 584">
+<title>ModGlow announcement reference layout sample</title>
+<rect width="1536" height="584" fill="#010703"/>
+<path d="M350 57 H1512 V462 L1450 524 H22 V112 L82 50" fill="none" stroke="#7CFF00" stroke-width="14" stroke-linecap="butt" stroke-linejoin="miter"/>
+<text x="112" y="62" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F5F0E6">MODGLOW</text>
+<path d="M56 98 H348 L264 270 H56 Z" fill="#F5F0E6"/>
+<path d="M362 98 H1318 L1234 270 H278 Z" fill="#7CFF00"/>
+<g>
+<path d="M108 160 H155 L218 132 V220 L155 192 H108 Z" fill="none" stroke="#174B0A" stroke-width="13" stroke-linejoin="round"/>
+<path d="M128 195 L145 239 H177 L162 196 M236 151 L255 138 M239 178 H263 M236 205 L255 218" fill="none" stroke="#174B0A" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="366" y="229" font-family="IBM Plex Sans" font-size="76" font-weight="700" font-style="italic" letter-spacing="1" fill="#050505">ANNOUNCEMENT</text>
+<path d="M1290 128 H1350 L1285 260 H1225 Z" fill="#7CFF00"/>
+<path d="M1365 128 H1425 L1360 260 H1300 Z" fill="#7CFF00"/>
+<path d="M1440 128 H1500 L1435 260 H1375 Z" fill="#7CFF00"/>
+<path d="M96 306 V378" stroke="#7CFF00" stroke-width="14" stroke-linecap="square"/>
+<text x="145" y="350" font-family="IBM Plex Sans" font-size="64" font-weight="400" fill="#F5F0E6"><tspan x="145" dy="0"><tspan font-family="IBM Plex Sans" font-weight="400" font-style="normal" fill="#F2F0E8">Please follow the subreddit rules.</tspan></tspan></text>
 </svg>
