@@ -8,7 +8,8 @@ test('escapeXml neutralises markup characters', () => {
 });
 
 test('escapeXml removes XML-invalid control characters', () => {
-  assert.equal(escapeXml('safe\\u0000text\\u0008 and valid\\nline'), 'safetext and valid\\nline');
+  const input = 'safe' + String.fromCharCode(0, 8) + ' and valid\\nline';
+  assert.equal(escapeXml(input), 'safetext and valid\\nline');
 });
 
 test('markdownToPlainText keeps readable content and strips formatting syntax', () => {
