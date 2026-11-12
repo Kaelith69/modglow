@@ -48,10 +48,10 @@ test('comment card uses the ModGlow identity and a clean pinned comment layout',
     edited: false,
   });
   assert.match(svg, /width="1536" height="410" viewBox="0 0 1536 410"/);
-  assert.match(svg, /#101113/);
-  assert.match(svg, /#5FBD47/);
+  assert.match(svg, /#000000/);
+  assert.match(svg, /#FFE45C/);
   assert.match(svg, /#91A3AF/);
-  assert.match(svg, /#D9E83F/);
+  assert.match(svg, /#FFE45C/);
   assert.match(svg, /Pinned/);
   assert.match(svg, />Mod</);
   assert.match(svg, />ModGlow</);
