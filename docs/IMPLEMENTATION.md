@@ -13,8 +13,8 @@
 9. ModGlow builds one rich text comment. In both modes the image is the first paragraph and first content node. In separate body mode, parsed Markdown blocks follow it as native Reddit rich text.
 10. The app submits one top level comment to the original post using `reddit.submitComment({ id: postId, richtext, runAs: 'APP' })`.
 11. The returned comment is distinguished with sticky enabled. ModGlow fetches it again and verifies `stickied === true` and `distinguishedBy === 'moderator'`.
-12. If publication succeeds but pin verification fails, ModGlow attempts to delete the incomplete app authored comment.
-13. The lock is released only when its token still belongs to the current request.
+12. If Reddit explicitly returns a comment whose persisted state is not both pinned and moderator distinguished, ModGlow attempts to delete that incomplete app authored comment. If the verification read itself fails, the app does not delete a comment whose state is unknown. It warns the moderator to check the post before retrying, avoiding accidental deletion of a successfully pinned comment or a duplicate retry.
+13. The lock is released after the operation. The token is checked before deletion, and the 45 second lease is longer than the documented 30 second request limit so a live request cannot normally reach expiry before cleanup.
 
 ## Identity and scope
 
@@ -36,7 +36,7 @@ When `bodyBelowSvg` is false, `buildAnnouncementSvg(markdown, flair)` renders th
 
 When `bodyBelowSvg` is true, `buildAnnouncementHeaderSvg(flair)` creates a fixed 2000 by 600 title image with no announcement body text. The original header designs and palettes remain unchanged.
 
-`parseMarkdown()` converts headings, paragraphs, quotes, ordered and unordered lists, fenced code blocks, and horizontal rules into a small typed block model. Inline parsing supports bold, italic, combined bold and italic, strikethrough, monospace code, escaped punctuation, safe HTTP and HTTPS links, and image alt text. Unsafe link schemes are converted to plain link labels. Raw HTML is inserted only as text and is never interpreted as markup. Nested lists and Markdown tables are not converted into native structured blocks.
+`parseMarkdown()` converts headings, paragraphs, quotes, ordered and unordered lists, fenced code blocks, and horizontal rules into a small typed block model. Inline parsing supports bold, italic, combined bold and italic, strikethrough, monospace code, escaped punctuation, HTTP and HTTPS links including balanced single level parentheses, and image alt text. Unsafe link schemes are converted to plain link labels. Raw HTML is inserted only as text and is never interpreted as markup. Nested lists and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes only accept raw text and links.
 
 `buildAnnouncementRichText()` inserts the uploaded image in the first paragraph, then appends the parsed blocks with `RichTextBuilder`. Text formatting uses Reddit's `FormattingFlag` numeric values and `FormatRange` offsets. Separate body mode allows up to 9000 grapheme clusters.
 
