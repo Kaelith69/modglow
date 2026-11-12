@@ -98,7 +98,7 @@ function glyphWidth(character: string, fontSize: number, style: RunStyle): numbe
   else if (character.codePointAt(0)! > 0x024f) width = fontSize * 0.76;
   else width = fontSize * 0.52;
 
-  return width * (style.bold ? 1.045 : 1);
+  return width * (style.bold ? 1.12 : 1.08);
 }
 
 function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): InlineRun[][] {
@@ -276,10 +276,7 @@ const FLAIR_THEMES: Record<AnnouncementFlair, FlairTheme> = {
   ANNOUNCEMENT: { accent: '#7CFF00', iconColor: '#174B0A', titlePanel: '#7CFF00', titleColor: '#050505' },
 };
 
-const HEADER_TOP = 98;
-const HEADER_BOTTOM = 270;
 const BODY_START_Y = 350;
-const FRAME_INSET = 22;
 const FRAME_TOP = 50;
 const FRAME_BOTTOM_INSET = 60;
 
@@ -299,20 +296,17 @@ function flairHeader(flair: AnnouncementFlair, theme: FlairTheme): string {
   const titleSize = flair === 'ANNOUNCEMENT' ? 76 : 88;
   const title = '<text x="366" y="229" font-family="IBM Plex Sans" font-size="' + titleSize + '" font-weight="700" font-style="italic" letter-spacing="1" fill="' + theme.titleColor + '">' + flair + '</text>';
   const slashes = [
-    '<path d="M1348 128 H1412 L1344 260 H1280 Z" fill="' + theme.accent + '"/>',
-    '<path d="M1422 128 H1486 L1418 260 H1354 Z" fill="' + theme.accent + '"/>',
+    '<path d="M1290 128 H1350 L1285 260 H1225 Z" fill="' + theme.accent + '"/>',
+    '<path d="M1365 128 H1425 L1360 260 H1300 Z" fill="' + theme.accent + '"/>',
+    '<path d="M1440 128 H1500 L1435 260 H1375 Z" fill="' + theme.accent + '"/>',
   ].join('');
-  const thirdSlash = '<path d="M1490 128 H1522 L1454 260 H1422 Z" fill="' + theme.accent + '"/>';
   return [
     '<text x="112" y="62" font-family="IBM Plex Sans" font-size="34" font-weight="700" letter-spacing="7" fill="#F5F0E6">MODGLOW</text>',
-    '<path d="M350 57 H1512 V456 L1450 ' + (0) + ' H22 V112 L82 50" fill="none"/>',
-    '<path d="M350 57 H1512 V' + (0) + '" fill="none"/>',
     iconTile,
     titlePanel,
     flairIcon(flair, theme.iconColor),
     title,
     slashes,
-    thirdSlash,
   ].join('');
 }
 
