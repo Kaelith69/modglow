@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import type { OnCommentDeleteRequest, TriggerResponse } from '@devvit/web/shared';
 import { reddit, redis } from '@devvit/web/server';
+import { isPostId } from '../core/moderation.ts';
 
 export const triggers = new Hono();
 
@@ -17,6 +18,13 @@ triggers.post('/comment-delete', async (c) => {
   try {
     const replacementPostId = await redis.hGet(CONVERSION_HASH, commentId);
     if (!replacementPostId) return c.json<TriggerResponse>({ status: 'ok' });
+
+    // Never pass untrusted or malformed Redis values to the typed Reddit API.
+    if (!isPostId(replacementPostId)) {
+      console.error(`[ModGlow] Invalid spotlight post mapping for deleted comment ${commentId}.`);
+      await redis.hDel(CONVERSION_HASH, [commentId]);
+      return c.json<TriggerResponse>({ status: 'ok' });
+    }
 
     // Keep the mapping until the embedded copy is confirmed removed. If Reddit
     // is temporarily unavailable, a retried trigger can safely finish cleanup.
