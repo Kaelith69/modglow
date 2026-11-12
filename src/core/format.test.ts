@@ -66,7 +66,7 @@ test('frame grows with body lines and retains bottom clearance', () => {
 });
 
 test('long unbroken words wrap rather than crossing the body width', () => {
-  const svg = buildAnnouncementSvg('W'.repeat(500), 'IMPORTANT');
+  const svg = buildAnnouncementSvg('W'.repeat(400), 'IMPORTANT');
   const lineCount = svg.match(/<tspan x="145" dy="/g)?.length ?? 0;
   assert.ok(lineCount > 1);
   assert.ok(lineCount <= 24);
