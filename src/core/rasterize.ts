@@ -36,7 +36,7 @@ async function ensureRenderer(): Promise<void> {
   }
 }
 
-export async function renderCommentPng(svg: string): Promise<Uint8Array> {
+export async function renderAnnouncementPng(svg: string): Promise<Uint8Array> {
   await ensureRenderer();
   const renderer = new Resvg(svg, {
     fitTo: { mode: 'width', value: 1200 },
