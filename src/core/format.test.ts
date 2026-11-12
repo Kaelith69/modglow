@@ -28,7 +28,7 @@ test('all four templates retain their exact supplied geometry and palettes', () 
   assert.match(important, /fill="#080605"/);
   assert.match(important, /stroke="#FF2525"/);
   assert.match(important, /M70 120 H510 L390 360 H70 Z/);
-  assert.match(important, /textLength="1050"/);
+  assert.match(important, /textLength="1000"/);
   assert.match(important, /IMPORTANT<\/text>/);
 
   assert.match(notice, /fill="#050D1C"/);
@@ -42,7 +42,7 @@ test('all four templates retain their exact supplied geometry and palettes', () 
   assert.match(announcement, /M186 139 L166 153 L135 167 L135 185/);
   assert.match(announcement, /M249 132 L230 146/);
   assert.match(announcement, /M1835 170 H1895/);
-  assert.match(announcement, /textLength="1180"/);
+  assert.match(announcement, /textLength="1100"/);
   assert.match(announcement, /ANNOUNCEMENT<\/text>/);
 
   assert.match(reminder, /fill="#090604"/);

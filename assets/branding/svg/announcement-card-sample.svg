@@ -16,7 +16,7 @@
     <path d="M305 235 H350"/>
     <path d="M295 280 L330 305"/>
   </g>
-  <text x="460" y="295" fill="#050A05" font-family="IBM Plex Sans" font-size="130" font-weight="900" font-style="italic" textLength="1180" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
+  <text x="460" y="295" fill="#050A05" font-family="IBM Plex Sans" font-size="130" font-weight="900" font-style="italic" textLength="1100" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
   <g fill="#8CFF00">
     <path d="M1750 170 H1810 L1725 325 H1665 Z"/>
     <path d="M1840 170 H1900 L1815 325 H1755 Z"/>
