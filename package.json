@@ -1,6 +1,6 @@
 {
   "name": "modglow",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "A moderator-only Devvit tool for publishing Markdown announcements as pinned image comments.",
