@@ -259,3 +259,4 @@ export function buildAnnouncementSvg(markdown: string): string {
   return svg
     .replace('ModGlow moderator authored image comment', 'ModGlow moderator announcement')
     .replace('>Now</text>', '>INFO</text>');
+}
