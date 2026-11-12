@@ -27,7 +27,7 @@ When the separate body toggle is enabled, Markdown is converted into native Redd
 * Clickable HTTP and HTTPS links.
 * Markdown images are represented by their alt text. ModGlow does not fetch or embed external images.
 
-Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Link URLs support balanced single level parentheses and only HTTP or HTTPS schemes are made clickable. Nested list syntax and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes accept plain text and links rather than formatted text ranges.
+Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Link URLs support balanced single level parentheses and only HTTP or HTTPS schemes are made clickable. List markers must start at the beginning of a line. Indented and nested list syntax remains literal text, ordered lists are numbered from 1 by Reddit, and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes accept plain text and links rather than formatted text ranges.
 
 When the toggle is off, the existing SVG renderer handles short content inside the image. It supports the same main inline styles and block prefixes, but links are shown as readable labels rather than interactive links.
 
