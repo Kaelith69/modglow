@@ -88,7 +88,7 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
   assert.ok(blocks.some((block) => block.type === 'code' && block.language === 'typescript' && block.text === 'const answer = 42;'));
   assert.ok(blocks.some((block) => block.type === 'hr'));
 
-  const nested = parseMarkdown('- parent\\n  - nested child');
+  const nested = parseMarkdown('- parent\n  - nested child');
   assert.equal(nested[0]?.type, 'list');
   assert.equal(nested[1]?.type, 'paragraph');
   assert.equal(nested[1]?.type === 'paragraph' ? nested[1].content[0]?.text : '', '- nested child');
@@ -96,6 +96,8 @@ test('block parser supports all heading depths, paragraphs, lists, quotes and co
 
 test('empty Markdown yields no blocks and grapheme limits count visible characters', () => {
   assert.deepEqual(parseMarkdown('  \n  '), []);
+  assert.equal(hasMarkdownContent('---'), false);
+  assert.equal(hasMarkdownContent('**real announcement**'), true);
   assert.equal(countGraphemes('a👨‍👩‍👧‍👦b'), 3);
   assert.equal(MAX_ANNOUNCEMENT_BODY_CHARS, 9000);
   assert.equal(countGraphemes('👨‍👩‍👧‍👦'.repeat(9001)), 9001);
