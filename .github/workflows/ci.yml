@@ -13,6 +13,7 @@ jobs:
         with:
           node-version: 24
           cache: npm
+      - run: npm install --package-lock-only
       - run: npm ci
       - name: Summarize dependency advisories
         run: |
@@ -20,3 +21,28 @@ jobs:
           node -e "const a=require('./audit-report.json'); for (const [name,v] of Object.entries(a.vulnerabilities ?? {})) console.log(JSON.stringify({name,severity:v.severity,isDirect:v.isDirect,range:v.range,fixAvailable:v.fixAvailable,via:v.via.map(x=>typeof x==='string'?x:{name:x.name,title:x.title,url:x.url,range:x.range})}))"
           npm ls minimatch isomorphic-git tmp --all || true
       - run: npm run check
+
+  refresh-lock:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && github.event.head_commit.message == 'Apply dependency security overrides'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm install --package-lock-only
+      - name: Commit regenerated lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "Lockfile already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Refresh dependency lockfile"
+          git push
