@@ -17,11 +17,11 @@ test('all four templates retain their exact supplied geometry and palettes', () 
   const reminder = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'REMINDER');
 
   for (const svg of [important, notice, announcement, reminder]) {
-    assert.match(svg, /viewBox="0 0 2000 \\d+"/);
-    assert.match(svg, /M110 65 H1970 V\\d+ L1890 \\d+ H30 V145 Z/);
+    assert.match(svg, /viewBox="0 0 2000 [0-9]+"/);
+    assert.match(svg, /M110 65 H1970 V[0-9]+ L1890 [0-9]+ H30 V145 Z/);
     assert.match(svg, /x="165" y="80"/);
     assert.match(svg, /x="195" y="475"/);
-    assert.match(svg, /<rect x="115" y="415" width="16" height="\\d+"/);
+    assert.match(svg, /<rect x="115" y="415" width="16" height="[0-9]+"/);
     assert.doesNotMatch(svg, /linearGradient|radialGradient|filter=|opacity=|<image/);
   }
 
