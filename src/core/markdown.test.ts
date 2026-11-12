@@ -10,6 +10,7 @@ import {
 } from './markdown.ts';
 
 test('inline Markdown maps bold, italic, combined, strike and code to Reddit flags', () => {
+  assert.deepEqual(MARKDOWN_FORMAT, { bold: 1, italic: 2, strikethrough: 8, monospace: 64 });
   const nodes = parseInlineMarkdown('**bold** *italic* ***both*** ~~removed~~ `code`');
   assert.deepEqual(
     nodes.map((node) => [node.text, node.formatting]),
