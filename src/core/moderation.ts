@@ -46,3 +46,13 @@ export function isModeratorPinnedComment(comment: {
 }): boolean {
   return comment.stickied === true && comment.distinguishedBy === 'moderator';
 }
+
+
+/** Archived posts reject new comments; moderators can still comment on locked posts. */
+export function canModeratorCommentOnPost(post: {
+  removed?: boolean;
+  archived?: boolean;
+  locked?: boolean;
+}): boolean {
+  return post.removed !== true && post.archived !== true;
+}
