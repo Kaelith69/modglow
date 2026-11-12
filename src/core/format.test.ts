@@ -139,7 +139,7 @@ test('compact SVG Markdown preserves identifier underscores and balanced link pa
   assert.match(svg, /snake_case_value/);
   assert.match(svg, /the article/);
   assert.match(svg, /diagram/);
-  assert.doesNotMatch(svg, /https:\\/\\/example\\.com/);
+  assert.doesNotMatch(svg, /https?:\/\//u);
   assert.match(svg, /font-style="normal"/);
 });
 
