@@ -27,7 +27,9 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
   const key = `${LOCK_PREFIX}${commentId}`;
   const token = `${Date.now()}:${randomUUID()}`;
   const transaction = await redis.watch(key);
-  const existing = await transaction.get(key);
+  // TxClientLike.get() only queues a GET and returns the transaction handle.
+  // Read through the root Redis client while the WATCH transaction remains open.
+  const existing = await redis.get(key);
   if (existing) {
     await transaction.unwatch();
     return undefined;
@@ -36,14 +38,17 @@ async function acquireCommentLock(commentId: string): Promise<string | undefined
   await transaction.multi();
   await transaction.set(key, token);
   await transaction.expire(key, LOCK_TTL_SECONDS);
-  const committed = await transaction.exec() as unknown[] | null;
-  return committed === null ? undefined : token;
+  const committed = await transaction.exec();
+  // A WATCH conflict aborts EXEC and produces no command replies.
+  return committed.length === 2 && committed[0] === 'OK' && committed[1] === 1 ? token : undefined;
 }
 
 async function releaseCommentLock(commentId: string, token: string): Promise<void> {
   const key = `${LOCK_PREFIX}${commentId}`;
   const transaction = await redis.watch(key);
-  const current = await transaction.get(key);
+  // Read through the root client. TxClientLike.get() queues a command and
+  // returns the transaction handle, not the stored string value.
+  const current = await redis.get(key);
   if (current !== token) {
     await transaction.unwatch();
     return;
