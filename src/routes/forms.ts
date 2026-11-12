@@ -169,11 +169,14 @@ forms.post('/feature-comment-submit', async (c) => {
       throw new Error('Reddit did not confirm spam removal of the original comment.');
     }
 
-    await redis.set(`${DELETED_COMMENT_PREFIX}${commentId}`, '1', {
-      expiration: new Date(Date.now() + DELETED_COMMENT_TTL_MS),
-    });
-
     transactionComplete = true;
+    try {
+      await redis.set(`${DELETED_COMMENT_PREFIX}${commentId}`, '1', {
+        expiration: new Date(Date.now() + DELETED_COMMENT_TTL_MS),
+      });
+    } catch (tombstoneError) {
+      console.error('[ModGlow] Could not persist the spam removal tombstone; the CommentDelete trigger remains the cleanup path.', tombstoneError);
+    }
     console.info(`[ModGlow] Replaced ${comment.id} with distinguished comment ${replacementComment.id} under ${comment.postId}; source marked as spam.`);
     return c.json<UiResponse>(toast('Replacement comment published and distinguished. Original comment removed as spam.'));
 
