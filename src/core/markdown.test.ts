@@ -6,6 +6,7 @@ import {
   MAX_ANNOUNCEMENT_BODY_CHARS,
   parseInlineMarkdown,
   parseMarkdown,
+  hasMarkdownContent,
 } from './markdown.ts';
 
 test('inline Markdown maps bold, italic, combined, strike and code to Reddit flags', () => {
