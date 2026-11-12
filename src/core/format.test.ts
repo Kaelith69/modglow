@@ -49,8 +49,8 @@ test('comment card follows the dark pinned moderator comment composition', () =>
     edited: false,
   });
   assert.match(svg, /width="1536" height="410" viewBox="0 0 1536 410"/);
-  assert.match(svg, /#0E1012/);
-  assert.match(svg, /#24C84A/);
+  assert.match(svg, /#101113/);
+  assert.match(svg, /#5FBD47/);
   assert.match(svg, /#91A3AF/);
   assert.match(svg, /Pinned/);
   assert.match(svg, />Mod</);
