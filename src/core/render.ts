@@ -6,7 +6,7 @@ const BODY_FONT = 64;
 const LINE_HEIGHT = 82;
 export const MAX_ANNOUNCEMENT_CHARS = 2600;
 const MAX_LINES = 24;
-const MIN_HEIGHT = 438;
+const MIN_HEIGHT = 468;
 const BOTTOM_PADDING = 112;
 const BODY_WIDTH = 1384;
 
