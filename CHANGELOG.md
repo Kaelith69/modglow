@@ -2,6 +2,8 @@
 
 ## 0.2.2
 
+- Fixed the actual lock bug: `TxClientLike.get()` queues a Redis GET and returns the transaction handle, not the stored value. The previous code therefore treated every feature attempt as an existing lock and could not correctly release locks.
+- Acquire locks atomically with Redis `SET NX` plus a 45 second expiry. Release uses a watched compare and delete so one request cannot remove another request's lock.
 - Fixed stale comment feature locks by moving to a new lock namespace so orphaned v3 locks no longer block features.
 - Reduced temporary lock lifetime from 180 seconds to 45 seconds, above Devvit Web's 30 second request limit.
 - Replaced the misleading duplicate feature toast with a message explaining an active or timed out request and clarifying that the lock message does not prove a post was published.
