@@ -5,6 +5,11 @@ const BODY_X = 195;
 const BODY_START_Y = 475;
 const BODY_FONT = 76;
 const FONT_FAMILY = 'IBM Plex Sans';
+const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+
+function graphemes(value: string): string[] {
+  return Array.from(GRAPHEME_SEGMENTER.segment(value), (part) => part.segment);
+}
 const LINE_HEIGHT = 100;
 const BODY_WIDTH = 1660;
 const MAX_LINES = 24;
@@ -125,7 +130,7 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
 
     for (const token of tokens) {
       if (/^\s+$/u.test(token)) {
-        const width = [...token].reduce((sum, character) => sum + glyphWidth(character, fontSize, style), 0);
+        const width = graphemes(token).reduce((sum, character) => sum + glyphWidth(character, fontSize, style), 0);
         if (lineWidth > 0 && lineWidth + width > maxWidth) nextLine();
         else if (lineWidth > 0) {
           append(token, style);
@@ -141,7 +146,7 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
         append(token, style);
         lineWidth += tokenWidth;
       } else {
-        for (const character of token) {
+        for (const character of graphemes(token)) {
           const width = glyphWidth(character, fontSize, style);
           if (lineWidth > 0 && lineWidth + width > maxWidth) nextLine();
           append(character, style);
@@ -315,7 +320,7 @@ function flairHeader(flair: AnnouncementFlair): string {
 }
 
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
-  if (typeof markdown !== 'string' || markdown.length > MAX_ANNOUNCEMENT_CHARS) {
+  if (typeof markdown !== 'string' || graphemes(markdown).length > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
   if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {
