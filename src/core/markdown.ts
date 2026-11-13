@@ -101,12 +101,11 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
 
 function joinParagraphLines(lines: string[]): string {
   return lines.map((line, index) => {
-    const hardBreak = /(?<!\\)\\$/u.test(line);
-    const content = hardBreak ? line.slice(0, -1) : line;
-    return `${content}${index < lines.length - 1 ? (hardBreak ? '\n' : ' ') : ''}`;
+    const hardBreak = /(?<!\\)\\[ \t]*$/u.exec(line);
+    const content = hardBreak ? line.slice(0, hardBreak.index) : line;
+    return content + (index < lines.length - 1 ? (hardBreak ? '\n' : ' ') : '');
   }).join('');
 }
-
 function isHeading(line: string): RegExpMatchArray | null {
   return line.match(/^\s{0,3}(#{1,6})\s+(.+)$/u);
 }
