@@ -28,7 +28,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('First item'));
   assert.ok(serialized.includes('Coconaad Moderator announcement'));
   assert.equal(document.document[document.document.length - 1]?.c?.[0]?.t, 'Coconaad Moderator announcement');
-  assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 30]]);
+  assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 31]]);
 
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
@@ -44,6 +44,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
+  assert.deepEqual(linkNode?.f, [[1, 0, 9]]);
 
   const listNode = document.document.find((node) => node.e === 'list');
   assert.equal(listNode?.o, false);
