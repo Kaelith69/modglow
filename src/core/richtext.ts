@@ -94,7 +94,14 @@ export function appendAnnouncementFooter(builder: RichTextBuilder, subredditName
   return builder;
 }
 
-export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string): RichTextBuilder {
+export function appendAnnouncementRulesLink(builder: RichTextBuilder, subredditName: string): RichTextBuilder {
+  builder.paragraph((paragraph) => {
+    paragraph.link({ text: 'Subreddit rules and guidelines', url: `https://www.reddit.com/r/${encodeURIComponent(subredditName)}/about/rules` });
+  });
+  return builder;
+}
+
+export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string, includeRulesLink = false): RichTextBuilder {
   if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
   }
@@ -111,5 +118,6 @@ export function buildAnnouncementRichText(mediaUrl: string, markdown: string, su
 
   for (const block of blocks) appendBlock(builder, block);
 
+  if (includeRulesLink) appendAnnouncementRulesLink(builder, subredditName);
   return appendAnnouncementFooter(builder, subredditName);
 }

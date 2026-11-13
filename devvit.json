@@ -19,14 +19,16 @@
         "description": "Edit this app's verified announcement without publishing a duplicate.",
         "location": "comment",
         "forUserType": "moderator",
-        "endpoint": "/internal/menu/edit-announcement"
+        "endpoint": "/internal/menu/edit-announcement",
+        "postFilter": "currentApp"
       },
       {
         "label": "Delete ModGlow announcement",
         "description": "Permanently delete this app's verified announcement.",
         "location": "comment",
         "forUserType": "moderator",
-        "endpoint": "/internal/menu/delete-announcement"
+        "endpoint": "/internal/menu/delete-announcement",
+        "postFilter": "currentApp"
       }
     ]
   },

@@ -5,7 +5,7 @@ import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
-import { appendAnnouncementFooter, buildAnnouncementRichText } from '../core/richtext.ts';
+import { appendAnnouncementFooter, appendAnnouncementRulesLink, buildAnnouncementRichText } from '../core/richtext.ts';
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
@@ -15,6 +15,7 @@ type AnnouncementFormValues = {
   announcement?: string;
   flair?: string | string[];
   bodyBelowSvg?: boolean;
+  includeRulesLink?: boolean;
 };
 
 export const forms = new Hono();
@@ -62,7 +63,8 @@ forms.post('/create-announcement-submit', async (c) => {
     : '';
   const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
-  const bodyBelowSvg = values?.bodyBelowSvg === true;
+  const bodyBelowSvg = values?.bodyBelowSvg !== false;
+  const includeRulesLink = values?.includeRulesLink === true;
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Enter announcement text.'));
@@ -168,6 +170,7 @@ forms.post('/create-announcement-submit', async (c) => {
         flair,
         announcement,
         bodyBelowSvg,
+        includeRulesLink,
         mediaUrl: uploaded.mediaUrl,
       };
       try {
@@ -266,15 +269,15 @@ function buildAnnouncementCommentBody(
   mediaUrl: string,
   announcement: string,
   bodyBelowSvg: boolean,
+  includeRulesLink: boolean,
   subredditName: string,
 ) {
-  if (bodyBelowSvg) return buildAnnouncementRichText(mediaUrl, announcement, subredditName);
-  return appendAnnouncementFooter(
-    new RichTextBuilder().paragraph((paragraph) => {
-      paragraph.image({ mediaUrl });
-    }),
-    subredditName,
-  );
+  if (bodyBelowSvg) return buildAnnouncementRichText(mediaUrl, announcement, subredditName, includeRulesLink);
+  const builder = new RichTextBuilder().paragraph((paragraph) => {
+    paragraph.image({ mediaUrl });
+  });
+  if (includeRulesLink) appendAnnouncementRulesLink(builder, subredditName);
+  return appendAnnouncementFooter(builder, subredditName);
 }
 
 forms.post('/edit-announcement-submit', async (c) => {
@@ -282,7 +285,8 @@ forms.post('/edit-announcement-submit', async (c) => {
   const announcement = typeof values?.announcement === 'string' ? values.announcement.trim() : '';
   const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
-  const bodyBelowSvg = values?.bodyBelowSvg === true;
+  const bodyBelowSvg = values?.bodyBelowSvg !== false;
+  const includeRulesLink = values?.includeRulesLink === true;
 
   if (!announcement) return c.json<UiResponse>(toast('Enter announcement text.'));
   if (!flair) return c.json<UiResponse>(toast('Choose a flair.'));
@@ -318,7 +322,7 @@ forms.post('/edit-announcement-submit', async (c) => {
 
     const wasDistinguished = comment.distinguishedBy === 'moderator';
     const wasPinned = comment.stickied;
-    const richtext = buildAnnouncementCommentBody(mediaUrl, announcement, bodyBelowSvg, context.subredditName!);
+    const richtext = buildAnnouncementCommentBody(mediaUrl, announcement, bodyBelowSvg, includeRulesLink, context.subredditName!);
     const edited = await comment.edit({ richtext });
     let verified = await reddit.getCommentById(comment.id);
 
@@ -343,6 +347,7 @@ forms.post('/edit-announcement-submit', async (c) => {
       flair,
       announcement,
       bodyBelowSvg,
+      includeRulesLink,
       mediaUrl,
     };
     await redis.set(announcementMetadataKey(comment.id), JSON.stringify(updated));
