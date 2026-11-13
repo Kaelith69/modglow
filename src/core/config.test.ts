@@ -29,7 +29,7 @@ test('Devvit menu and form configuration match the implemented server routes', (
   assert.equal(config.menu.items[0]?.forUserType, 'moderator');
   assert.ok(config.menu.items.slice(1).every((item) => (item as { postFilter?: string }).postFilter === 'currentApp'));
   assert.match(menuSource, /name: 'includeRulesLink'/u);
-  assert.match(menuSource, /defaultValue: true/u);
+  assert.match(menuSource, /defaults\?\.bodyBelowSvg \?\? true/u);
   assert.match(menuSource, /defaultValue: false/u);
   assert.deepEqual(config.menu.items.slice(1).map((item) => [item.endpoint, item.location, item.forUserType]), [
     ['/internal/menu/edit-announcement', 'comment', 'moderator'],
