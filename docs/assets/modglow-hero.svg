@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="520" viewBox="0 0 1440 520" role="img" aria-labelledby="title desc">
+<title id="title">ModGlow. Clear signals for community moderators.</title>
+<desc id="desc">A bold comic panel identity for ModGlow, with four solid flair colour marks and an illustrated pinned announcement card.</desc>
+<rect width="1440" height="520" fill="#080605"/>
+<path d="M28 78 92 22H1412V426L1340 492H28Z" fill="none" stroke="#FFF5E8" stroke-width="5"/>
+<path d="M28 78 92 22H1412V72H98L28 142Z" fill="#8CFF00"/>
+<path d="M82 118H700" stroke="#FFF5E8" stroke-width="3"/>
+<text x="86" y="92" fill="#080605" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="900" letter-spacing="8">MODERATOR SIGNAL SYSTEM</text>
+<text x="82" y="245" fill="#FFF5E8" font-family="Arial, Helvetica, sans-serif" font-size="116" font-weight="900" letter-spacing="-4">MODGLOW</text>
+<text x="88" y="302" fill="#FFF5E8" font-family="Arial, Helvetica, sans-serif" font-size="30" font-weight="700" letter-spacing="2">ANNOUNCEMENTS THAT LAND.</text>
+<text x="88" y="350" fill="#CFC8B9" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="600">One app authored comment. A clear visual. A pinned signal.</text>
+<g transform="translate(88 390)">
+<path d="M0 0H126L108 34H0Z" fill="#FF2525"/><text x="18" y="24" fill="#080605" font-family="Arial, sans-serif" font-size="16" font-weight="900">IMPORTANT</text>
+<path d="M140 0H252L234 34H140Z" fill="#078BFF"/><text x="159" y="24" fill="#050D1C" font-family="Arial, sans-serif" font-size="16" font-weight="900">NOTICE</text>
+<path d="M266 0H420L402 34H266Z" fill="#8CFF00"/><text x="286" y="24" fill="#050A05" font-family="Arial, sans-serif" font-size="16" font-weight="900">ANNOUNCEMENT</text>
+<path d="M434 0H566L548 34H434Z" fill="#FF7900"/><text x="453" y="24" fill="#090604" font-family="Arial, sans-serif" font-size="16" font-weight="900">REMINDER</text>
+</g>
+<g transform="translate(865 112)">
+<path d="M24 34 62 0H490V280L454 316H24Z" fill="#10100D" stroke="#FFF5E8" stroke-width="5"/>
+<path d="M24 34 62 0H490V54H70L24 100Z" fill="#8CFF00"/>
+<text x="82" y="36" fill="#080605" font-family="Arial, sans-serif" font-size="17" font-weight="900" letter-spacing="5">MODGLOW / FIELD NOTE 01</text>
+<path d="M58 104H448L414 164H58Z" fill="#FFF5E8"/>
+<path d="M85 117 115 132 115 153 85 166Z" fill="#126B18"/>
+<path d="M114 127 142 115V166L114 154Z" fill="#126B18"/>
+<path d="M150 124 164 110M154 143 176 143M150 160 164 174" fill="none" stroke="#126B18" stroke-width="5" stroke-linecap="square"/>
+<text x="192" y="146" fill="#080605" font-family="Arial, sans-serif" font-size="34" font-weight="900" font-style="italic">ANNOUNCEMENT</text>
+<path d="M58 202H430M58 230H380M58 258H410" stroke="#FFF5E8" stroke-width="8" stroke-linecap="square"/>
+<path d="M405 284 430 259 455 284" fill="none" stroke="#8CFF00" stroke-width="7"/>
+<path d="M462 284 485 261 508 284" fill="none" stroke="#8CFF00" stroke-width="7"/>
+<path d="M398 318 430 350 462 318" fill="#FF2525"/>
+<text x="88" y="390" fill="#FFF5E8" font-family="Arial, sans-serif" font-size="18" font-weight="900" letter-spacing="3">PUBLISHED BY THE APP</text>
+</g>
+<path d="M1320 112 1360 112 1338 154 1298 154Z" fill="#FF2525"/>
+<path d="M1364 170 1400 170 1380 208 1344 208Z" fill="#078BFF"/>
+<path d="M1290 218 1326 218 1306 256 1270 256Z" fill="#FF7900"/>
+</svg>
