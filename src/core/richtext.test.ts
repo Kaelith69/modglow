@@ -89,6 +89,6 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(serialized.includes('bold italic'));
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
-  assert.match(serialized, /"f":\[\[1,0,\d+\]\]/u);
+  assert.ok(serialized.includes('"f":[[1,0,15]]'));
   assert.ok(serialized.includes('"f":[[3,0,11]]'));
 });
