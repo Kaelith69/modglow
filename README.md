@@ -23,12 +23,16 @@ Deletion requires an explicit confirmation and uses Devvit's app account `Commen
 
 ModGlow stores the original flair, source announcement, publishing mode, uploaded media URL, and ownership identifiers in Redis when publishing. For safety, announcements created before this management metadata existed are not eligible for these actions. Their original SVG text and flair cannot be reliably reconstructed from a rendered image, so ModGlow will refuse to guess.
 
+## Optional subreddit rules link
+
+The announcement composer includes an optional **Include a link to subreddit rules and guidelines** toggle, off by default. When enabled, ModGlow appends a clickable link to the current subreddit's rules in either publishing mode. The Markdown below the SVG toggle is on by default for new announcements. Editing an existing announcement preloads its saved flair, text, publishing mode, and rules link setting.
+
 ## Markdown support
 
 When the separate body toggle is enabled, Markdown is converted into native Reddit rich text:
 
 * Headings from `#` through `######`.
-* **Bold**, *italic*, ***bold italic***, and ~~strikethrough~~.
+* *Italic* and ~~strikethrough~~. Announcement body text is bold by default, so `**bold**`, `__bold__`, and the bold part of combined bold italic syntax are stripped as redundant. Combined bold italic input retains italic styling.
 * Inline `code` and fenced code blocks with an optional language label.
 * Ordered lists and unordered lists.
 * Blockquotes and horizontal rules.
