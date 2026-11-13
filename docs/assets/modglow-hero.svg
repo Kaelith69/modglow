@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title desc">
+<title id="title">ModGlow</title><desc id="desc">Comic inspired ModGlow banner showing a moderator announcement card and a pinned comment signal.</desc>
+<defs><pattern id="dots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.5" fill="#F5F0E6" opacity=".18"/></pattern></defs>
+<rect width="1200" height="360" rx="22" fill="#0B1017"/><path d="M18 68 64 22H1182V292L1114 340H18Z" fill="none" stroke="#F5F0E6" stroke-width="5"/>
+<path d="M20 69 64 24H1180V68H72L20 120Z" fill="#E63B35"/><path d="M900 70H1180V290L1114 338H900Z" fill="url(#dots)"/>
+<g transform="translate(68 105)"><path d="M0 0H515L478 78H0Z" fill="#F5F0E6"/><path d="M0 0H130L92 78H0Z" fill="#1688F5"/><circle cx="46" cy="39" r="24" fill="none" stroke="#F5F0E6" stroke-width="6"/><path d="M46 25V53M46 17V18" stroke="#F5F0E6" stroke-width="7" stroke-linecap="round"/><text x="155" y="55" font-family="Arial,Helvetica,sans-serif" font-size="46" font-weight="900" font-style="italic" fill="#101820">NOTICE</text><path d="M540 4 502 75H530L568 4ZM590 4 552 75H580L618 4Z" fill="#1688F5"/></g>
+<text x="70" y="270" fill="#F5F0E6" font-family="Arial,Helvetica,sans-serif" font-size="68" font-weight="900" letter-spacing="3">MODGLOW</text>
+<text x="74" y="309" fill="#B7C2CF" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="700" letter-spacing="2">MODERATOR ANNOUNCEMENTS. CLEAR SIGNAL.</text>
+<g transform="translate(830 115)"><path d="M0 20H270V165H38L0 198Z" fill="#111D29" stroke="#8CFF00" stroke-width="5"/><path d="M30 48H235" stroke="#8CFF00" stroke-width="8"/><circle cx="48" cy="88" r="17" fill="#E63B35"/><path d="M80 88H222M30 125H194" stroke="#F5F0E6" stroke-width="9" stroke-linecap="round"/><path d="M230 170 258 198 270 178" fill="#111D29" stroke="#8CFF00" stroke-width="5" stroke-linejoin="round"/></g>
+<path d="M1110 30 1150 30 1132 64 1092 64Z" fill="#8CFF00"/><path d="M1148 85 1174 85 1160 112 1134 112Z" fill="#F29A38"/>
+</svg>
