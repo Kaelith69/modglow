@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120" role="img" aria-labelledby="title desc">
+<title id="title">ModGlow announcement publishing flow</title>
+<desc id="desc">The actual publishing sequence from moderator menu and form through validation, lock, SVG render, PNG upload, rich text comment submission, pin verification and metadata storage, with confirmed mismatch and ambiguous outcome branches.</desc>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0 0 10 4 0 8Z" fill="#FFF5E8"/></marker></defs>
+<rect width="1440" height="1120" fill="#080605"/>
+<path d="M28 78 86 22H1412V1042L1354 1098H28Z" fill="none" stroke="#FFF5E8" stroke-width="5"/>
+<path d="M28 78 86 22H1412V72H92L28 142Z" fill="#8CFF00"/>
+<text x="86" y="58" fill="#080605" font-family="Arial, sans-serif" font-size="24" font-weight="900" letter-spacing="6">PUBLISHING PIPELINE / FROM FORM TO VERIFIED COMMENT</text>
+<g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+<path d="M440 120H1000V198H440Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
+<text x="720" y="151" fill="#FFF5E8" font-size="24" font-weight="900">01 / MODERATOR ACTION</text><text x="720" y="180" fill="#CFC8B9" font-size="18">Open the post menu and submit the native form</text>
+<path d="M440 232H1000V310H440Z" fill="#15110D" stroke="#FF7900" stroke-width="4"/>
+<text x="720" y="263" fill="#FFF5E8" font-size="24" font-weight="900">02 / VALIDATE</text><text x="720" y="292" fill="#CFC8B9" font-size="18">Moderator permission, post identity, flair and text limits</text>
+<path d="M440 344H1000V422H440Z" fill="#15110D" stroke="#FF7900" stroke-width="4"/>
+<text x="720" y="375" fill="#FFF5E8" font-size="24" font-weight="900">03 / ACQUIRE POST LOCK</text><text x="720" y="404" fill="#CFC8B9" font-size="18">Redis SET NX with a 45 second lease</text>
+<path d="M440 456H1000V534H440Z" fill="#10100D" stroke="#8CFF00" stroke-width="4"/>
+<text x="720" y="487" fill="#FFF5E8" font-size="24" font-weight="900">04 / RENDER ARTWORK</text><text x="720" y="516" fill="#CFC8B9" font-size="18">Build flair SVG, rasterise to PNG, upload to Reddit media</text>
+<path d="M440 568H1000V646H440Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
+<text x="720" y="599" fill="#FFF5E8" font-size="24" font-weight="900">05 / ASSEMBLE ONE COMMENT</text><text x="720" y="628" fill="#CFC8B9" font-size="18">Image first, optional native Markdown body, rules link, attribution</text>
+<path d="M440 680H1000V758H440Z" fill="#15110D" stroke="#FF7900" stroke-width="4"/>
+<text x="720" y="711" fill="#FFF5E8" font-size="24" font-weight="900">06 / SUBMIT AS THE APP</text><text x="720" y="740" fill="#CFC8B9" font-size="18">Top level comment, then moderator distinguish and pin</text>
+<path d="M440 792H1000V870H440Z" fill="#10100D" stroke="#8CFF00" stroke-width="4"/>
+<text x="720" y="823" fill="#FFF5E8" font-size="24" font-weight="900">07 / READ BACK AND VERIFY</text><text x="720" y="852" fill="#CFC8B9" font-size="18">Reddit must report both stickied and moderator distinguished</text>
+<path d="M720 198V224M720 310V336M720 422V448M720 534V560M720 646V672M720 758V784" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M440 906H1000V984H440Z" fill="#FFF5E8"/>
+<text x="720" y="937" fill="#080605" font-size="24" font-weight="900">08 / SAVE MANAGEMENT METADATA</text><text x="720" y="966" fill="#39352E" font-size="18">Persist app ownership, source text, flair, mode and media URL in Redis</text>
+<path d="M720 870V900" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M440 984V1010H260V1030M1000 945H1190V1015" fill="none" stroke="#FFF5E8" stroke-width="3" marker-end="url(#arrow)"/>
+<path d="M70 1030H430V1080H70Z" fill="#18271D" stroke="#8CFF00" stroke-width="4"/>
+<text x="250" y="1063" fill="#FFF5E8" font-size="18" font-weight="900">VERIFIED / RELEASE LOCK</text>
+<path d="M505 1030H925V1080H505Z" fill="#321C1D" stroke="#FF2525" stroke-width="4"/>
+<text x="715" y="1063" fill="#FFF5E8" font-size="18" font-weight="900">CONFIRMED MISMATCH / CLEAN UP</text>
+<path d="M1000 1030H1370V1080H1000Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
+<text x="1185" y="1053" fill="#FFF5E8" font-size="16" font-weight="900">AMBIGUOUS / WARN</text><text x="1185" y="1072" fill="#CFC8B9" font-size="13">Keep lease until expiry</text>
+</g>
+</svg>
