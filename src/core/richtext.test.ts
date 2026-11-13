@@ -25,6 +25,8 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('Bold notice'));
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
+  assert.ok(serialized.includes('Coconaad Moderator announcement'));
+  assert.equal(document.document.at(-1)?.c?.[0]?.t, 'Coconaad Moderator announcement');
 
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
@@ -47,7 +49,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
 
 test('separator only Markdown cannot create an empty body comment', () => {
   assert.throws(
-    () => buildAnnouncementRichText('https://reddit.test/media/header.png', '---'),
+    () => buildAnnouncementRichText('https://reddit.test/media/header.png', '---', 'Coconaad'),
     /Write some Markdown text/,
   );
 });
@@ -57,6 +59,7 @@ test('rich text builder enforces the Markdown body grapheme limit', () => {
     () => buildAnnouncementRichText(
       'https://reddit.test/media/header.png',
       'x'.repeat(MAX_ANNOUNCEMENT_BODY_CHARS + 1),
+      'Coconaad',
     ),
     /character limit/,
   );
