@@ -356,7 +356,6 @@ export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEM
     '<rect width="' + width + '" height="' + height + '" fill="' + theme.background + '"/>',
     frameSvg(theme.accent, height),
     flairHeader(flair),
-    '<rect x="115" y="415" width="16" height="95" fill="' + theme.accent + '"/>',
     '</svg>',
   ].join('\n');
 }

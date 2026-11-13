@@ -9,6 +9,15 @@ test('escapeXml neutralises XML markup and removes invalid XML characters', () =
   assert.equal(escapeXml(invalid), 'safetext\nline');
 });
 
+test('empty header templates omit the body text accent marker', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementHeaderSvg(flair);
+    assert.match(svg, /viewBox="0 0 2000 600"/);
+    assert.doesNotMatch(svg, /<rect x="115" y="415" width="16"/);
+    assert.doesNotMatch(svg, /<text x="195" y="475"/);
+  }
+});
+
 test('all four templates retain their exact supplied geometry and palettes', () => {
   assert.deepEqual(ANNOUNCEMENT_FLAIRS, ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT']);
   const important = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'IMPORTANT');
@@ -184,7 +193,7 @@ test('separate body SVG is a fixed height title banner with no announcement body
     assert.match(svg, /width="2000" height="600" viewBox="0 0 2000 600"/);
     assert.ok(svg.includes('<title>MODGLOW ' + flair.toLowerCase() + '</title>'));
     assert.match(svg, /M466 65 H1970 V450 L1890 530 H30 V145 L85 65/);
-    assert.match(svg, /<rect x="115" y="415" width="16" height="95"/);
+    assert.doesNotMatch(svg, /<rect x="115" y="415" width="16" height="95"/);
     assert.doesNotMatch(svg, /x="195" y="475"|Announcement body|body text/i);
   }
 
