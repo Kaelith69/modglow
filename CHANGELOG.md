@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Ensure the optional subreddit rules link is included in compact image only announcements as well as Markdown body announcements.
+- Share the compact rich text builder between publishing and editing, with regression tests for enabled and disabled rules links.
+
 - Add moderator only in place editing and confirmed permanent deletion for verified ModGlow announcement comments.
 - Persist announcement source content, flair, publishing mode, optional rules link setting, media URL, and ownership identifiers for safe management.
 - Prefill edit forms from saved announcement metadata, preserving the original comment identity, moderator distinction, and pin state.
