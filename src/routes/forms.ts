@@ -124,13 +124,14 @@ forms.post('/create-announcement-submit', async (c) => {
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
     const richtext = bodyBelowSvg
-      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement)
-      : new RichTextBuilder().paragraph((paragraph) => {
-        paragraph.image({
-          mediaUrl: uploaded.mediaUrl,
-          caption: 'ModGlow moderator announcement',
+      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName)
+      : new RichTextBuilder()
+        .paragraph((paragraph) => {
+          paragraph.image({ mediaUrl: uploaded.mediaUrl });
+        })
+        .paragraph((paragraph) => {
+          paragraph.text({ text: `${context.subredditName} Moderator announcement` });
         });
-      });
 
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
