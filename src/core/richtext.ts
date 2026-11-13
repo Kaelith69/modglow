@@ -10,7 +10,7 @@ type InlineContext = {
 
 type HeadingInlineContext = {
   rawText(text: string): unknown;
-  link(options: { text: string; url: string }): unknown;
+  link(options: { text: string; url: string; formatting?: FormatRange[] }): unknown;
 };
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
@@ -34,7 +34,11 @@ function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
 
 function appendHeading(context: HeadingInlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    if (node.type === 'link') context.link({ text: node.text, url: node.url });
+    if (node.type === 'link') context.link({
+      text: node.text,
+      url: node.url,
+      formatting: [[1, 0, node.text.length]],
+    });
     else context.rawText(node.text);
   }
 }
