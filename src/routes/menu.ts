@@ -31,10 +31,10 @@ const announcementFields = (): FormField[] => [
   },
   {
     name: 'announcement',
-    label: 'Announcement text (Markdown supported)',
+    label: 'Announcement text',
     type: 'paragraph',
     required: true,
-    placeholder: '## Important update\n\nWrite your announcement here. Use # headings, - bullets, 1. numbered lists, **bold**, *italic*, > quotes, `code`, and [links](https://example.com).',
+    placeholder: '## Announcement\n\nWrite your announcement here. Markdown supported.',
     helpText: 'Markdown is supported. Text below the SVG is always bold.',
   },
 ];
@@ -59,7 +59,7 @@ menu.post('/create-announcement', async (c) => {
     showForm: {
       name: 'createAnnouncement',
       form: {
-        title: 'Create a ModGlow announcement',
+        title: 'ModGlow announcement',
         description: 'Choose a flair and write your announcement.',
         fields: announcementFields(),
         acceptLabel: 'Publish',
