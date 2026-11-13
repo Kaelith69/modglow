@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RichTextBuilder } from '@devvit/reddit';
-import { appendAnnouncementFooter, buildAnnouncementRichText } from './richtext.ts';
+import { appendAnnouncementFooter, buildAnnouncementImageOnlyRichText, buildAnnouncementRichText } from './richtext.ts';
 import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 
 test('the SVG image is the first comment node and Markdown follows it', () => {
@@ -107,4 +107,26 @@ test('optional rules link is emitted as a clickable native rich text link', () =
   assert.ok(!serialized.includes('**'));
   assert.ok(serialized.includes('Respect everyone.'));
   assert.ok(serialized.includes('Keep discussions civil.'));
+});
+
+test('compact image only announcements include the optional rules link after the image', () => {
+  const serialized = buildAnnouncementImageOnlyRichText(
+    'https://reddit.test/media/header.png',
+    'Coconaad',
+    true,
+  ).build();
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ e?: string; mediaUrl?: string; t?: string; u?: string }> }> };
+  assert.equal(document.document[0]?.c?.[0]?.e, 'img');
+  assert.equal(document.document[0]?.c?.[0]?.mediaUrl, 'https://reddit.test/media/header.png');
+  const link = document.document.flatMap((node) => node.c ?? []).find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Subreddit rules and guidelines');
+  assert.equal(link?.u, 'https://www.reddit.com/r/Coconaad/about/rules');
+});
+
+test('compact image only announcements omit the rules link when disabled', () => {
+  const serialized = buildAnnouncementImageOnlyRichText(
+    'https://reddit.test/media/header.png',
+    'Coconaad',
+  ).build();
+  assert.ok(!serialized.includes('Subreddit rules and guidelines'));
 });
