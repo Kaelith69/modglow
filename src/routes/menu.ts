@@ -27,8 +27,15 @@ const announcementFields = (): FormField[] => [
     name: 'bodyBelowSvg',
     label: 'Publish Markdown below the SVG',
     type: 'boolean',
-    defaultValue: false,
+    defaultValue: true,
     helpText: 'Adds Markdown text below the SVG.',
+  },
+  {
+    name: 'includeRulesLink',
+    label: 'Include a link to subreddit rules and guidelines',
+    type: 'boolean',
+    defaultValue: false,
+    helpText: 'Adds a clickable link to the subreddit rules below the announcement.',
   },
   {
     name: 'announcement',
@@ -125,6 +132,7 @@ menu.post('/edit-announcement', async (c) => {
           flair: [managed.metadata.flair],
           announcement: managed.metadata.announcement,
           bodyBelowSvg: managed.metadata.bodyBelowSvg,
+          includeRulesLink: managed.metadata.includeRulesLink === true,
         },
       },
     });
