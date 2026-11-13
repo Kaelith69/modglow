@@ -69,7 +69,7 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
     // Handle bold nested inside strikethrough before the general strike token.
     // The outer strike alternative otherwise consumes the inner bold markers as
     // literal text, because the token expression is intentionally non recursive.
-    const nestedStrikeBold = value.slice(index).match(/^~~(?:\\*\\*(.+?)\\*\\*|__(.+?)__)~~/u);
+    const nestedStrikeBold = value.slice(index).match(/^~~(?:\*\*(.+?)\*\*|__(.+?)__)~~/u);
     if (nestedStrikeBold) {
       appendInline(nodes, {
         type: 'text',
