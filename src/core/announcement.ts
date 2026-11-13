@@ -61,7 +61,7 @@ export function isManagedAnnouncementComment(
     && typeof metadata.announcement === 'string'
     && typeof metadata.bodyBelowSvg === 'boolean'
     && typeof metadata.mediaUrl === 'string'
-    && /^https:\\/\\//u.test(metadata.mediaUrl)
+    && metadata.mediaUrl.startsWith('https://')
   );
 }
 
