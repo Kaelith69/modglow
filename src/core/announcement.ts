@@ -1,4 +1,4 @@
-import type { AnnouncementFlair } from './render.ts';
+import { ANNOUNCEMENT_FLAIRS, type AnnouncementFlair } from './render.ts';
 
 export const ANNOUNCEMENT_METADATA_PREFIX = 'modglow:v1:announcement:';
 
@@ -45,6 +45,7 @@ export function isManagedAnnouncementComment(
     && subredditName
     && subredditId
     && isCommentId(comment.id)
+    && isCommentId(metadata.commentId)
     && comment.id === metadata.commentId
     && comment.authorId === appAuthorId
     && metadata.appAuthorId === appAuthorId
@@ -56,6 +57,23 @@ export function isManagedAnnouncementComment(
     && comment.parentId === metadata.postId
     && /^t3_[a-z0-9]+$/i.test(comment.postId)
     && metadata.version === 1
-    && Boolean(metadata.mediaUrl)
+    && ANNOUNCEMENT_FLAIRS.includes(metadata.flair)
+    && typeof metadata.announcement === 'string'
+    && typeof metadata.bodyBelowSvg === 'boolean'
+    && typeof metadata.mediaUrl === 'string'
+    && /^https:\\/\\//u.test(metadata.mediaUrl)
   );
+}
+
+export function shouldRegenerateAnnouncementImage(
+  previous: Pick<AnnouncementMetadata, 'flair' | 'announcement' | 'bodyBelowSvg'>,
+  next: Pick<AnnouncementMetadata, 'flair' | 'announcement' | 'bodyBelowSvg'>,
+): boolean {
+  return previous.flair !== next.flair
+    || previous.bodyBelowSvg !== next.bodyBelowSvg
+    || (!next.bodyBelowSvg && previous.announcement !== next.announcement);
+}
+
+export function isDeleteConfirmed(value: unknown): boolean {
+  return Boolean(value && typeof value === 'object' && (value as { confirmDelete?: unknown }).confirmDelete === true);
 }
