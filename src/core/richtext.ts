@@ -15,20 +15,18 @@ type HeadingInlineContext = {
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    const formatting = node.formatting
-      ? [[node.formatting, 0, node.text.length] as FormatRange]
-      : undefined;
+    const formatting = [[(node.formatting ?? 0) | 1, 0, node.text.length] as FormatRange];
 
     if (node.type === 'link') {
       context.link({
         text: node.text,
         url: node.url,
-        ...(formatting ? { formatting } : {}),
+        formatting,
       });
     } else {
       context.text({
         text: node.text,
-        ...(formatting ? { formatting } : {}),
+        formatting,
       });
     }
   }
@@ -66,8 +64,11 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
       });
       break;
     case 'code':
-      builder.codeBlock(block.language ? { language: block.language } : {}, (code) => {
-        code.rawText(block.text);
+      builder.paragraph((paragraph) => {
+        paragraph.text({
+          text: block.text,
+          formatting: [[65, 0, block.text.length]],
+        });
       });
       break;
     case 'hr':
@@ -99,7 +100,11 @@ export function buildAnnouncementRichText(mediaUrl: string, markdown: string, su
   for (const block of blocks) appendBlock(builder, block);
 
   builder.paragraph((paragraph) => {
-    paragraph.text({ text: `${subredditName} Moderator announcement` });
+    const attribution = `${subredditName} Moderator announcement`;
+    paragraph.text({
+      text: attribution,
+      formatting: [[32, 0, attribution.length]],
+    });
   });
   return builder;
 }
