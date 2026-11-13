@@ -90,7 +90,7 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
   assert.ok(serialized.includes('"f":[[1,0,15]]'));
-  assert.ok(serialized.includes('"f":[[1,0,11]]'));
+  assert.ok(serialized.includes('"f":[[3,0,11]]'));
 });
 
 test('all announcement body text is bold while explicit italic styling is retained', () => {
