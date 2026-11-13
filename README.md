@@ -64,7 +64,7 @@ The moderator menu opens a native Devvit form. Hono routes validate the request 
 5. The app builds one rich text comment. The image is the first content node. Separate body mode appends parsed Markdown, followed by the optional rules link and subreddit attribution.
 6. The app submits the top level comment, distinguishes it as a moderator and pins it.
 7. ModGlow fetches the comment again. Success requires both `stickied === true` and `distinguishedBy === 'moderator'`.
-8. When the comment is verified, ModGlow stores ownership and source metadata for later editing and deletion.
+8. After verification, ModGlow attempts to store ownership and source metadata for later editing and deletion. If that write fails or the app identity cannot be resolved, publishing still succeeds but management actions are unavailable for that comment.
 
 If Reddit confirms a pin mismatch, ModGlow attempts to delete the incomplete app authored comment. If submission or verification has an ambiguous result, the app warns the moderator to inspect the post before retrying and preserves the short lock until it expires.
 
@@ -206,7 +206,7 @@ Open the menu on a verified ModGlow announcement comment and select **Edit ModGl
 
 Open the menu on a verified ModGlow announcement comment and select **Delete ModGlow announcement**. Confirm the permanent deletion in the form. The deletion route verifies app ownership and announcement metadata before calling the app comment's delete operation.
 
-Only comments with matching ModGlow ownership metadata are eligible for these management actions. Older comments without the required metadata cannot be safely reconstructed and are not editable or deletable through these actions.
+Only comments with matching ModGlow ownership metadata are eligible for these management actions. If metadata storage failed at publish time, or the comment predates managed metadata, it cannot be safely reconstructed and is not editable or deletable through these actions.
 
 ## Configuration and limits
 
