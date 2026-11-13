@@ -240,3 +240,25 @@ test('fenced code blocks remain monospace without inheriting default bold', () =
   assert.deepEqual(code?.f, [[MARKDOWN_FORMAT.monospace, 0, 18]]);
   assert.equal((code?.f?.[0]?.[0] ?? 0) & MARKDOWN_FORMAT.bold, 0);
 });
+
+
+test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal newline text', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'First line' + '\\\\   ' + '\n' + 'Second *italic* line',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const paragraph = document.document.find((block) =>
+    block.e === 'par' && block.c?.some((node) => node.t === 'First line'),
+  );
+  assert.ok(paragraph);
+  assert.deepEqual(
+    paragraph?.c?.filter((node) => node.t || node.e).map((node) => node.t ?? node.e),
+    ['First line', 'ln', 'Second ', 'italic', ' line'],
+  );
+  const italic = paragraph?.c?.find((node) => node.t === 'italic');
+  assert.deepEqual(italic?.f, [[3, 0, 6]]);
+});
