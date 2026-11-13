@@ -283,6 +283,31 @@ test('nested bold strikethrough renders with combined Reddit formatting and no v
   assert.ok(!bodyNodes.some((node) => node.t && /[*~`]/u.test(node.t)));
 });
 
+test('mixed inline formatting renders without leaking or duplicating nested delimiters', () => {
+  const input = '**Bold text**, *italic text*, ~~strikethrough~~ ***Bold and italic***, `inline code`, ~~**bold strikethrough**~~';
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const paragraph = document.document.find((block) =>
+    block.e === 'par' && block.c?.some((node) => node.t?.includes('Bold text')),
+  );
+  const nodes = paragraph?.c ?? [];
+  assert.equal(nodes.map((node) => node.t ?? '').join(''), 'Bold text, italic text, strikethrough Bold and italic, inline code, bold strikethrough');
+  assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
+  const flagsFor = (value: string) => nodes.find((node) => node.t === value)?.f?.[0]?.[0];
+  assert.equal(flagsFor('Bold text, '), MARKDOWN_FORMAT.bold);
+  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
+  assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
+});
+
 test('the full announcement example preserves bold italic strike code and each hard break', () => {
   const slash = String.fromCharCode(92);
   const input = [
