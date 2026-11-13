@@ -9,17 +9,17 @@ import {
   hasMarkdownContent,
 } from './markdown.ts';
 
-test('inline Markdown maps bold, italic, combined, strike and code to Reddit flags', () => {
+test('inline Markdown removes redundant bold markers while retaining italic, strike and code', () => {
   assert.deepEqual(MARKDOWN_FORMAT, { bold: 1, italic: 2, strikethrough: 8, monospace: 64 });
   const nodes = parseInlineMarkdown('**bold** *italic* ***both*** ~~removed~~ `code`');
   assert.deepEqual(
     nodes.map((node) => [node.text, node.formatting]),
     [
-      ['bold', MARKDOWN_FORMAT.bold],
+      ['bold', 0],
       [' ', 0],
       ['italic', MARKDOWN_FORMAT.italic],
       [' ', 0],
-      ['both', MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic],
+      ['both', MARKDOWN_FORMAT.italic],
       [' ', 0],
       ['removed', MARKDOWN_FORMAT.strikethrough],
       [' ', 0],
@@ -137,4 +137,17 @@ test('empty Markdown yields no blocks and grapheme limits count visible characte
   assert.equal(countGraphemes('abc', 3), 3);
   assert.equal(MAX_ANNOUNCEMENT_BODY_CHARS, 9000);
   assert.equal(countGraphemes('👨‍👩‍👧‍👦'.repeat(9001)), 9001);
+});
+
+test('bold Markdown delimiters are removed while body text stays plain for default bold rendering', () => {
+  assert.deepEqual(parseInlineMarkdown('**double asterisk** and __double underscore__'), [
+    { type: 'text', text: 'double asterisk', formatting: 0 },
+    { type: 'text', text: ' and ', formatting: 0 },
+    { type: 'text', text: 'double underscore', formatting: 0 },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('***bold italic*** and ___bold italic underscore___'), [
+    { type: 'text', text: 'bold italic', formatting: MARKDOWN_FORMAT.italic },
+    { type: 'text', text: ' and ', formatting: 0 },
+    { type: 'text', text: 'bold italic underscore', formatting: MARKDOWN_FORMAT.italic },
+  ]);
 });
