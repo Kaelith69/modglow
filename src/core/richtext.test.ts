@@ -106,7 +106,7 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
     '**Think before posting.** *Quality over quantity.*',
     '',
     '**Be part of the community.** *Keep Coconaad welcoming.*',
-  ].join('\n');
+  ].join('\\n');
 
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
@@ -114,20 +114,35 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
     'Coconaad',
   ).build();
   const document = JSON.parse(serialized) as {
-    document: Array<{ c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
   };
-  const bodyNodes = document.document
-    .flatMap((block) => block.c ?? [])
-    .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
+  const bodyParagraphs = document.document
+    .filter((block) => block.e === 'par'
+      && block.c?.some((node) => node.t && node.t !== 'Coconaad Moderator announcement'))
+    .map((block) => (block.c ?? [])
+      .filter((node) => node.t)
+      .map((node) => node.t)
+      .join('')
+      .replace(/\\s+/gu, ' ')
+      .trim());
 
-  assert.equal(
-    bodyNodes.map((node) => node.t).join(' ').replace(/\s+/gu, ' ').trim(),
-    'Respect everyone. Keep discussions civil. Stay relevant. Follow the subreddit rules. No spam, harassment, or hate. Post responsibly. Use the right flair. Keep content organised. Think before posting. Quality over quantity. Be part of the community. Keep Coconaad welcoming.');
+  assert.deepEqual(bodyParagraphs, [
+    'Respect everyone. Keep discussions civil.',
+    'Stay relevant. Follow the subreddit rules.',
+    'No spam, harassment, or hate. Post responsibly.',
+    'Use the right flair. Keep content organised.',
+    'Think before posting. Quality over quantity.',
+    'Be part of the community. Keep Coconaad welcoming.',
+  ]);
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('*'));
-  for (const node of bodyNodes) {
-    assert.ok(node.f?.some((range) => (range[0] & 1) === 1), 'every body text node must be bold');
-    assert.ok(!node.f?.some((range) => (range[0] & 2) === 2), 'user italic markup must not produce italic text');
+  for (const block of document.document) {
+    if (block.e !== 'par') continue;
+    for (const node of block.c ?? []) {
+      if (!node.t || node.t === 'Coconaad Moderator announcement') continue;
+      assert.ok(node.f?.some((range) => (range[0] & 1) === 1), 'every body text node must be bold');
+      assert.ok(!node.f?.some((range) => (range[0] & 2) === 2), 'user italic markup must not produce italic text');
+    }
   }
 });
 
