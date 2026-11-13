@@ -15,7 +15,7 @@ type HeadingInlineContext = {
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    // Announcement body text is bold by default. Inline code remains monospace without added bold.
+    // Announcement body text is bold by default; inline code remains monospace only.
     const sourceFormatting = node.formatting ?? 0;
     const formatting = [[(sourceFormatting & 64) === 64
       ? 64
