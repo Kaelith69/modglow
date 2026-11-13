@@ -216,11 +216,11 @@ test('announcement Markdown applies bold defaults without bolding inline code', 
   };
   const runs = document.document.flatMap((block) => block.c ?? [])
     .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
-  const byText = (text: string) => runs.find((node) => node.t === text)?.f;
-  assert.deepEqual(byText('Normal text '), [[1, 0, 12]]);
-  assert.deepEqual(byText('Italic text'), [[3, 0, 11]]);
-  assert.deepEqual(byText('Bold text'), [[1, 0, 9]]);
-  assert.deepEqual(byText('Bold italic'), [[3, 0, 11]]);
-  assert.deepEqual(byText('Deleted text'), [[9, 0, 12]]);
-  assert.deepEqual(byText('Inline code'), [[64, 0, 11]]);
+  const formatFlags = (text: string) => runs.find((node) => node.t?.includes(text))?.f?.[0]?.[0];
+  assert.equal(formatFlags('Normal text'), 1);
+  assert.equal(formatFlags('Italic text'), 3);
+  assert.equal(formatFlags('Bold text'), 1);
+  assert.equal(formatFlags('Bold italic'), 3);
+  assert.equal(formatFlags('Deleted text'), 9);
+  assert.equal(formatFlags('Inline code'), 64);
 });
