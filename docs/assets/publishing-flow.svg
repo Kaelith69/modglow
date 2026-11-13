@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1120" viewBox="0 0 1440 1120" role="img" aria-labelledby="title desc">
 <title id="title">ModGlow announcement publishing flow</title>
-<desc id="desc">The actual publishing sequence from moderator menu and form through validation, lock, SVG render, PNG upload, rich text comment submission, pin verification and metadata storage, with confirmed mismatch and ambiguous outcome branches.</desc>
+<desc id="desc">The publishing sequence from moderator form through validation, lock, image rendering, app comment submission and a Reddit state decision. Verified comments save management metadata when available. Confirmed mismatches trigger cleanup, while ambiguous outcomes warn the moderator and retain the lock until expiry.</desc>
 <defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0 0 10 4 0 8Z" fill="#FFF5E8"/></marker></defs>
 <rect width="1440" height="1120" fill="#080605"/>
 <path d="M28 78 86 22H1412V1042L1354 1098H28Z" fill="none" stroke="#FFF5E8" stroke-width="5"/>
@@ -17,21 +17,23 @@
 <path d="M440 456H1000V534H440Z" fill="#10100D" stroke="#8CFF00" stroke-width="4"/>
 <text x="720" y="487" fill="#FFF5E8" font-size="24" font-weight="900">04 / RENDER ARTWORK</text><text x="720" y="516" fill="#CFC8B9" font-size="18">Build flair SVG, rasterise to PNG, upload to Reddit media</text>
 <path d="M440 568H1000V646H440Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
-<text x="720" y="599" fill="#FFF5E8" font-size="24" font-weight="900">05 / ASSEMBLE ONE COMMENT</text><text x="720" y="628" fill="#CFC8B9" font-size="18">Image first, optional native Markdown body, rules link, attribution</text>
+<text x="720" y="599" fill="#FFF5E8" font-size="24" font-weight="900">05 / ASSEMBLE ONE COMMENT</text><text x="720" y="628" fill="#CFC8B9" font-size="18">Image first, optional Markdown body, rules link and attribution</text>
 <path d="M440 680H1000V758H440Z" fill="#15110D" stroke="#FF7900" stroke-width="4"/>
 <text x="720" y="711" fill="#FFF5E8" font-size="24" font-weight="900">06 / SUBMIT AS THE APP</text><text x="720" y="740" fill="#CFC8B9" font-size="18">Top level comment, then moderator distinguish and pin</text>
-<path d="M440 792H1000V870H440Z" fill="#10100D" stroke="#8CFF00" stroke-width="4"/>
-<text x="720" y="823" fill="#FFF5E8" font-size="24" font-weight="900">07 / READ BACK AND VERIFY</text><text x="720" y="852" fill="#CFC8B9" font-size="18">Reddit must report both stickied and moderator distinguished</text>
-<path d="M720 198V224M720 310V336M720 422V448M720 534V560M720 646V672M720 758V784" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
-<path d="M440 906H1000V984H440Z" fill="#FFF5E8"/>
-<text x="720" y="937" fill="#080605" font-size="24" font-weight="900">08 / SAVE MANAGEMENT METADATA</text><text x="720" y="966" fill="#39352E" font-size="18">Persist app ownership, source text, flair, mode and media URL in Redis</text>
-<path d="M720 870V900" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
-<path d="M440 984V1010H260V1030M1000 945H1190V1015" fill="none" stroke="#FFF5E8" stroke-width="3" marker-end="url(#arrow)"/>
-<path d="M70 1030H430V1080H70Z" fill="#18271D" stroke="#8CFF00" stroke-width="4"/>
-<text x="250" y="1063" fill="#FFF5E8" font-size="18" font-weight="900">VERIFIED / RELEASE LOCK</text>
-<path d="M505 1030H925V1080H505Z" fill="#321C1D" stroke="#FF2525" stroke-width="4"/>
-<text x="715" y="1063" fill="#FFF5E8" font-size="18" font-weight="900">CONFIRMED MISMATCH / CLEAN UP</text>
-<path d="M1000 1030H1370V1080H1000Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
-<text x="1185" y="1053" fill="#FFF5E8" font-size="16" font-weight="900">AMBIGUOUS / WARN</text><text x="1185" y="1072" fill="#CFC8B9" font-size="13">Keep lease until expiry</text>
+<path d="M720 198V224M720 310V336M720 422V448M720 534V560M720 646V672" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M720 758V780" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M720 780 1020 865 720 950 420 865Z" fill="#10100D" stroke="#8CFF00" stroke-width="5"/>
+<text x="720" y="850" fill="#FFF5E8" font-size="24" font-weight="900">07 / CHECK REDDIT STATE</text>
+<text x="720" y="885" fill="#CFC8B9" font-size="20">Are both the pin and moderator distinction confirmed?</text>
+<path d="M420 865H255V952M720 950V952M1020 865H1185V952" fill="none" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M70 965H440V1065H70Z" fill="#321C1D" stroke="#FF2525" stroke-width="4"/>
+<text x="255" y="1005" fill="#FFF5E8" font-size="21" font-weight="900">CONFIRMED MISMATCH</text>
+<text x="255" y="1038" fill="#CFC8B9" font-size="16">Attempt cleanup of incomplete app comment</text>
+<path d="M535 965H905V1065H535Z" fill="#111D29" stroke="#078BFF" stroke-width="4"/>
+<text x="720" y="1005" fill="#FFF5E8" font-size="21" font-weight="900">AMBIGUOUS RESULT</text>
+<text x="720" y="1038" fill="#CFC8B9" font-size="16">Warn moderator. Keep lock until expiry.</text>
+<path d="M1000 965H1370V1065H1000Z" fill="#18271D" stroke="#8CFF00" stroke-width="4"/>
+<text x="1185" y="1005" fill="#FFF5E8" font-size="21" font-weight="900">VERIFIED</text>
+<text x="1185" y="1038" fill="#CFC8B9" font-size="16">Save metadata if available. Release lock.</text>
 </g>
 </svg>
