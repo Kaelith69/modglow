@@ -6,6 +6,7 @@ type FormatRange = [number, number, number];
 type InlineContext = {
   text(options: { text: string; formatting?: FormatRange[] }): unknown;
   link(options: { text: string; url: string; formatting?: FormatRange[] }): unknown;
+  linebreak(): unknown;
 };
 
 type HeadingInlineContext = {
@@ -15,29 +16,29 @@ type HeadingInlineContext = {
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    // Announcement body text is bold by default; inline code remains monospace only.
+    // Reddit format ranges use the bold, italic, and strikethrough flag values.
+    // Inline code is an intentional exception to the default bold body style.
     const sourceFormatting = node.formatting ?? 0;
-    const formatting = [[(sourceFormatting & MARKDOWN_FORMAT.monospace) !== 0
+    const formatFlag = (sourceFormatting & MARKDOWN_FORMAT.monospace) !== 0
       ? MARKDOWN_FORMAT.monospace
-      : (sourceFormatting & (MARKDOWN_FORMAT.italic | MARKDOWN_FORMAT.strikethrough)) | MARKDOWN_FORMAT.bold,
-    0,
-    node.text.length] as FormatRange];
+      : (sourceFormatting & (MARKDOWN_FORMAT.italic | MARKDOWN_FORMAT.strikethrough)) | MARKDOWN_FORMAT.bold;
 
-    if (node.type === 'link') {
-      context.link({
-        text: node.text,
-        url: node.url,
-        formatting,
-      });
-    } else {
-      context.text({
-        text: node.text,
-        formatting,
-      });
+    // Newlines inside text nodes are not rendered as hard breaks by Reddit.
+    // Emit the dedicated rich text linebreak node instead.
+    const segments = node.text.split('\n');
+    for (const [index, segment] of segments.entries()) {
+      if (segment) {
+        const formatting: FormatRange[] = [[formatFlag, 0, segment.length]];
+        if (node.type === 'link') {
+          context.link({ text: segment, url: node.url, formatting });
+        } else {
+          context.text({ text: segment, formatting });
+        }
+      }
+      if (index < segments.length - 1) context.linebreak();
     }
   }
 }
-
 function appendHeading(context: HeadingInlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
     if (node.type === 'link') context.link({
