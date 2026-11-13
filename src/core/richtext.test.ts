@@ -35,7 +35,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t?.startsWith('Bold notice')),
   );
-  const boldNode = bodyParagraph?.c?.find((child) => child.t === 'Bold notice');
+  const boldNode = bodyParagraph?.c?.find((child) => child.t?.startsWith('Bold notice'));
   assert.deepEqual(boldNode?.f, [[1, 0, 17]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
