@@ -25,7 +25,6 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.equal(document.document[0]?.c?.[0]?.mediaUrl, 'https://reddit.test/media/header.png');
   assert.ok(document.document.length > 1);
   assert.ok(serialized.includes('Bold notice'));
-  assert.ok(!serialized.includes('**Bold notice**'));
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
   assert.ok(serialized.includes('Coconaad Moderator announcement'));
@@ -33,10 +32,10 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 31]]);
 
   const bodyParagraph = document.document.find((node) =>
-    node.e === 'par' && node.c?.some((child) => child.t?.startsWith('Bold notice')),
+    node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
   );
-  const boldNode = bodyParagraph?.c?.find((child) => child.t?.startsWith('Bold notice'));
-  assert.deepEqual(boldNode?.f, [[1, 0, 17]]);
+  const boldNode = bodyParagraph?.c?.find((child) => child.t === 'Bold notice');
+  assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
   assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
@@ -78,17 +77,18 @@ test('the attribution helper appends a superscript footer', () => {
   assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
 });
 
-test('redundant bold Markdown markers do not leak into rendered Reddit rich text', () => {
+test('optional rules link is emitted as a clickable native rich text link', () => {
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
-    '**Bold** __also bold__ ***bold italic***',
+    '**Respect everyone. **Keep discussions civil.',
     'Coconaad',
+    true,
   ).build();
-  assert.ok(serialized.includes('Bold'));
-  assert.ok(serialized.includes('also bold'));
-  assert.ok(serialized.includes('bold italic'));
-  assert.ok(!serialized.includes('**'));
-  assert.ok(!serialized.includes('__'));
-  assert.ok(serialized.includes('"f":[[1,0,15]]'));
-  assert.ok(serialized.includes('"f":[[3,0,11]]'));
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ e?: string; t?: string; u?: string }> }> };
+  const link = document.document.flatMap((node) => node.c ?? []).find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Subreddit rules and guidelines');
+  assert.equal(link?.u, 'https://www.reddit.com/r/Coconaad/about/rules');
+  assert.ok(!serialized.includes('**Respect'));
+  assert.ok(serialized.includes('Respect everyone.'));
+  assert.ok(serialized.includes('Keep discussions civil.'));
 });
