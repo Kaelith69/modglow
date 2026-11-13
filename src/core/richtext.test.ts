@@ -7,6 +7,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   const builder = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     '# Release update\n\n**Bold notice** with [the rules](https://example.com/rules), ~~old~~, and `code`.\n\n- First item\n- Second item',
+    'Coconaad',
   );
   const serialized = builder.build();
   const document = JSON.parse(serialized) as {
@@ -27,6 +28,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('First item'));
   assert.ok(serialized.includes('Coconaad Moderator announcement'));
   assert.equal(document.document[document.document.length - 1]?.c?.[0]?.t, 'Coconaad Moderator announcement');
+  assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 30]]);
 
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
@@ -35,10 +37,10 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
-  assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
+  assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
-  assert.deepEqual(codeNode?.f, [[64, 0, 4]]);
+  assert.deepEqual(codeNode?.f, [[65, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
