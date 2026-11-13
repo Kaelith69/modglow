@@ -39,7 +39,7 @@ test('Devvit menu and form configuration match the implemented server routes', (
   assert.ok(formsSource.includes("forms.post('/delete-announcement-submit'"));
   assert.ok(formsSource.includes('comment.edit({ richtext })'));
   assert.ok(formsSource.includes('comment.delete()'));
-  assert.ok(formsSource.includes('values?.confirmDelete !== true'));
+  assert.ok(formsSource.includes('isDeleteConfirmed(values)'));
   assert.ok(formsSource.includes('announcementMetadataKey(publishedComment.id)'));
   assert.equal(config.forms.createAnnouncement, '/internal/form/create-announcement-submit');
   assert.match(menuSource, /menu\.post\('\/create-announcement'/u);
