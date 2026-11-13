@@ -148,3 +148,11 @@ test('bold Markdown delimiters are removed while body text stays plain for defau
     { type: 'text', text: 'bold italic underscore', formatting: MARKDOWN_FORMAT.italic },
   ]);
 });
+
+
+test('a trailing Markdown backslash creates a hard line break without leaking the slash', () => {
+  const blocks = parseMarkdown('First line\\\\\nSecond line');
+  assert.equal(blocks[0]?.type, 'paragraph');
+  if (blocks[0]?.type !== 'paragraph') return;
+  assert.equal(blocks[0].content.map((node) => node.text).join(''), 'First line\\nSecond line');
+});
