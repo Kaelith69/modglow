@@ -9,6 +9,7 @@ import { appendAnnouncementFooter, buildAnnouncementRichText } from '../core/ric
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
+import { announcementMetadataKey, isCommentId, isManagedAnnouncementComment, type AnnouncementMetadata } from '../core/announcement.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
@@ -154,8 +155,26 @@ forms.post('/create-announcement-submit', async (c) => {
     }
 
     pinnedAndVerified = true;
+    const appAuthorId = publishedComment.authorId ?? (await reddit.getAppUser())?.id;
+    if (appAuthorId && isUserId(appAuthorId)) {
+      const metadata: AnnouncementMetadata = {
+        version: 1,
+        commentId: publishedComment.id,
+        postId,
+        subredditId: context.subredditId,
+        subredditName: context.subredditName,
+        appAuthorId,
+        flair,
+        announcement,
+        bodyBelowSvg,
+        mediaUrl: uploaded.mediaUrl,
+      };
+      await redis.set(announcementMetadataKey(publishedComment.id), JSON.stringify(metadata));
+    } else {
+      console.error('[ModGlow] Published announcement but could not resolve the app author ID for management metadata.');
+    }
     console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast('Published.'));
+    return c.json<UiResponse>(toast(appAuthorId ? 'Published.' : 'Published. Editing and deletion are unavailable for this comment.'));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
@@ -207,5 +226,169 @@ forms.post('/create-announcement-submit', async (c) => {
         console.error('[ModGlow] Could not release the announcement lock.', error);
       }
     }
+  }
+});
+
+
+type EditAnnouncementValues = AnnouncementFormValues;
+type DeleteAnnouncementValues = { confirmDelete?: boolean };
+
+async function getVerifiedManagedComment() {
+  const commentId = context.commentId;
+  if (!isCommentId(commentId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
+    return undefined;
+  }
+  if (!(await verifyModerator(context.subredditName, context.userId))) return undefined;
+  const comment = await reddit.getCommentById(commentId);
+  const appUser = await reddit.getAppUser();
+  if (!appUser?.id) return undefined;
+  const stored = await redis.get(announcementMetadataKey(commentId));
+  if (!stored) return undefined;
+  let metadata: AnnouncementMetadata;
+  try {
+    metadata = JSON.parse(stored) as AnnouncementMetadata;
+  } catch {
+    return undefined;
+  }
+  if (!isManagedAnnouncementComment(comment, metadata, appUser.id, context.subredditName, context.subredditId)) {
+    return undefined;
+  }
+  return { comment, metadata };
+}
+
+function buildAnnouncementCommentBody(
+  mediaUrl: string,
+  announcement: string,
+  bodyBelowSvg: boolean,
+  subredditName: string,
+) {
+  if (bodyBelowSvg) return buildAnnouncementRichText(mediaUrl, announcement, subredditName);
+  return appendAnnouncementFooter(
+    new RichTextBuilder().paragraph((paragraph) => {
+      paragraph.image({ mediaUrl });
+    }),
+    subredditName,
+  );
+}
+
+forms.post('/edit-announcement-submit', async (c) => {
+  const values = await c.req.json<EditAnnouncementValues | null>().catch(() => null);
+  const announcement = typeof values?.announcement === 'string' ? values.announcement.trim() : '';
+  const selectedFlair = Array.isArray(values?.flair) ? values.flair[0] : values?.flair;
+  const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
+  const bodyBelowSvg = values?.bodyBelowSvg === true;
+
+  if (!announcement) return c.json<UiResponse>(toast('Enter announcement text.'));
+  if (!flair) return c.json<UiResponse>(toast('Choose a flair.'));
+  const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
+  if (countGraphemes(announcement, characterLimit) > characterLimit) {
+    return c.json<UiResponse>(toast(`Text limit: ${characterLimit}.`));
+  }
+  if (bodyBelowSvg && !hasMarkdownContent(announcement)) {
+    return c.json<UiResponse>(toast('Enter Markdown text.'));
+  }
+
+  let lockToken: string | undefined;
+  try {
+    const managed = await getVerifiedManagedComment();
+    if (!managed) return c.json<UiResponse>(toast('Moderator access or verified ModGlow ownership required.'));
+    const { comment, metadata } = managed;
+    lockToken = await acquirePostLock(metadata.postId);
+    if (!lockToken) return c.json<UiResponse>(toast('This announcement is already being updated.'));
+
+    const visualChanged = flair !== metadata.flair
+      || bodyBelowSvg !== metadata.bodyBelowSvg
+      || (!bodyBelowSvg && announcement !== metadata.announcement);
+    let mediaUrl = metadata.mediaUrl;
+
+    if (visualChanged) {
+      const svg = bodyBelowSvg
+        ? buildAnnouncementHeaderSvg(flair)
+        : buildAnnouncementSvg(announcement, flair);
+      const png = await renderAnnouncementPng(svg);
+      const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
+      mediaUrl = (await media.upload({ url: imageDataUrl, type: 'image' })).mediaUrl;
+    }
+
+    const wasDistinguished = comment.distinguishedBy === 'moderator';
+    const wasPinned = comment.stickied;
+    const richtext = buildAnnouncementCommentBody(mediaUrl, announcement, bodyBelowSvg, context.subredditName!);
+    const edited = await comment.edit({ richtext });
+    let verified = await reddit.getCommentById(comment.id);
+
+    if (wasDistinguished && (verified.distinguishedBy !== 'moderator' || verified.stickied !== wasPinned)) {
+      await edited.distinguish(wasPinned);
+      verified = await reddit.getCommentById(comment.id);
+    }
+    if (
+      verified.id !== comment.id
+      || verified.authorId !== metadata.appAuthorId
+      || verified.subredditId !== metadata.subredditId
+      || verified.postId !== metadata.postId
+      || verified.body !== edited.body
+      || (wasDistinguished && verified.distinguishedBy !== 'moderator')
+      || (wasPinned && !verified.stickied)
+    ) {
+      throw new Error('Reddit did not confirm the edited announcement state.');
+    }
+
+    const updated: AnnouncementMetadata = {
+      ...metadata,
+      flair,
+      announcement,
+      bodyBelowSvg,
+      mediaUrl,
+    };
+    await redis.set(announcementMetadataKey(comment.id), JSON.stringify(updated));
+    console.info(`[ModGlow] Edited and verified announcement ${comment.id} in r/${context.subredditName}.`);
+    return c.json<UiResponse>(toast('Announcement updated.'));
+  } catch (error) {
+    console.error('[ModGlow] Announcement edit failed.', error);
+    return c.json<UiResponse>(toast('Could not update this announcement. Check the comment before retrying.'));
+  } finally {
+    if (lockToken && context.postId) {
+      try {
+        await releasePostLock(context.postId, lockToken);
+      } catch (error) {
+        console.error('[ModGlow] Could not release the announcement edit lock.', error);
+      }
+    } else if (lockToken) {
+      // The stored parent post ID is used if the request context has no post ID.
+      const commentId = context.commentId;
+      if (isCommentId(commentId)) {
+        const stored = await redis.get(announcementMetadataKey(commentId));
+        if (stored) {
+          const metadata = JSON.parse(stored) as AnnouncementMetadata;
+          await releasePostLock(metadata.postId, lockToken);
+        }
+      }
+    }
+  }
+});
+
+forms.post('/delete-announcement-submit', async (c) => {
+  const values = await c.req.json<DeleteAnnouncementValues | null>().catch(() => null);
+  if (values?.confirmDelete !== true) {
+    return c.json<UiResponse>(toast('Confirm permanent deletion to continue.'));
+  }
+
+  try {
+    const managed = await getVerifiedManagedComment();
+    if (!managed) return c.json<UiResponse>(toast('Moderator access or verified ModGlow ownership required.'));
+    const { comment, metadata } = managed;
+    const lockToken = await acquirePostLock(metadata.postId);
+    if (!lockToken) return c.json<UiResponse>(toast('This announcement is already being changed.'));
+
+    try {
+      await comment.delete();
+      await redis.del(announcementMetadataKey(comment.id));
+      console.info(`[ModGlow] Permanently deleted app-owned announcement ${comment.id} from r/${context.subredditName}.`);
+      return c.json<UiResponse>(toast('Announcement permanently deleted.'));
+    } finally {
+      await releasePostLock(metadata.postId, lockToken);
+    }
+  } catch (error) {
+    console.error('[ModGlow] Announcement deletion failed.', error);
+    return c.json<UiResponse>(toast('Could not permanently delete this announcement.'));
   }
 });
