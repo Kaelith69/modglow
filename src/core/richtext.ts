@@ -86,6 +86,14 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
  * The Markdown body is appended as native Reddit rich text, never baked into
  * the image, so Reddit handles its layout, links, and accessibility.
  */
+export function appendAnnouncementFooter(builder: RichTextBuilder, subredditName: string): RichTextBuilder {
+  builder.paragraph((paragraph) => {
+    const attribution = `${subredditName} Moderator announcement`;
+    paragraph.text({ text: attribution, formatting: [[32, 0, attribution.length]] });
+  });
+  return builder;
+}
+
 export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string): RichTextBuilder {
   if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
@@ -103,12 +111,5 @@ export function buildAnnouncementRichText(mediaUrl: string, markdown: string, su
 
   for (const block of blocks) appendBlock(builder, block);
 
-  builder.paragraph((paragraph) => {
-    const attribution = `${subredditName} Moderator announcement`;
-    paragraph.text({
-      text: attribution,
-      formatting: [[32, 0, attribution.length]],
-    });
-  });
-  return builder;
+  return appendAnnouncementFooter(builder, subredditName);
 }
