@@ -257,7 +257,7 @@ test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal ne
   assert.ok(paragraph);
   assert.deepEqual(
     paragraph?.c?.filter((node) => node.t || node.e).map((node) => node.t ?? node.e),
-    ['First line', 'ln', 'Second ', 'italic', ' line'],
+    ['First line', 'br', 'Second ', 'italic', ' line'],
   );
   const italic = paragraph?.c?.find((node) => node.t === 'italic');
   assert.deepEqual(italic?.f, [[3, 0, 6]]);
