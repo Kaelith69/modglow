@@ -103,7 +103,7 @@ function joinParagraphLines(lines: string[]): string {
   return lines.map((line, index) => {
     const hardBreak = /(?<!\\)\\$/u.test(line);
     const content = hardBreak ? line.slice(0, -1) : line;
-    return `${content}${index < lines.length - 1 ? (hardBreak ? '\\n' : ' ') : ''}`;
+    return `${content}${index < lines.length - 1 ? (hardBreak ? '\n' : ' ') : ''}`;
   }).join('');
 }
 
