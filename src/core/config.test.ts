@@ -45,6 +45,8 @@ test('Devvit menu and form configuration match the implemented server routes', (
   assert.ok(formsSource.includes('comment.delete()'));
   assert.ok(formsSource.includes('isDeleteConfirmed(values)'));
   assert.ok(formsSource.includes('announcementMetadataKey(publishedComment.id)'));
+  assert.ok(formsSource.includes('buildAnnouncementCommentBody(\\n      uploaded.mediaUrl,\\n      announcement,\\n      bodyBelowSvg,\\n      includeRulesLink,'));
+  assert.ok(formsSource.includes('if (includeRulesLink) appendAnnouncementRulesLink(builder, subredditName);'));
   assert.equal(config.forms.createAnnouncement, '/internal/form/create-announcement-submit');
   assert.match(menuSource, /menu\.post\('\/create-announcement'/u);
   assert.match(formsSource, /forms\.post\('\/create-announcement-submit'/u);
