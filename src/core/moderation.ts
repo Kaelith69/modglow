@@ -37,3 +37,22 @@ export function isNotFoundError(error: unknown): boolean {
   if (value.code === 'NOT_FOUND' || value.code === 'RESOURCE_NOT_FOUND') return true;
   return typeof value.message === 'string' && value.message.toLowerCase().includes('not found');
 }
+
+
+/** True only when Reddit's persisted state confirms both moderator distinction and pinning. */
+export function isModeratorPinnedComment(comment: {
+  stickied?: boolean;
+  distinguishedBy?: string | null;
+}): boolean {
+  return comment.stickied === true && comment.distinguishedBy === 'moderator';
+}
+
+
+/** Archived posts reject new comments; moderators can still comment on locked posts. */
+export function canModeratorCommentOnPost(post: {
+  removed?: boolean;
+  archived?: boolean;
+  locked?: boolean;
+}): boolean {
+  return post.removed !== true && post.archived !== true;
+}

@@ -7,6 +7,15 @@ const BODY_FONT = 76;
 const FONT_FAMILY = 'Arial, Helvetica, sans-serif';
 const GRAPHEME_SEGMENTER = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
 
+function graphemeCount(value: string, stopAfter: number): number {
+  let count = 0;
+  for (const part of GRAPHEME_SEGMENTER.segment(value)) {
+    if (part.segment.length > 0) count += 1;
+    if (count > stopAfter) return count;
+  }
+  return count;
+}
+
 function graphemes(value: string): string[] {
   return Array.from(GRAPHEME_SEGMENTER.segment(value), (part) => part.segment);
 }
@@ -60,7 +69,7 @@ function parseInlineRuns(value: string, baseStyle: RunStyle): InlineRun[] {
   if (baseStyle.code) return [{ text: value, ...baseStyle }];
 
   const runs: InlineRun[] = [];
-  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|__(.+?)__|\*(.+?)\*|_(.+?)_/g;
+  const pattern = /\\([\\`*_{}()#+.!>])|`([^`]+)`|~~(.+?)~~|\*\*\*(.+?)\*\*\*|___(.+?)___|\*\*(.+?)\*\*|(?<![\p{L}\p{N}])__(.+?)__(?![\p{L}\p{N}])|\*(.+?)\*|(?<![\p{L}\p{N}])_(.+?)_(?![\p{L}\p{N}])/gu;
   let cursor = 0;
 
   for (const match of value.matchAll(pattern)) {
@@ -162,8 +171,8 @@ function wrapInlineRuns(runs: InlineRun[], maxWidth: number, fontSize: number): 
 
 function normalizeInlineMarkdown(line: string): string {
   return line
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\(https?:\/\/[^)]+\)/g, '$1')
+    .replace(/!\[([^\]]*)\]\((?:[^\s()]|\([^()\s]*\))+\)/gu, '$1')
+    .replace(/\[([^\]]+)\]\(https?:\/\/(?:[^\s()]|\([^()\s]*\))+\)/gu, '$1')
     .replace(/<https?:\/\/([^>]+)>/g, 'https://$1')
     .replace(/<\/?[A-Za-z][^>]*>/g, '')
     .replace(/[ \t]+$/g, '');
@@ -172,15 +181,23 @@ function normalizeInlineMarkdown(line: string): string {
 function renderBody(markdown: string, accentColor: string): RenderedBody {
   const source = markdown.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   const renderedLines: string[] = [];
-  let inCodeBlock = false;
+  let activeFence: { character: string; length: number } | undefined;
   let visibleCharacters = 0;
 
   for (const originalLine of source.split('\n')) {
-    if (/^\s*```/.test(originalLine)) {
-      inCodeBlock = !inCodeBlock;
-      continue;
+    const fence = originalLine.match(/^\s*(`{3,}|~{3,})([A-Za-z0-9_+#.-]{0,24})\s*$/u);
+    if (fence) {
+      if (!activeFence) {
+        activeFence = { character: fence[1][0], length: fence[1].length };
+        continue;
+      }
+      if (fence[1][0] === activeFence.character && fence[1].length >= activeFence.length && !fence[2]) {
+        activeFence = undefined;
+        continue;
+      }
     }
 
+    const inCodeBlock = Boolean(activeFence);
     let line = originalLine;
     let baseStyle = PLAIN_STYLE;
     let prefix = '';
@@ -322,8 +339,30 @@ function flairHeader(flair: AnnouncementFlair): string {
   }
 }
 
+/** Build the fixed-height title banner used when the Markdown body is separate. */
+export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
+  if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {
+    throw new Error('Choose one of the four supported announcement flairs.');
+  }
+
+  const width = WIDTH;
+  const height = 600;
+  const theme = FLAIR_THEMES[flair];
+
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height + '" viewBox="0 0 ' + width + ' ' + height + '">',
+    '<title>MODGLOW ' + flair.toLowerCase() + '</title>',
+    '<rect width="' + width + '" height="' + height + '" fill="' + theme.background + '"/>',
+    frameSvg(theme.accent, height),
+    flairHeader(flair),
+    '<rect x="115" y="415" width="16" height="95" fill="' + theme.accent + '"/>',
+    '</svg>',
+  ].join('\n');
+}
+
 export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
-  if (typeof markdown !== 'string' || graphemes(markdown).length > MAX_ANNOUNCEMENT_CHARS) {
+  if (typeof markdown !== 'string' || graphemeCount(markdown, MAX_ANNOUNCEMENT_CHARS) > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
   if (!ANNOUNCEMENT_FLAIRS.includes(flair)) {

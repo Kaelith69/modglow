@@ -1,29 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="2000" height="760" viewBox="0 0 2000 760">
-  <title>MODGLOW Announcement reference template</title>
+  <title>MODGLOW announcement</title>
   <rect width="2000" height="760" fill="#050A05"/>
-  <path d="M110 65 H1970 V610 L1890 690 H30 V145 Z" fill="none" stroke="#8CFF00" stroke-width="16"/>
-  <text x="165" y="80" fill="#FFF5E8" font-family="IBM Plex Sans" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>
+  <path d="M466 65 H1970 V610 L1890 690 H30 V145 L85 65" fill="none" stroke="#8CFF00" stroke-width="16" stroke-linejoin="miter"/>
+  <text x="165" y="80" fill="#FFF5E8" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="bold" letter-spacing="12">MODGLOW</text>
   <path d="M70 130 H435 L330 350 H70 Z" fill="#FFF5E8"/>
   <path d="M455 135 H1715 L1595 350 H350 Z" fill="#8CFF00"/>
-  <g fill="#126B18" stroke="#126B18" stroke-width="12" stroke-linejoin="round">
-    <path d="M135 215 L230 185 L230 285 L135 255 Z"/>
-    <path d="M230 185 L280 165 V305 L230 285 Z"/>
-    <path d="M165 260 L200 320 L230 310 L205 255 Z"/>
+  <g transform="scale(1.3020833)" fill="#126B18" stroke="#126B18" stroke-linejoin="round">
+    <path d="M186 139 L166 153 L135 167 L135 185 L141 211 L175 213 L200 220 Z"/>
+    <path d="M101 175 L90 190 L92 206 L108 217 L114 216 L143 252 L154 251 L157 243 L130 210 L125 169 Z"/>
+    <path d="M199 122 L195 127 L195 137 L209 224 L212 230 L219 230 L222 224 L216 188 L221 182 L221 171 L211 159 L207 126 L204 122 Z"/>
   </g>
-  <g stroke="#126B18" stroke-width="12" stroke-linecap="round">
-    <path d="M295 190 L330 165"/>
-    <path d="M305 235 H350"/>
-    <path d="M295 280 L330 305"/>
+  <g transform="scale(1.3020833)" fill="none" stroke="#126B18" stroke-width="8" stroke-linecap="round">
+    <path d="M249 132 L230 146 L228 152"/>
+    <path d="M266 165 L237 167 L233 173"/>
+    <path d="M235 192 L251 202 L261 202"/>
   </g>
-  <text x="460" y="295" fill="#050A05" font-family="IBM Plex Sans" font-size="130" font-weight="900" font-style="italic" textLength="1100" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
+  <text x="460" y="295" fill="#050A05" font-family="Arial, Helvetica, sans-serif" font-size="130" font-weight="900" font-style="italic" textLength="1100" lengthAdjust="spacingAndGlyphs">ANNOUNCEMENT</text>
   <g fill="#8CFF00">
-    <path d="M1750 170 H1810 L1725 325 H1665 Z"/>
-    <path d="M1840 170 H1900 L1815 325 H1755 Z"/>
+    <path d="M1655 170 H1715 L1630 325 H1570 Z"/>
+    <path d="M1745 170 H1805 L1720 325 H1660 Z"/>
+    <path d="M1835 170 H1895 L1810 325 H1750 Z"/>
   </g>
   <rect x="115" y="415" width="16" height="195" fill="#8CFF00"/>
-  <g fill="#FFF5E8" font-family="IBM Plex Sans" font-size="76" font-weight="700">
-    <text x="195" y="475">Please follow the sub rules no religion or</text>
-    <text x="195" y="575">politics here</text>
-  </g>
+  <text x="195" y="475" font-family="Arial, Helvetica, sans-serif" font-size="76" fill="#FFF5E8"><tspan x="195" dy="0"><tspan font-family="Arial, Helvetica, sans-serif" font-weight="700" font-style="normal" fill="#FFF5E8">Please follow the sub rules no religion or</tspan></tspan><tspan x="195" dy="100"><tspan font-family="Arial, Helvetica, sans-serif" font-weight="700" font-style="normal" fill="#FFF5E8">politics here</tspan></tspan></text>
 </svg>

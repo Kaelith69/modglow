@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { escapeXml } from './format.ts';
-import { ANNOUNCEMENT_FLAIRS, buildAnnouncementSvg } from './render.ts';
+import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg } from './render.ts';
 
 test('escapeXml neutralises XML markup and removes invalid XML characters', () => {
   assert.equal(escapeXml('<tag a="x">Tom & \'Ada\'</tag>'), '&lt;tag a=&quot;x&quot;&gt;Tom &amp; &apos;Ada&apos;&lt;/tag&gt;');
@@ -128,7 +128,30 @@ test('links and images display readable labels rather than external resources', 
   const svg = buildAnnouncementSvg('Read [the rules](https://example.com/rules).\n![Diagram](https://example.com/image.png)', 'NOTICE');
   assert.match(svg, /Read the rules/);
   assert.match(svg, />Diagram</);
-  assert.doesNotMatch(svg, /https:\/\/example\.com/);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/u);
+});
+
+test('compact SVG code fences close only with matching fence character and length', () => {
+  const svg = buildAnnouncementSvg(
+    '````text\n``` literal\n````\n\n~~~js\nconst ready = true;\n~~~',
+    'NOTICE',
+  );
+  assert.match(svg, />``` literal<\/tspan>/);
+  assert.match(svg, />const ready = true;<\/tspan>/);
+  assert.doesNotMatch(svg, />text<\/tspan>/);
+});
+
+test('compact SVG Markdown preserves identifier underscores and balanced link parentheses', () => {
+  const svg = buildAnnouncementSvg(
+    'Use snake_case_value and [the article](https://example.com/path_(part)). ![diagram](https://example.com/image_(a).png)',
+    'NOTICE',
+  );
+  assert.match(svg, /snake_case_value/);
+  assert.match(svg, /the article/);
+  assert.match(svg, /diagram/);
+  assert.doesNotMatch(svg, /https:\/\/example\.com/u);
+  assert.match(svg, /font-style="normal"/);
+  assert.match(svg, /font-weight="700" font-style="normal" fill="#FFF5E8">Use snake_case_value and the article\./);
 });
 
 test('XML sensitive text is escaped and unsupported HTML is not emitted', () => {
@@ -152,4 +175,22 @@ test('empty, overlong and excessively tall announcements are rejected', () => {
   assert.throws(() => buildAnnouncementSvg('A'.repeat(2601)), /2600 character limit/);
   assert.throws(() => buildAnnouncementSvg('W '.repeat(1300)), /more than 24 rendered lines/);
   assert.throws(() => buildAnnouncementSvg('Not allowed.', 'URGENT' as never), /four supported announcement flairs/);
+});
+
+
+test('separate body SVG is a fixed height title banner with no announcement body', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementHeaderSvg(flair);
+    assert.match(svg, /width="2000" height="600" viewBox="0 0 2000 600"/);
+    assert.ok(svg.includes('<title>MODGLOW ' + flair.toLowerCase() + '</title>'));
+    assert.match(svg, /M466 65 H1970 V450 L1890 530 H30 V145 L85 65/);
+    assert.match(svg, /<rect x="115" y="415" width="16" height="95"/);
+    assert.doesNotMatch(svg, /x="195" y="475"|Announcement body|body text/i);
+  }
+
+  assert.ok(buildAnnouncementHeaderSvg('IMPORTANT').includes('IMPORTANT</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('NOTICE').includes('NOTICE</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('ANNOUNCEMENT').includes('ANNOUNCEMENT</text>'));
+  assert.ok(buildAnnouncementHeaderSvg('REMINDER').includes('REMINDER</text>'));
+  assert.throws(() => buildAnnouncementHeaderSvg('URGENT' as never), /four supported announcement flairs/);
 });

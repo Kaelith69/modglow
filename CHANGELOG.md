@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- Add an optional native Markdown body below a fixed title only SVG while preserving the compact embedded body mode.
+- Keep the SVG image first in the same Reddit rich text comment in both publishing modes.
+- Avoid deleting a potentially successful comment when Reddit pin verification cannot be read; only clean up after an explicit persisted state mismatch.
+- Warn moderators when Reddit comment submission returns an ambiguous failure without a comment ID, preventing unsafe blind retries.
+- Retain the per post retry lock until its short lease expires when comment publication, pin verification, or cleanup has an ambiguous result.
+- Improve Markdown parsing for balanced link URL parentheses and prevent underscores inside identifiers from being treated as emphasis.
+- Dispose Resvg WebAssembly objects after rendering and cache decoded font buffers between announcements.
+- Reject archived posts before rendering or media upload while preserving moderator comments on locked posts.
+- Synchronize the vector samples, brand guide, layout audit, and implementation notes with the production renderer.
+
 ## 0.5.0
 
 - Replaced the approximate shared flair card with the four exact supplied IMPORTANT, NOTICE, ANNOUNCEMENT and REMINDER SVG compositions.
@@ -49,8 +61,6 @@
 - Removed retired comment conversion, comment removal, source deletion triggers, and unused formatting helpers.
 - Added focused renderer regression tests and aligned the documentation and sample artwork with the announcement flow.
 
-# Changelog
-
 ## 0.2.3
 
 - Added `onPostDelete` cleanup so manually deleted or moderator removed spotlight posts no longer leave stale source mappings.
@@ -62,9 +72,8 @@
 ## 0.2.2
 
 - Fixed the actual lock bug: `TxClientLike.get()` queues a Redis GET and returns the transaction handle, not the stored value. The previous code therefore treated every feature attempt as an existing lock and could not correctly release locks.
-- Use atomic Redis `SET NX` for acquisition and a watched compare and delete for token safe release.
+- Use atomic Redis `SET NX` for acquisition with a 45 second expiry and watched token checked release.
 - Pass the `RichTextBuilder` object to `submitPost`, matching the SDK's `SubmitPostOptions` type instead of passing the builder's serialized string.
-- Acquire locks atomically with Redis `SET NX` plus a 45 second expiry. Release uses a watched compare and delete so one request cannot remove another request's lock.
 - Fixed stale comment feature locks by moving to a new lock namespace so orphaned v3 locks no longer block features.
 - Reduced temporary lock lifetime from 180 seconds to 45 seconds, above Devvit Web's 30 second request limit.
 - Replaced the misleading duplicate feature toast with a message explaining an active or timed out request and clarifying that the lock message does not prove a post was published.

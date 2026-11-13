@@ -1,41 +1,78 @@
 # ModGlow
 
-**ModGlow is a moderator-only Reddit Devvit tool for publishing designed announcements as pinned image comments.** A moderator opens a post menu, writes an announcement in Markdown, and ModGlow renders it into a custom SVG, rasterises it to PNG, uploads it to Reddit media hosting, and publishes one top-level comment as the ModGlow app account.
+**ModGlow is a moderator only Reddit Devvit tool for publishing branded announcement comments.** Each announcement is a single top level comment authored by the ModGlow app, with its SVG image first and an optional native Markdown body beneath it.
 
-## How it works
+## Publishing modes
 
-1. A moderator opens a Reddit post and selects **Create ModGlow announcement** from the post menu.
-2. The moderator writes the announcement in a multiline Markdown field.
-3. ModGlow renders the text into its branded image card.
-4. The image is uploaded to Reddit media hosting and embedded in one top-level comment under the original post.
+1. A moderator opens a post menu and selects **Create ModGlow announcement**.
+2. The moderator chooses one of the four announcement flairs and writes the content in Markdown.
+3. The **Publish Markdown below the SVG** toggle controls the layout:
+   * **Off:** the text is rendered inside the SVG. This mode is intended for compact announcements, ideally one or two lines. It accepts up to 2600 grapheme clusters and rejects layouts requiring more than 24 rendered lines.
+   * **On:** the SVG contains the title artwork only. The full Markdown body is converted into native Reddit rich text and appended below the image in the same comment. This mode accepts up to 9000 grapheme clusters.
+4. ModGlow rasterises the SVG to PNG, uploads it to Reddit media hosting, and builds one comment. The image paragraph is always the first rich text node.
 5. The comment is published as the **ModGlow app account**, distinguished as a moderator, and pinned.
-6. ModGlow fetches the comment again and verifies that Reddit reports it as both moderator-distinguished and stickied.
+6. ModGlow fetches the comment again and verifies that Reddit reports it as both moderator distinguished and stickied.
 
 ModGlow does not create a separate Reddit post, select or quote an existing comment, edit another user's content, or remove existing comments.
 
 ## Markdown support
 
-The SVG renderer supports:
+When the separate body toggle is enabled, Markdown is converted into native Reddit rich text:
 
-- **Bold**, *italic*, ***bold italic***, and ~~strikethrough~~.
-- Headings, blockquotes, ordered lists, and unordered lists.
-- Inline code and fenced code blocks.
-- Markdown links, displayed as their readable link text.
-- Markdown images, displayed as their alt text.
+* Headings from `#` through `######`.
+* **Bold**, *italic*, ***bold italic***, and ~~strikethrough~~.
+* Inline `code` and fenced code blocks with an optional language label.
+* Ordered lists and unordered lists.
+* Blockquotes and horizontal rules.
+* Clickable HTTP and HTTPS links.
+* Markdown images are represented by their alt text. ModGlow does not fetch or embed external images.
 
-Raw HTML is not rendered. Links and images are represented as readable text in the card, not as interactive or embedded external media. XML-sensitive text is escaped before rendering.
+Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Link URLs support balanced single level parentheses and only HTTP or HTTPS schemes are made clickable. List markers must start at the beginning of a line. Indented and nested list syntax remains literal text, ordered lists are numbered from 1 by Reddit, and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes accept plain text and links rather than formatted text ranges.
+
+When the toggle is off, the existing SVG renderer handles short content inside the image. It supports the same main inline styles and block prefixes, but links are shown as readable labels rather than interactive links.
+
+### Formatting input
+
+The current composer uses Devvit's native menu form. Its paragraph field accepts Markdown source but does not expose custom buttons or cursor selection controls. Use the syntax directly:
+
+````md
+# Main heading
+## Section heading
+
+**Bold text** and *italic text*
+
+- First bullet
+- Second bullet
+
+1. First step
+2. Second step
+
+> Quoted text
+
+`inline code`
+
+```js
+const ready = true;
+```
+
+[Read the rules](https://example.com/rules)
+````
+
+A clickable formatting toolbar requires a custom interactive composer view. The native menu form does not provide a supported way to attach such a toolbar to its paragraph field.
 
 ## Four announcement flairs
 
-The composer offers exactly four choices, each reproducing its own supplied SVG artwork rather than recolouring one shared layout.
+The composer offers exactly four choices. Each flair retains its own title artwork, geometry, and solid colour palette.
 
-- **IMPORTANT:** near black `#080605`, red `#FF2525`, ivory warning triangle and ivory title panel.
-- **NOTICE:** midnight navy `#050D1C`, blue `#078BFF`, ivory information symbol and ivory title panel.
-- **ANNOUNCEMENT:** deep green black `#050A05`, lime `#8CFF00`, dark green megaphone on an ivory tile and lime title panel.
-- **REMINDER:** warm black `#090604`, orange `#FF7900`, dark calendar on an ivory tile and orange title panel.
+* **IMPORTANT:** near black `#080605`, red `#FF2525`, ivory title panel and warning triangle.
+* **NOTICE:** midnight navy `#050D1C`, blue `#078BFF`, ivory title panel and information symbol.
+* **ANNOUNCEMENT:** deep green black `#050A05`, lime `#8CFF00`, ivory icon tile and megaphone.
+* **REMINDER:** warm black `#090604`, orange `#FF7900`, ivory icon tile and calendar.
 
-Each template uses its own exact header geometry, title size, title width, icon, accent slashes and palette from the supplied SVG references. The SVG uses a 2000px wide viewBox and an intrinsic height calculated from the final wrapped text line.
+The title only SVG is a fixed 2000 by 600 canvas. The embedded text SVG retains its dynamic height, wrapping, and frame clearance. The maintained vector examples are `assets/branding/svg/announcement-card-sample.svg` for compact mode and `assets/branding/svg/announcement-title-only-sample.svg` for separate body mode.
 
-Body text begins at x=195 with 76px type and 100px line spacing. Text is wrapped using conservative glyph width estimates inside a 1660px safe width. Long unbroken tokens are split. The bottom frame and canvas grow with the final line, preserving fixed clearance below the text and frame. Content exceeding 24 rendered lines or 2600 input characters is rejected rather than clipped.
+## Rendering details
 
-The source is editable vector SVG. The server rasterizes it to a proportional PNG for Reddit media upload. The SVG declares `Arial, Helvetica, sans-serif` explicitly. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. Body text is bold by default at weight 700; blockquotes are bold italic. Wrapping uses conservative estimated glyph widths with a right safety margin rather than exact font shaping metrics. No gradients, filters, transparency, external assets or raster artwork are used in the templates.
+The announcement card SVG declares `Arial, Helvetica, sans-serif` explicitly. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. The bundled font files explicitly cover Latin, Malayalam, and Tamil; other scripts need visual validation in compact SVG mode. Embedded SVG body text is bold by default at weight 700; blockquotes are bold italic. The separate Markdown body uses Reddit's native typography and formatting.
+
+The server rasterises SVG with bundled WebAssembly and fonts. No gradients, filters, external assets, transparency, or embedded raster artwork are used in the templates.
