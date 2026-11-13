@@ -289,11 +289,13 @@ forms.post('/edit-announcement-submit', async (c) => {
   }
 
   let lockToken: string | undefined;
+  let lockPostId: string | undefined;
   try {
     const managed = await getVerifiedManagedComment();
     if (!managed) return c.json<UiResponse>(toast('Moderator access or verified ModGlow ownership required.'));
     const { comment, metadata } = managed;
-    lockToken = await acquirePostLock(metadata.postId);
+    lockPostId = metadata.postId;
+    lockToken = await acquirePostLock(lockPostId);
     if (!lockToken) return c.json<UiResponse>(toast('This announcement is already being updated.'));
 
     const visualChanged = flair !== metadata.flair
@@ -346,21 +348,11 @@ forms.post('/edit-announcement-submit', async (c) => {
     console.error('[ModGlow] Announcement edit failed.', error);
     return c.json<UiResponse>(toast('Could not update this announcement. Check the comment before retrying.'));
   } finally {
-    if (lockToken && context.postId) {
+    if (lockToken && lockPostId) {
       try {
-        await releasePostLock(context.postId, lockToken);
+        await releasePostLock(lockPostId, lockToken);
       } catch (error) {
         console.error('[ModGlow] Could not release the announcement edit lock.', error);
-      }
-    } else if (lockToken) {
-      // The stored parent post ID is used if the request context has no post ID.
-      const commentId = context.commentId;
-      if (isCommentId(commentId)) {
-        const stored = await redis.get(announcementMetadataKey(commentId));
-        if (stored) {
-          const metadata = JSON.parse(stored) as AnnouncementMetadata;
-          await releasePostLock(metadata.postId, lockToken);
-        }
       }
     }
   }
