@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="190" viewBox="0 0 1440 190" role="img" aria-labelledby="title desc">
+<title id="title">ModGlow. Built for community moderators.</title>
+<desc id="desc">A compact closing banner with the ModGlow name and four solid flair colour marks.</desc>
+<rect width="1440" height="190" fill="#080605"/>
+<path d="M28 56 68 18H1412V132L1372 172H28Z" fill="none" stroke="#FFF5E8" stroke-width="4"/>
+<path d="M28 56 68 18H1412V60H76L28 108Z" fill="#8CFF00"/>
+<text x="88" y="48" fill="#080605" font-family="Arial, sans-serif" font-size="20" font-weight="900" letter-spacing="6">MODGLOW / MODERATOR ANNOUNCEMENTS</text>
+<text x="88" y="126" fill="#FFF5E8" font-family="Arial, sans-serif" font-size="46" font-weight="900" letter-spacing="1">CLEAR SIGNAL. CLEAN EXECUTION.</text>
+<path d="M1160 90H1220L1192 140H1132Z" fill="#FF2525"/><path d="M1220 90H1280L1252 140H1192Z" fill="#078BFF"/><path d="M1280 90H1340L1312 140H1252Z" fill="#8CFF00"/><path d="M1340 90H1400L1372 140H1312Z" fill="#FF7900"/>
+</svg>
