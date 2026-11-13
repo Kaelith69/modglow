@@ -5,7 +5,7 @@ import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
-import { buildAnnouncementRichText } from '../core/richtext.ts';
+import { appendAnnouncementFooter, buildAnnouncementRichText } from '../core/richtext.ts';
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
@@ -125,14 +125,12 @@ forms.post('/create-announcement-submit', async (c) => {
 
     const richtext = bodyBelowSvg
       ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName)
-      : new RichTextBuilder()
-        .paragraph((paragraph) => {
+      : appendAnnouncementFooter(
+        new RichTextBuilder().paragraph((paragraph) => {
           paragraph.image({ mediaUrl: uploaded.mediaUrl });
-        })
-        .paragraph((paragraph) => {
-          const attribution = `${context.subredditName} Moderator announcement`;
-          paragraph.text({ text: attribution, formatting: [[32, 0, attribution.length]] });
-        });
+        }),
+        context.subredditName,
+      );
 
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
