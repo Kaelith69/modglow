@@ -120,7 +120,8 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
     .flatMap((block) => block.c ?? [])
     .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
 
-  assert.equal(bodyNodes.map((node) => node.t).join(' '),
+  assert.equal(
+    bodyNodes.map((node) => node.t).join('').replace(/\\s+/gu, ' ').trim(),
     'Respect everyone. Keep discussions civil. Stay relevant. Follow the subreddit rules. No spam, harassment, or hate. Post responsibly. Use the right flair. Keep content organised. Think before posting. Quality over quantity. Be part of the community. Keep Coconaad welcoming.');
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('*'));
