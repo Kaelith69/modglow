@@ -4,6 +4,8 @@ import {
   announcementMetadataKey,
   isCommentId,
   isManagedAnnouncementComment,
+  shouldRegenerateAnnouncementImage,
+  isDeleteConfirmed,
   type AnnouncementMetadata,
 } from './announcement.ts';
 
@@ -52,4 +54,26 @@ test('managed announcement requires matching app author, comment, parent and sub
   assert.equal(isManagedAnnouncementComment(comment, undefined, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment(comment, metadata, undefined, 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment(comment, metadata, 't2_app', 'ExampleSub', 't5_other'), false);
+});
+
+test('image regeneration follows the selected publishing mode and visual fields', () => {
+  const previous = { flair: 'NOTICE' as const, announcement: 'Old body', bodyBelowSvg: true };
+  assert.equal(shouldRegenerateAnnouncementImage(previous, { ...previous, announcement: 'New body' }), false);
+  assert.equal(shouldRegenerateAnnouncementImage(previous, { ...previous, flair: 'IMPORTANT' }), true);
+  assert.equal(shouldRegenerateAnnouncementImage(previous, { ...previous, bodyBelowSvg: false }), true);
+  assert.equal(shouldRegenerateAnnouncementImage(
+    { ...previous, bodyBelowSvg: false },
+    { ...previous, bodyBelowSvg: false, announcement: 'New SVG text' },
+  ), true);
+  assert.equal(shouldRegenerateAnnouncementImage(
+    { ...previous, bodyBelowSvg: false },
+    { ...previous, bodyBelowSvg: false, announcement: 'Old body' },
+  ), false);
+});
+
+test('permanent deletion requires an explicit true confirmation value', () => {
+  assert.equal(isDeleteConfirmed({ confirmDelete: true }), true);
+  assert.equal(isDeleteConfirmed({ confirmDelete: false }), false);
+  assert.equal(isDeleteConfirmed(undefined), false);
+  assert.equal(isDeleteConfirmed({ confirmDelete: 'true' }), false);
 });
