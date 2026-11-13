@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760" role="img" aria-labelledby="title desc">
+<title id="title">The four ModGlow announcement flair palettes</title>
+<desc id="desc">Four distinct solid colour comic panels for Important, Notice, Announcement and Reminder, with their actual application palette colours and icon motifs.</desc>
+<rect width="1440" height="760" fill="#080605"/>
+<path d="M28 78 86 22H1412V682L1354 738H28Z" fill="none" stroke="#FFF5E8" stroke-width="5"/>
+<path d="M28 78 86 22H1412V72H92L28 142Z" fill="#8CFF00"/>
+<text x="86" y="58" fill="#080605" font-family="Arial, sans-serif" font-size="24" font-weight="900" letter-spacing="6">FOUR FLARES / FOUR DISTINCT SIGNALS</text>
+<g font-family="Arial, Helvetica, sans-serif">
+<path d="M76 170H690V390H76Z" fill="#080605" stroke="#FF2525" stroke-width="6"/>
+<path d="M76 170H690V226H76Z" fill="#FF2525"/>
+<text x="106" y="207" fill="#080605" font-size="25" font-weight="900">01 / IMPORTANT</text>
+<path d="M130 270 190 370H70Z" fill="none" stroke="#FFF5E8" stroke-width="12" stroke-linejoin="miter"/><path d="M130 300V335M130 350V352" stroke="#FFF5E8" stroke-width="11"/>
+<text x="240" y="298" fill="#FFF5E8" font-size="22" font-weight="900">WARNING / ACTION</text><text x="240" y="340" fill="#CFC8B9" font-size="18">#080605  +  #FF2525</text>
+<path d="M750 170H1364V390H750Z" fill="#050D1C" stroke="#078BFF" stroke-width="6"/>
+<path d="M750 170H1364V226H750Z" fill="#078BFF"/>
+<text x="780" y="207" fill="#050D1C" font-size="25" font-weight="900">02 / NOTICE</text>
+<circle cx="840" cy="315" r="48" fill="none" stroke="#FFF5E8" stroke-width="11"/><path d="M840 290V318M840 338V340" stroke="#FFF5E8" stroke-width="12" stroke-linecap="square"/>
+<text x="920" y="298" fill="#FFF5E8" font-size="22" font-weight="900">INFORMATION / CONTEXT</text><text x="920" y="340" fill="#CFC8B9" font-size="18">#050D1C  +  #078BFF</text>
+<path d="M76 430H690V650H76Z" fill="#050A05" stroke="#8CFF00" stroke-width="6"/>
+<path d="M76 430H690V486H76Z" fill="#8CFF00"/>
+<text x="106" y="467" fill="#050A05" font-size="25" font-weight="900">03 / ANNOUNCEMENT</text>
+<path d="M110 535 158 510 158 590 110 566Z" fill="#FFF5E8"/><path d="M158 522 192 505V595L158 578Z" fill="#FFF5E8"/><path d="M197 520 214 506M201 550H226M197 580 214 594" stroke="#FFF5E8" stroke-width="7" stroke-linecap="square"/>
+<text x="270" y="558" fill="#FFF5E8" font-size="22" font-weight="900">BROADCAST / UPDATE</text><text x="270" y="600" fill="#CFC8B9" font-size="18">#050A05  +  #8CFF00</text>
+<path d="M750 430H1364V650H750Z" fill="#090604" stroke="#FF7900" stroke-width="6"/>
+<path d="M750 430H1364V486H750Z" fill="#FF7900"/>
+<text x="780" y="467" fill="#090604" font-size="25" font-weight="900">04 / REMINDER</text>
+<rect x="802" y="518" width="92" height="88" fill="none" stroke="#FFF5E8" stroke-width="10"/><path d="M802 543H894M824 505V532M872 505V532" stroke="#FFF5E8" stroke-width="10"/><path d="M820 562H838M858 562H876M820 584H838" stroke="#FFF5E8" stroke-width="7"/>
+<text x="940" y="558" fill="#FFF5E8" font-size="22" font-weight="900">TIMING / FOLLOW UP</text><text x="940" y="600" fill="#CFC8B9" font-size="18">#090604  +  #FF7900</text>
+<text x="86" y="704" fill="#CFC8B9" font-size="18" font-weight="700">Solid fills. Hard edges. High contrast. No gradients, filters or translucent layers.</text>
+</g>
+</svg>
