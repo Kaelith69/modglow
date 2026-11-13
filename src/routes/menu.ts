@@ -34,13 +34,14 @@ const announcementFields = (defaults?: Partial<AnnouncementMetadata>): FormField
     name: 'includeRulesLink',
     label: 'Include a link to subreddit rules and guidelines',
     type: 'boolean',
-    defaultValue: false,
+    defaultValue: defaults?.includeRulesLink ?? false,
     helpText: 'Adds a clickable link to the subreddit rules below the announcement.',
   },
   {
     name: 'announcement',
     label: 'Announcement text',
     type: 'paragraph',
+    defaultValue: defaults?.announcement ?? '',
     required: true,
     placeholder: '## Announcement\n\nWrite your announcement here. Markdown supported.',
     helpText: 'Markdown is supported. Text below the SVG is always bold.',
@@ -149,7 +150,7 @@ menu.post('/delete-announcement', async (c) => {
     if (!managed) {
       return c.json<UiResponse>({ showToast: 'This is not a verified ModGlow announcement.' });
     }
-    const preview = managed.metadata.announcement.replace(/\\s+/gu, ' ').slice(0, 100);
+    const preview = managed.metadata.announcement.replace(/\s+/gu, ' ').slice(0, 100);
     return c.json<UiResponse>({
       showForm: {
         name: 'deleteAnnouncement',
