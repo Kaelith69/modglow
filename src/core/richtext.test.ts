@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { RichTextBuilder } from '@devvit/reddit';
 import { appendAnnouncementFooter, buildAnnouncementImageOnlyRichText, buildAnnouncementRichText } from './richtext.ts';
-import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
+import { MARKDOWN_FORMAT, MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 
 test('the SVG image is the first comment node and Markdown follows it', () => {
   const builder = buildAnnouncementRichText(
@@ -42,7 +42,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
-  assert.deepEqual(codeNode?.f, [[64, 0, 4]]);
+  assert.deepEqual(codeNode?.f, [[MARKDOWN_FORMAT.monospace, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
@@ -223,4 +223,20 @@ test('announcement Markdown applies bold defaults without bolding inline code', 
   assert.equal(formatFlags('Bold italic'), 3);
   assert.equal(formatFlags('Deleted text'), 9);
   assert.equal(formatFlags('Inline code'), 64);
+});
+
+
+test('fenced code blocks remain monospace without inheriting default bold', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    '```ts\nconst answer = 42;\n```',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }>;
+  };
+  const code = document.document.flatMap((block) => block.c ?? [])
+    .find((node) => node.t === 'const answer = 42;');
+  assert.deepEqual(code?.f, [[MARKDOWN_FORMAT.monospace, 0, 18]]);
+  assert.equal((code?.f?.[0]?.[0] ?? 0) & MARKDOWN_FORMAT.bold, 0);
 });

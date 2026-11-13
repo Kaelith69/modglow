@@ -1,5 +1,5 @@
 import { RichTextBuilder } from '@devvit/reddit';
-import { countGraphemes, hasMarkdownBlocksContent, MAX_ANNOUNCEMENT_BODY_CHARS, parseMarkdown, type MarkdownBlock, type MarkdownInline } from './markdown.ts';
+import { countGraphemes, hasMarkdownBlocksContent, MARKDOWN_FORMAT, MAX_ANNOUNCEMENT_BODY_CHARS, parseMarkdown, type MarkdownBlock, type MarkdownInline } from './markdown.ts';
 
 type FormatRange = [number, number, number];
 
@@ -17,9 +17,11 @@ function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
     // Announcement body text is bold by default; inline code remains monospace only.
     const sourceFormatting = node.formatting ?? 0;
-    const formatting = [[(sourceFormatting & 64) === 64
-      ? 64
-      : (sourceFormatting & (2 | 8)) | 1, 0, node.text.length] as FormatRange];
+    const formatting = [[(sourceFormatting & MARKDOWN_FORMAT.monospace) !== 0
+      ? MARKDOWN_FORMAT.monospace
+      : (sourceFormatting & (MARKDOWN_FORMAT.italic | MARKDOWN_FORMAT.strikethrough)) | MARKDOWN_FORMAT.bold,
+    0,
+    node.text.length] as FormatRange];
 
     if (node.type === 'link') {
       context.link({
@@ -75,7 +77,7 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
       builder.paragraph((paragraph) => {
         paragraph.text({
           text: block.text,
-          formatting: [[65, 0, block.text.length]],
+          formatting: [[MARKDOWN_FORMAT.monospace, 0, block.text.length]],
         });
       });
       break;
