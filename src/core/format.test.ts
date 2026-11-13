@@ -9,6 +9,15 @@ test('escapeXml neutralises XML markup and removes invalid XML characters', () =
   assert.equal(escapeXml(invalid), 'safetext\nline');
 });
 
+test('empty header templates omit the body text accent marker', () => {
+  for (const flair of ANNOUNCEMENT_FLAIRS) {
+    const svg = buildAnnouncementHeaderSvg(flair);
+    assert.match(svg, /viewBox="0 0 2000 600"/);
+    assert.doesNotMatch(svg, /<rect x="115" y="415" width="16"/);
+    assert.doesNotMatch(svg, /<text x="195" y="475"/);
+  }
+});
+
 test('all four templates retain their exact supplied geometry and palettes', () => {
   assert.deepEqual(ANNOUNCEMENT_FLAIRS, ['IMPORTANT', 'NOTICE', 'REMINDER', 'ANNOUNCEMENT']);
   const important = buildAnnouncementSvg('Please follow the sub rules no religion or politics here', 'IMPORTANT');
