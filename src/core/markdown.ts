@@ -78,9 +78,9 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
       if (safeHttpUrl(url)) appendInline(nodes, { type: 'link', text: label, url, formatting: 0 });
       else appendInline(nodes, { type: 'text', text: label, formatting: 0 });
     } else if (match[6] !== undefined || match[7] !== undefined) {
-      appendInline(nodes, { type: 'text', text: match[6] ?? match[7] ?? '', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic });
+      appendInline(nodes, { type: 'text', text: match[6] ?? match[7] ?? '', formatting: MARKDOWN_FORMAT.italic });
     } else if (match[8] !== undefined || match[9] !== undefined) {
-      appendInline(nodes, { type: 'text', text: match[8] ?? match[9] ?? '', formatting: MARKDOWN_FORMAT.bold });
+      appendInline(nodes, { type: 'text', text: match[8] ?? match[9] ?? '', formatting: 0 });
     } else if (match[10] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[10], formatting: MARKDOWN_FORMAT.strikethrough });
     } else if (match[11] !== undefined) {
