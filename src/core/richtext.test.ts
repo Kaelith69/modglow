@@ -123,7 +123,7 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
       .filter((node) => node.t)
       .map((node) => node.t)
       .join('')
-      .replace(/\\s+/gu, ' ')
+      .replace(/\s+/gu, ' ')
       .trim());
 
   assert.deepEqual(bodyParagraphs, [
