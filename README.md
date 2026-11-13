@@ -98,8 +98,8 @@ Enable **Publish Markdown below the SVG** to use Reddit's native rich text forma
 | `~~strikethrough~~` | Strikethrough |
 | `- item`, `1. item` | Unordered and ordered lists |
 | `> quote` | Blockquote |
-| `\`\`\`js` | Fenced code block |
-| `\`inline code\`` | Inline code |
+| Three backticks followed by a language label | Fenced code block |
+| Single backticks around text | Inline code |
 | `[label](https://example.com)` | Clickable HTTP or HTTPS link |
 | `---` | Horizontal rule |
 
