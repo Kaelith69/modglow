@@ -26,7 +26,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
   assert.ok(serialized.includes('Coconaad Moderator announcement'));
-  assert.equal(document.document.at(-1)?.c?.[0]?.t, 'Coconaad Moderator announcement');
+  assert.equal(document.document[document.document.length - 1]?.c?.[0]?.t, 'Coconaad Moderator announcement');
 
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
