@@ -12,7 +12,7 @@ export type AnnouncementMetadata = {
   flair: AnnouncementFlair;
   announcement: string;
   bodyBelowSvg: boolean;
-  includeRulesLink: boolean;
+  includeRulesLink?: boolean;
   mediaUrl: string;
 };
 
@@ -61,7 +61,7 @@ export function isManagedAnnouncementComment(
     && ANNOUNCEMENT_FLAIRS.includes(metadata.flair)
     && typeof metadata.announcement === 'string'
     && typeof metadata.bodyBelowSvg === 'boolean'
-    && typeof metadata.includeRulesLink === 'boolean'
+    && (metadata.includeRulesLink === undefined || typeof metadata.includeRulesLink === 'boolean')
     && typeof metadata.mediaUrl === 'string'
     && metadata.mediaUrl.startsWith('https://')
   );
