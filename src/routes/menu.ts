@@ -150,7 +150,7 @@ menu.post('/delete-announcement', async (c) => {
     if (!managed) {
       return c.json<UiResponse>({ showToast: 'This is not a verified ModGlow announcement.' });
     }
-    const preview = managed.metadata.announcement.replace(/\\s+/gu, ' ').slice(0, 100);
+    const preview = managed.metadata.announcement.replace(/\s+/gu, ' ').slice(0, 100);
     return c.json<UiResponse>({
       showForm: {
         name: 'deleteAnnouncement',
