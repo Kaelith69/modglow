@@ -1,0 +1,55 @@
+name: Deploy to Devvit
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devvit-deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Validate and upload Devvit app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Authenticate Devvit CLI
+        env:
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
+          DEVVIT_TOKEN: ${{ secrets.DEVVIT_TOKEN }}
+          DEVVIT_SESSION_ID: ${{ secrets.DEVVIT_SESSION_ID }}
+        run: |
+          if [ -n "$DEVVIT_AUTH_TOKEN" ]; then
+            echo "Using DEVVIT_AUTH_TOKEN."
+          elif [ -n "$DEVVIT_TOKEN" ] && [ -n "$DEVVIT_SESSION_ID" ]; then
+            mkdir -p "$HOME/.devvit"
+            printf '%s' "$DEVVIT_TOKEN" > "$HOME/.devvit/token"
+            printf '%s' "$DEVVIT_SESSION_ID" > "$HOME/.devvit/session-id"
+            chmod 600 "$HOME/.devvit/token" "$HOME/.devvit/session-id"
+            echo "Configured Devvit CLI token files."
+          else
+            echo "::error::Configure either DEVVIT_AUTH_TOKEN, or both DEVVIT_TOKEN and DEVVIT_SESSION_ID, in GitHub Actions repository secrets."
+            exit 1
+          fi
+
+      - name: Validate and upload
+        run: npm run deploy
