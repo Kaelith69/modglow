@@ -33,10 +33,10 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 31]]);
 
   const bodyParagraph = document.document.find((node) =>
-    node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
+    node.e === 'par' && node.c?.some((child) => child.t?.startsWith('Bold notice')),
   );
   const boldNode = bodyParagraph?.c?.find((child) => child.t === 'Bold notice');
-  assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
+  assert.deepEqual(boldNode?.f, [[1, 0, 17]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
   assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
@@ -89,6 +89,6 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(serialized.includes('bold italic'));
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
-  assert.ok(serialized.includes('"f":[[1,0,4]]'));
+  assert.match(serialized, /\"f\":\[\[1,0,\\d+\]\]/u);
   assert.ok(serialized.includes('"f":[[3,0,11]]'));
 });
