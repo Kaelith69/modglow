@@ -32,24 +32,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Authenticate Devvit CLI
+      - name: Configure Devvit CLI authentication
         env:
-          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
           DEVVIT_TOKEN: ${{ secrets.DEVVIT_TOKEN }}
           DEVVIT_SESSION_ID: ${{ secrets.DEVVIT_SESSION_ID }}
         run: |
-          if [ -n "$DEVVIT_AUTH_TOKEN" ]; then
-            echo "Using DEVVIT_AUTH_TOKEN."
-          elif [ -n "$DEVVIT_TOKEN" ] && [ -n "$DEVVIT_SESSION_ID" ]; then
-            mkdir -p "$HOME/.devvit"
-            printf '%s' "$DEVVIT_TOKEN" > "$HOME/.devvit/token"
-            printf '%s' "$DEVVIT_SESSION_ID" > "$HOME/.devvit/session-id"
-            chmod 600 "$HOME/.devvit/token" "$HOME/.devvit/session-id"
-            echo "Configured Devvit CLI token files."
-          else
-            echo "::error::Configure either DEVVIT_AUTH_TOKEN, or both DEVVIT_TOKEN and DEVVIT_SESSION_ID, in GitHub Actions repository secrets."
+          if [ -z "$DEVVIT_TOKEN" ] || [ -z "$DEVVIT_SESSION_ID" ]; then
+            echo "::error::Missing Devvit credentials. Add DEVVIT_TOKEN (full JSON from ~/.devvit/token) and DEVVIT_SESSION_ID (contents of ~/.devvit/session-id) as repository Actions secrets."
             exit 1
           fi
+
+          mkdir -p "$HOME/.devvit"
+          printf '%s' "$DEVVIT_TOKEN" > "$HOME/.devvit/token"
+          printf '%s' "$DEVVIT_SESSION_ID" > "$HOME/.devvit/session-id"
+          chmod 600 "$HOME/.devvit/token" "$HOME/.devvit/session-id"
+
+      - name: Verify Devvit authentication
+        run: npx devvit whoami
 
       - name: Validate and upload
         run: npm run deploy
