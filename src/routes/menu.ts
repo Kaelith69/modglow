@@ -7,7 +7,7 @@ import { announcementMetadataKey, isCommentId, isManagedAnnouncementComment, typ
 
 export const menu = new Hono();
 
-const announcementFields = (): FormField[] => [
+const announcementFields = (defaults?: Partial<AnnouncementMetadata>): FormField[] => [
   {
     name: 'flair',
     label: 'Announcement flair',
@@ -18,7 +18,7 @@ const announcementFields = (): FormField[] => [
       { label: 'REMINDER', value: 'REMINDER' },
       { label: 'ANNOUNCEMENT', value: 'ANNOUNCEMENT' },
     ],
-    defaultValue: ['ANNOUNCEMENT'],
+    defaultValue: [defaults?.flair ?? 'ANNOUNCEMENT'],
     multiSelect: false,
     required: true,
     helpText: 'Each flair has its own design.',
@@ -27,8 +27,15 @@ const announcementFields = (): FormField[] => [
     name: 'bodyBelowSvg',
     label: 'Publish Markdown below the SVG',
     type: 'boolean',
-    defaultValue: false,
+    defaultValue: defaults?.bodyBelowSvg ?? true,
     helpText: 'Adds Markdown text below the SVG.',
+  },
+  {
+    name: 'includeRulesLink',
+    label: 'Include a link to subreddit rules and guidelines',
+    type: 'boolean',
+    defaultValue: false,
+    helpText: 'Adds a clickable link to the subreddit rules below the announcement.',
   },
   {
     name: 'announcement',
@@ -117,14 +124,9 @@ menu.post('/edit-announcement', async (c) => {
         form: {
           title: 'Edit ModGlow announcement',
           description: 'Update this announcement. The existing comment, pin and moderator distinction are preserved.',
-          fields: announcementFields(),
+          fields: announcementFields(managed.metadata),
           acceptLabel: 'Save changes',
           cancelLabel: 'Cancel',
-        },
-        data: {
-          flair: [managed.metadata.flair],
-          announcement: managed.metadata.announcement,
-          bodyBelowSvg: managed.metadata.bodyBelowSvg,
         },
       },
     });
