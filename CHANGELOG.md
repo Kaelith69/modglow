@@ -10,8 +10,7 @@
 - Prefill edit forms from saved announcement metadata, preserving the original comment identity, moderator distinction, and pin state.
 - Regenerate PNG artwork only when visual content changes and verify the updated comment.
 
-- Strip redundant `**bold**` and `__bold__` Markdown delimiters from announcement bodies, which are already bold by default.
-- Preserve italic styling from combined bold italic Markdown while removing its redundant bold flag.
+- Normalize all announcement body text to bold, stripping redundant bold and italic emphasis while preserving paragraph structure, links, strikethrough, and code styling.
 
 - Add moderator only in place editing and confirmed permanent deletion for verified ModGlow announcement comments.
 - Persist source content, flair, publishing mode, media URL, app author, comment, post, and subreddit identity for safe future management.
