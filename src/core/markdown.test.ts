@@ -151,7 +151,7 @@ test('bold Markdown delimiters are removed while body text stays plain for defau
 
 
 test('a trailing Markdown backslash creates a hard line break without leaking the slash', () => {
-  const input = 'First line' + '\\' + '\n' + 'Second line';
+  const input = 'First line' + '\\   ' + '\n' + 'Second line';
   const blocks = parseMarkdown(input);
   assert.equal(blocks[0]?.type, 'paragraph');
   if (blocks[0]?.type !== 'paragraph') return;

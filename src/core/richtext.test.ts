@@ -240,3 +240,56 @@ test('fenced code blocks remain monospace without inheriting default bold', () =
   assert.deepEqual(code?.f, [[MARKDOWN_FORMAT.monospace, 0, 18]]);
   assert.equal((code?.f?.[0]?.[0] ?? 0) & MARKDOWN_FORMAT.bold, 0);
 });
+
+
+test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal newline text', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'First line' + '\\   ' + '\n' + 'Second *italic* line',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const paragraph = document.document.find((block) =>
+    block.e === 'par' && block.c?.some((node) => node.t === 'First line'),
+  );
+  assert.ok(paragraph);
+  assert.deepEqual(
+    paragraph?.c?.filter((node) => node.t || node.e).map((node) => node.t ?? node.e),
+    ['First line', 'br', 'Second ', 'italic', ' line'],
+  );
+  const italic = paragraph?.c?.find((node) => node.t === 'italic');
+  assert.deepEqual(italic?.f, [[3, 0, 6]]);
+});
+
+test('the full announcement example preserves bold italic strike code and each hard break', () => {
+  const slash = String.fromCharCode(92);
+  const input = [
+    '**Bold text** for emphasis.' + slash,
+    '*Italic text* for subtle emphasis.' + slash,
+    '***Bold and italic*** for extra emphasis.' + slash,
+    '~~Strikethrough~~ for deleted text.' + slash,
+    '`Inline code` for technical terms.',
+  ].join('\n');
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const body = document.document.find((block) =>
+    block.e === 'par' && block.c?.some((node) => node.t?.includes('Bold text')),
+  );
+  const nodes = body?.c ?? [];
+  const flagsFor = (needle: string) => nodes.find((node) => node.t?.includes(needle))?.f?.[0]?.[0];
+  assert.equal(flagsFor('Bold text'), 1);
+  assert.equal(flagsFor('Italic text'), 3);
+  assert.equal(flagsFor('Bold and italic'), 3);
+  assert.equal(flagsFor('Strikethrough'), 9);
+  assert.equal(flagsFor('Inline code'), 64);
+  assert.equal(nodes.filter((node) => node.e === 'br').length, 4);
+  assert.ok(!nodes.some((node) => node.t?.includes(slash)));
+});
