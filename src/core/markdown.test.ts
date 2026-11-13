@@ -38,6 +38,25 @@ test('bold nested inside strikethrough is parsed without leaking Markdown delimi
   );
 });
 
+test('adjacent Markdown tokens do not reprocess delimiters consumed by compound tokens', () => {
+  const input = '**Bold text**, *italic text*, ~~strikethrough~~ ***Bold and italic***, `inline code`, ~~**bold strikethrough**~~';
+  assert.deepEqual(
+    parseInlineMarkdown(input).map((node) => [node.text, node.formatting]),
+    [
+      ['Bold text, ', 0],
+      ['italic text', MARKDOWN_FORMAT.italic],
+      [', ', 0],
+      ['strikethrough', MARKDOWN_FORMAT.strikethrough],
+      [' ', 0],
+      ['Bold and italic', MARKDOWN_FORMAT.italic],
+      [', ', 0],
+      ['inline code', MARKDOWN_FORMAT.monospace],
+      [', ', 0],
+      ['bold strikethrough', MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough],
+    ],
+  );
+});
+
 test('Markdown links are retained as safe HTTP links and images degrade to alt text', () => {
   const nodes = parseInlineMarkdown('Read [the rules](https://example.com/rules). ![Diagram](https://example.com/image.png)');
   const link = nodes.find((node) => node.type === 'link');
