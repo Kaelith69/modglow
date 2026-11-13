@@ -32,23 +32,17 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Configure Devvit CLI authentication
+      - name: Verify Devvit authentication
         env:
-          DEVVIT_TOKEN: ${{ secrets.DEVVIT_TOKEN }}
-          DEVVIT_SESSION_ID: ${{ secrets.DEVVIT_SESSION_ID }}
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
         run: |
-          if [ -z "$DEVVIT_TOKEN" ] || [ -z "$DEVVIT_SESSION_ID" ]; then
-            echo "::error::Missing Devvit credentials. Add DEVVIT_TOKEN (full JSON from ~/.devvit/token) and DEVVIT_SESSION_ID (contents of ~/.devvit/session-id) as repository Actions secrets."
+          if [ -z "$DEVVIT_AUTH_TOKEN" ]; then
+            echo "::error::Missing DEVVIT_AUTH_TOKEN repository secret."
             exit 1
           fi
-
-          mkdir -p "$HOME/.devvit"
-          printf '%s' "$DEVVIT_TOKEN" > "$HOME/.devvit/token"
-          printf '%s' "$DEVVIT_SESSION_ID" > "$HOME/.devvit/session-id"
-          chmod 600 "$HOME/.devvit/token" "$HOME/.devvit/session-id"
-
-      - name: Verify Devvit authentication
-        run: npx devvit whoami
+          echo "DEVVIT_AUTH_TOKEN is configured."
 
       - name: Validate and upload
+        env:
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
         run: npm run deploy
