@@ -42,7 +42,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
-  assert.deepEqual(codeNode?.f, [[65, 0, 4]]);
+  assert.deepEqual(codeNode?.f, [[64, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
@@ -202,4 +202,25 @@ test('normal, italic, and combined emphasis runs are bold by default with italic
     ['bold italic', [[3, 0, 11]]],
   ]);
   assert.ok(!serialized.includes('**'));
+});
+
+
+test('announcement Markdown applies bold defaults without bolding inline code', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'Normal text *Italic text* **Bold text** ***Bold italic*** ~~Deleted text~~ `Inline code`',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }>;
+  };
+  const runs = document.document.flatMap((block) => block.c ?? [])
+    .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
+  const byText = (text: string) => runs.find((node) => node.t === text)?.f;
+  assert.deepEqual(byText('Normal text '), [[1, 0, 12]]);
+  assert.deepEqual(byText('Italic text'), [[3, 0, 11]]);
+  assert.deepEqual(byText('Bold text'), [[1, 0, 9]]);
+  assert.deepEqual(byText('Bold italic'), [[3, 0, 11]]);
+  assert.deepEqual(byText('Deleted text'), [[9, 0, 12]]);
+  assert.deepEqual(byText('Inline code'), [[64, 0, 11]]);
 });
