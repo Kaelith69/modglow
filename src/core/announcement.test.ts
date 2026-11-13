@@ -19,6 +19,7 @@ const metadata: AnnouncementMetadata = {
   flair: 'NOTICE',
   announcement: 'Original announcement',
   bodyBelowSvg: true,
+  includeRulesLink: false,
   mediaUrl: 'https://reddit.test/header.png',
 };
 
