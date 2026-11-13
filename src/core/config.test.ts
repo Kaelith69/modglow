@@ -53,7 +53,7 @@ test('Devvit menu and form configuration match the implemented server routes', (
   assert.match(menuSource, /defaultValue: false/u);
   assert.match(menuSource, /name: 'announcement'/u);
   assert.match(formsSource, /bodyBelowSvg\?: boolean/u);
-  assert.match(formsSource, /values\?\.bodyBelowSvg === true/u);
+  assert.match(formsSource, /values\?\.bodyBelowSvg !== false/u);
   assert.match(formsSource, /bodyBelowSvg\s*\?\s*buildAnnouncementHeaderSvg/u);
   assert.match(indexSource, /internal\.route\('\/menu', menu\)/u);
   assert.match(indexSource, /internal\.route\('\/form', forms\)/u);
