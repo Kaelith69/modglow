@@ -159,7 +159,6 @@ menu.post('/delete-announcement', async (c) => {
             label: 'I understand this permanently deletes the comment.',
             type: 'boolean',
             defaultValue: false,
-            required: true,
           }],
           acceptLabel: 'Delete permanently',
           cancelLabel: 'Cancel',
