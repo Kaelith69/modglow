@@ -90,10 +90,10 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
   assert.ok(serialized.includes('"f":[[1,0,15]]'));
-  assert.ok(serialized.includes('"f":[[1,0,11]]'));
+  assert.ok(serialized.includes('"f":[[3,0,11]]'));
 });
 
-test('all announcement body text is bold and user emphasis syntax is removed', () => {
+test('all announcement body text is bold while explicit italic styling is retained', () => {
   const input = [
     '**Respect everyone.** *Keep discussions civil.*',
     '',
@@ -141,7 +141,9 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
     for (const node of block.c ?? []) {
       if (!node.t || node.t === 'Coconaad Moderator announcement') continue;
       assert.ok(node.f?.some((range) => (range[0] & 1) === 1), 'every body text node must be bold');
-      assert.ok(!node.f?.some((range) => (range[0] & 2) === 2), 'user italic markup must not produce italic text');
+      if (node.t.includes('Keep discussions civil.') || node.t.includes('Follow the subreddit rules.') || node.t.includes('Post responsibly.') || node.t.includes('Keep content organised.') || node.t.includes('Quality over quantity.') || node.t.includes('Keep Coconaad welcoming.')) {
+        assert.ok(node.f?.some((range) => (range[0] & 2) === 2), 'explicit italic Markdown must remain italic');
+      }
     }
   }
 });
@@ -182,4 +184,22 @@ test('compact image only announcements omit the rules link when disabled', () =>
     'Coconaad',
   ).build();
   assert.ok(!serialized.includes('Subreddit rules and guidelines'));
+});
+
+
+test('normal, italic, and combined emphasis runs are bold by default with italic preserved', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'Normal *italic* ***bold italic***',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
+  const runs = document.document.flatMap((block) => block.c ?? []).filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
+  assert.deepEqual(runs.map((node) => [node.t, node.f]), [
+    ['Normal ', [[1, 0, 7]]],
+    ['italic', [[3, 0, 6]]],
+    [' ', [[1, 0, 1]]],
+    ['bold italic', [[3, 0, 11]]],
+  ]);
+  assert.ok(!serialized.includes('**'));
 });

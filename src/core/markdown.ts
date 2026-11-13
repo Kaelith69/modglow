@@ -99,6 +99,14 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   return nodes;
 }
 
+function joinParagraphLines(lines: string[]): string {
+  return lines.map((line, index) => {
+    const hardBreak = /(?<!\\)\\$/u.test(line);
+    const content = hardBreak ? line.slice(0, -1) : line;
+    return `${content}${index < lines.length - 1 ? (hardBreak ? '\n' : ' ') : ''}`;
+  }).join('');
+}
+
 function isHeading(line: string): RegExpMatchArray | null {
   return line.match(/^\s{0,3}(#{1,6})\s+(.+)$/u);
 }
@@ -141,7 +149,7 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
 
   const flushParagraph = (): void => {
     if (paragraphLines.length === 0) return;
-    const text = paragraphLines.join(' ').trim();
+    const text = joinParagraphLines(paragraphLines).trim();
     if (text) blocks.push({ type: 'paragraph', content: parseInlineMarkdown(text) });
     paragraphLines = [];
   };
@@ -199,7 +207,7 @@ export function parseMarkdown(markdown: string): MarkdownBlock[] {
       const quoteParagraphs: MarkdownInline[][] = [];
       let quoteParagraph: string[] = [];
       const flushQuoteParagraph = (): void => {
-        const quoteText = quoteParagraph.join(' ').trim();
+        const quoteText = joinParagraphLines(quoteParagraph).trim();
         if (quoteText) quoteParagraphs.push(parseInlineMarkdown(quoteText));
         quoteParagraph = [];
       };
