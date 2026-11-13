@@ -27,6 +27,17 @@ test('inline Markdown removes redundant bold markers while retaining italic, str
   );
 });
 
+test('bold nested inside strikethrough is parsed without leaking Markdown delimiters', () => {
+  assert.deepEqual(
+    parseInlineMarkdown('~~**bold strikethrough**~~ and ~~__underscore bold strikethrough__~~'),
+    [
+      { type: 'text', text: 'bold strikethrough', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough },
+      { type: 'text', text: ' and ', formatting: 0 },
+      { type: 'text', text: 'underscore bold strikethrough', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough },
+    ],
+  );
+});
+
 test('Markdown links are retained as safe HTTP links and images degrade to alt text', () => {
   const nodes = parseInlineMarkdown('Read [the rules](https://example.com/rules). ![Diagram](https://example.com/image.png)');
   const link = nodes.find((node) => node.type === 'link');

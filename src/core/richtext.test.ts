@@ -263,6 +263,26 @@ test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal ne
   assert.deepEqual(italic?.f, [[3, 0, 6]]);
 });
 
+test('nested bold strikethrough renders with combined Reddit formatting and no visible markers', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'Before ~~**bold strikethrough**~~ after.',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const paragraph = document.document.find((block) =>
+    block.e === 'par' && block.c?.some((node) => node.t?.includes('bold strikethrough')),
+  );
+  const bodyNodes = paragraph?.c ?? [];
+  const nestedRun = bodyNodes.find((node) => node.t === 'bold strikethrough');
+
+  assert.deepEqual(nestedRun?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough, 0, 18]]);
+  assert.equal(bodyNodes.map((node) => node.t ?? '').join(''), 'Before bold strikethrough after.');
+  assert.ok(!bodyNodes.some((node) => node.t && /[*~`]/u.test(node.t)));
+});
+
 test('the full announcement example preserves bold italic strike code and each hard break', () => {
   const slash = String.fromCharCode(92);
   const input = [

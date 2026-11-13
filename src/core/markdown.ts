@@ -66,6 +66,20 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
       appendInline(nodes, { type: 'text', text: value.slice(cursor, index), formatting: 0 });
     }
 
+    // Handle bold nested inside strikethrough before the general strike token.
+    // The outer strike alternative otherwise consumes the inner bold markers as
+    // literal text, because the token expression is intentionally non recursive.
+    const nestedStrikeBold = value.slice(index).match(/^~~(?:\*\*(.+?)\*\*|__(.+?)__)~~/u);
+    if (nestedStrikeBold) {
+      appendInline(nodes, {
+        type: 'text',
+        text: nestedStrikeBold[1] ?? nestedStrikeBold[2] ?? '',
+        formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough,
+      });
+      cursor = index + nestedStrikeBold[0].length;
+      continue;
+    }
+
     if (match[1] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[1], formatting: 0 });
     } else if (match[2] !== undefined) {
