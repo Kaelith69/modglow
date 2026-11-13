@@ -28,7 +28,7 @@ ModGlow stores the original flair, source announcement, publishing mode, uploade
 When the separate body toggle is enabled, Markdown is converted into native Reddit rich text:
 
 * Headings from `#` through `######`.
-* *Italic* and ~~strikethrough~~. Announcement body text is bold by default, so `**bold**`, `__bold__`, and the bold part of combined bold italic syntax are stripped as redundant. Combined bold italic input retains italic styling.
+* **Bold**, *italic*, ***bold italic***, and ~~strikethrough~~.
 * Inline `code` and fenced code blocks with an optional language label.
 * Ordered lists and unordered lists.
 * Blockquotes and horizontal rules.
