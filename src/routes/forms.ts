@@ -9,7 +9,7 @@ import { appendAnnouncementFooter, buildAnnouncementRichText } from '../core/ric
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
-import { announcementMetadataKey, isCommentId, isManagedAnnouncementComment, type AnnouncementMetadata } from '../core/announcement.ts';
+import { announcementMetadataKey, isCommentId, isManagedAnnouncementComment, isDeleteConfirmed, shouldRegenerateAnnouncementImage, type AnnouncementMetadata } from '../core/announcement.ts';
 
 type AnnouncementFormValues = {
   announcement?: string;
@@ -298,9 +298,7 @@ forms.post('/edit-announcement-submit', async (c) => {
     lockToken = await acquirePostLock(lockPostId);
     if (!lockToken) return c.json<UiResponse>(toast('This announcement is already being updated.'));
 
-    const visualChanged = flair !== metadata.flair
-      || bodyBelowSvg !== metadata.bodyBelowSvg
-      || (!bodyBelowSvg && announcement !== metadata.announcement);
+    const visualChanged = shouldRegenerateAnnouncementImage(metadata, { flair, announcement, bodyBelowSvg });
     let mediaUrl = metadata.mediaUrl;
 
     if (visualChanged) {
@@ -360,7 +358,7 @@ forms.post('/edit-announcement-submit', async (c) => {
 
 forms.post('/delete-announcement-submit', async (c) => {
   const values = await c.req.json<DeleteAnnouncementValues | null>().catch(() => null);
-  if (values?.confirmDelete !== true) {
+  if (!isDeleteConfirmed(values)) {
     return c.json<UiResponse>(toast('Confirm permanent deletion to continue.'));
   }
 
