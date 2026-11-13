@@ -106,7 +106,7 @@ test('all announcement body text is bold and user emphasis syntax is removed', (
     '**Think before posting.** *Quality over quantity.*',
     '',
     '**Be part of the community.** *Keep Coconaad welcoming.*',
-  ].join('\\n');
+  ].join('\n');
 
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
