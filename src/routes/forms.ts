@@ -5,7 +5,7 @@ import { RichTextBuilder } from '@devvit/reddit';
 import { Buffer } from 'node:buffer';
 import { randomUUID } from 'node:crypto';
 import { ANNOUNCEMENT_FLAIRS, buildAnnouncementHeaderSvg, buildAnnouncementSvg, MAX_ANNOUNCEMENT_CHARS } from '../core/render.ts';
-import { buildAnnouncementRichText } from '../core/richtext.ts';
+import { appendAnnouncementFooter, buildAnnouncementRichText } from '../core/richtext.ts';
 import { countGraphemes, hasMarkdownContent, MAX_ANNOUNCEMENT_BODY_CHARS } from '../core/markdown.ts';
 import { renderAnnouncementPng } from '../core/rasterize.ts';
 import { belongsToSubreddit, belongsToSubredditId, canModeratorCommentOnPost, hasPostModerationPermission, isModeratorPinnedComment, isNotFoundError, isPostId, isUserId } from '../core/moderation.ts';
@@ -64,25 +64,25 @@ forms.post('/create-announcement-submit', async (c) => {
   const bodyBelowSvg = values?.bodyBelowSvg === true;
 
   if (!announcement) {
-    return c.json<UiResponse>(toast('Write an announcement before publishing.'));
+    return c.json<UiResponse>(toast('Enter announcement text.'));
   }
   if (!flair) {
-    return c.json<UiResponse>(toast('Choose IMPORTANT, NOTICE, REMINDER, or ANNOUNCEMENT.'));
+    return c.json<UiResponse>(toast('Choose a flair.'));
   }
   const characterLimit = bodyBelowSvg ? MAX_ANNOUNCEMENT_BODY_CHARS : MAX_ANNOUNCEMENT_CHARS;
   const announcementLength = countGraphemes(announcement, characterLimit);
   if (announcementLength > characterLimit) {
     return c.json<UiResponse>(toast(
       bodyBelowSvg
-        ? `The Markdown body is too long. The limit is ${MAX_ANNOUNCEMENT_BODY_CHARS} characters.`
-        : `The SVG announcement is too long. The limit is ${MAX_ANNOUNCEMENT_CHARS} characters. Enable the separate Markdown body option for longer announcements.`,
+        ? `Text limit: ${MAX_ANNOUNCEMENT_BODY_CHARS}.`
+        : `Text limit: ${MAX_ANNOUNCEMENT_CHARS}.`,
     ));
   }
   if (bodyBelowSvg && !hasMarkdownContent(announcement)) {
-    return c.json<UiResponse>(toast('Write some Markdown text before publishing.'));
+    return c.json<UiResponse>(toast('Enter Markdown text.'));
   }
   if (!isPostId(postId) || !isUserId(context.userId) || !context.subredditName || !context.subredditId) {
-    return c.json<UiResponse>(toast('The post or moderator context is invalid. Reopen ModGlow from the post menu and try again.'));
+    return c.json<UiResponse>(toast('Invalid post context.'));
   }
 
   let lockToken: string | undefined;
@@ -96,23 +96,23 @@ forms.post('/create-announcement-submit', async (c) => {
 
   try {
     if (!(await verifyModerator(context.subredditName, context.userId))) {
-      return c.json<UiResponse>(toast('This action requires post moderation permission in this subreddit.'));
+      return c.json<UiResponse>(toast('Moderator permission required.'));
     }
 
     lockToken = await acquirePostLock(postId);
     if (!lockToken) {
-      return c.json<UiResponse>(toast('A ModGlow announcement is already being generated for this post. Wait briefly and retry.'));
+      return c.json<UiResponse>(toast('Announcement already processing.'));
     }
 
     const post = await reddit.getPostById(postId);
     if (!belongsToSubreddit(post.subredditName, context.subredditName) || !belongsToSubredditId(post.subredditId, context.subredditId)) {
-      return c.json<UiResponse>(toast('The selected post does not belong to this subreddit.'));
+      return c.json<UiResponse>(toast('Wrong subreddit.'));
     }
     if (!canModeratorCommentOnPost(post)) {
       return c.json<UiResponse>(toast(
         post.removed
-          ? 'This post has been removed and cannot receive a ModGlow announcement.'
-          : 'This post is archived and cannot receive new comments. Choose an active post.',
+          ? 'Post removed.'
+          : 'Post archived.',
       ));
     }
 
@@ -124,13 +124,13 @@ forms.post('/create-announcement-submit', async (c) => {
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
     const richtext = bodyBelowSvg
-      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement)
-      : new RichTextBuilder().paragraph((paragraph) => {
-        paragraph.image({
-          mediaUrl: uploaded.mediaUrl,
-          caption: 'ModGlow moderator announcement',
-        });
-      });
+      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName)
+      : appendAnnouncementFooter(
+        new RichTextBuilder().paragraph((paragraph) => {
+          paragraph.image({ mediaUrl: uploaded.mediaUrl });
+        }),
+        context.subredditName,
+      );
 
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
@@ -155,7 +155,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
     pinnedAndVerified = true;
     console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast(`ModGlow ${flair} published by the app and pinned as a moderator comment.`));
+    return c.json<UiResponse>(toast('Published.'));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
@@ -176,29 +176,29 @@ forms.post('/create-announcement-submit', async (c) => {
     if (commentSubmissionStarted && !publishedComment) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'Reddit may have received the comment request, but ModGlow did not receive a confirmation. Check the post before retrying to avoid duplicate announcements. A short retry lock remains active for up to 45 seconds.',
+        'Check post before retrying.',
       ));
     }
 
     if (publishedComment && !pinnedAndVerified && !pinMismatchConfirmed) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'A ModGlow comment may have been published, but Reddit could not confirm its pin status. Check the post before retrying to avoid duplicate announcements. A short retry lock remains active for up to 45 seconds.',
+        'Pin status unknown. Check post.',
       ));
     }
     if (cleanupFailed) {
       preserveLockUntilExpiry = true;
       return c.json<UiResponse>(toast(
-        'Reddit created the comment but pin verification failed, and ModGlow could not confirm its removal. Check the post before retrying. A short retry lock remains active for up to 45 seconds.',
+        'Cleanup failed. Check post.',
       ));
     }
     if (cleanupCompleted) {
       return c.json<UiResponse>(toast(
-        'Reddit did not confirm the pin state. ModGlow removed the incomplete comment, so you can safely retry.',
+        'Incomplete comment removed. Retry.',
       ));
     }
 
-    return c.json<UiResponse>(toast('Could not publish and pin the ModGlow announcement. Check the post, moderator permissions, and Reddit comment availability, then try again.'));
+    return c.json<UiResponse>(toast('Publish failed.'));
   } finally {
     if (lockToken && !preserveLockUntilExpiry) {
       try {

@@ -10,25 +10,23 @@ type InlineContext = {
 
 type HeadingInlineContext = {
   rawText(text: string): unknown;
-  link(options: { text: string; url: string }): unknown;
+  link(options: { text: string; url: string; formatting?: FormatRange[] }): unknown;
 };
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    const formatting = node.formatting
-      ? [[node.formatting, 0, node.text.length] as FormatRange]
-      : undefined;
+    const formatting = [[(node.formatting ?? 0) | 1, 0, node.text.length] as FormatRange];
 
     if (node.type === 'link') {
       context.link({
         text: node.text,
         url: node.url,
-        ...(formatting ? { formatting } : {}),
+        formatting,
       });
     } else {
       context.text({
         text: node.text,
-        ...(formatting ? { formatting } : {}),
+        formatting,
       });
     }
   }
@@ -36,7 +34,11 @@ function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
 
 function appendHeading(context: HeadingInlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    if (node.type === 'link') context.link({ text: node.text, url: node.url });
+    if (node.type === 'link') context.link({
+      text: node.text,
+      url: node.url,
+      formatting: [[1, 0, node.text.length]],
+    });
     else context.rawText(node.text);
   }
 }
@@ -66,8 +68,11 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
       });
       break;
     case 'code':
-      builder.codeBlock(block.language ? { language: block.language } : {}, (code) => {
-        code.rawText(block.text);
+      builder.paragraph((paragraph) => {
+        paragraph.text({
+          text: block.text,
+          formatting: [[65, 0, block.text.length]],
+        });
       });
       break;
     case 'hr':
@@ -81,7 +86,15 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
  * The Markdown body is appended as native Reddit rich text, never baked into
  * the image, so Reddit handles its layout, links, and accessibility.
  */
-export function buildAnnouncementRichText(mediaUrl: string, markdown: string): RichTextBuilder {
+export function appendAnnouncementFooter(builder: RichTextBuilder, subredditName: string): RichTextBuilder {
+  builder.paragraph((paragraph) => {
+    const attribution = `${subredditName} Moderator announcement`;
+    paragraph.text({ text: attribution, formatting: [[32, 0, attribution.length]] });
+  });
+  return builder;
+}
+
+export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string): RichTextBuilder {
   if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
   }
@@ -93,10 +106,10 @@ export function buildAnnouncementRichText(mediaUrl: string, markdown: string): R
   builder.paragraph((paragraph) => {
     paragraph.image({
       mediaUrl,
-      caption: 'ModGlow moderator announcement',
     });
   });
 
   for (const block of blocks) appendBlock(builder, block);
-  return builder;
+
+  return appendAnnouncementFooter(builder, subredditName);
 }

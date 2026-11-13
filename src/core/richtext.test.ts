@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAnnouncementRichText } from './richtext.ts';
+import { RichTextBuilder } from '@devvit/reddit';
+import { appendAnnouncementFooter, buildAnnouncementRichText } from './richtext.ts';
 import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 
 test('the SVG image is the first comment node and Markdown follows it', () => {
   const builder = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     '# Release update\n\n**Bold notice** with [the rules](https://example.com/rules), ~~old~~, and `code`.\n\n- First item\n- Second item',
+    'Coconaad',
   );
   const serialized = builder.build();
   const document = JSON.parse(serialized) as {
@@ -25,6 +27,9 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.ok(serialized.includes('Bold notice'));
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
+  assert.ok(serialized.includes('Coconaad Moderator announcement'));
+  assert.equal(document.document[document.document.length - 1]?.c?.[0]?.t, 'Coconaad Moderator announcement');
+  assert.deepEqual(document.document[document.document.length - 1]?.c?.[0]?.f, [[32, 0, 31]]);
 
   const bodyParagraph = document.document.find((node) =>
     node.e === 'par' && node.c?.some((child) => child.t === 'Bold notice'),
@@ -33,13 +38,14 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
-  assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
+  assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
-  assert.deepEqual(codeNode?.f, [[64, 0, 4]]);
+  assert.deepEqual(codeNode?.f, [[65, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
+  assert.deepEqual(linkNode?.f, [[1, 0, 9]]);
 
   const listNode = document.document.find((node) => node.e === 'list');
   assert.equal(listNode?.o, false);
@@ -47,7 +53,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
 
 test('separator only Markdown cannot create an empty body comment', () => {
   assert.throws(
-    () => buildAnnouncementRichText('https://reddit.test/media/header.png', '---'),
+    () => buildAnnouncementRichText('https://reddit.test/media/header.png', '---', 'Coconaad'),
     /Write some Markdown text/,
   );
 });
@@ -57,7 +63,16 @@ test('rich text builder enforces the Markdown body grapheme limit', () => {
     () => buildAnnouncementRichText(
       'https://reddit.test/media/header.png',
       'x'.repeat(MAX_ANNOUNCEMENT_BODY_CHARS + 1),
+      'Coconaad',
     ),
     /character limit/,
   );
+});
+
+
+test('the attribution helper appends a superscript footer', () => {
+  const builder = appendAnnouncementFooter(new RichTextBuilder(), 'Coconaad');
+  const document = JSON.parse(builder.build()) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
+  assert.equal(document.document[0]?.c?.[0]?.t, 'Coconaad Moderator announcement');
+  assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
 });

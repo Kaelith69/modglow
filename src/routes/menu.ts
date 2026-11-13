@@ -20,22 +20,22 @@ const announcementFields = (): FormField[] => [
     defaultValue: ['ANNOUNCEMENT'],
     multiSelect: false,
     required: true,
-    helpText: 'Each flair keeps its own colour palette, title artwork, and layout.',
+    helpText: 'Each flair has its own design.',
   },
   {
     name: 'bodyBelowSvg',
     label: 'Publish Markdown below the SVG',
     type: 'boolean',
     defaultValue: false,
-    helpText: 'Off: keep the announcement inside the SVG. On: publish the SVG title first, followed by the full Markdown body as native Reddit text.',
+    helpText: 'Adds Markdown text below the SVG.',
   },
   {
     name: 'announcement',
-    label: 'Announcement text (Markdown supported)',
+    label: 'Announcement text',
     type: 'paragraph',
     required: true,
-    placeholder: '## Important update\n\nWrite your announcement here. Use # headings, - bullets, 1. numbered lists, **bold**, *italic*, > quotes, `code`, and [links](https://example.com).',
-    helpText: 'Short announcements can stay inside the SVG. Enable the option above for longer content and full native Reddit formatting. Supports headings, bold, italic, strikethrough, links, lists, quotes, and code blocks.',
+    placeholder: '## Announcement\n\nWrite your announcement here. Markdown supported.',
+    helpText: 'Markdown is supported. Text below the SVG is always bold.',
   },
 ];
 
@@ -51,7 +51,7 @@ menu.post('/create-announcement', async (c) => {
     || !context.subredditId
   ) {
     return c.json<UiResponse>({
-      showToast: 'Open ModGlow from a post in a subreddit where you are a moderator.',
+      showToast: 'Open ModGlow from a moderator post.',
     });
   }
 
@@ -59,10 +59,10 @@ menu.post('/create-announcement', async (c) => {
     showForm: {
       name: 'createAnnouncement',
       form: {
-        title: 'Create a ModGlow announcement',
-        description: 'Choose a flair, write in Markdown, and choose whether the body stays inside the SVG or appears below the SVG as native Reddit text. The SVG title is always first.',
+        title: 'ModGlow announcement',
+        description: 'Choose a flair and write your announcement.',
         fields: announcementFields(),
-        acceptLabel: 'Generate and pin comment',
+        acceptLabel: 'Publish',
         cancelLabel: 'Cancel',
       },
     },
