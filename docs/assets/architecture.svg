@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+<title id="title">ModGlow system architecture</title>
+<desc id="desc">Architecture diagram showing moderator post menu and native form, Hono menu and form routes, core Markdown and SVG rendering, rich text assembly, Resvg rasterization, and Reddit API, media and Redis services.</desc>
+<defs><marker id="arrow" markerWidth="12" markerHeight="12" refX="9" refY="4" orient="auto"><path d="M0 0 10 4 0 8Z" fill="#FFF5E8"/></marker></defs>
+<rect width="1440" height="900" fill="#080605"/>
+<path d="M28 78 86 22H1412V822L1354 878H28Z" fill="none" stroke="#FFF5E8" stroke-width="5"/>
+<path d="M28 78 86 22H1412V72H92L28 142Z" fill="#8CFF00"/>
+<text x="86" y="58" fill="#080605" font-family="Arial, sans-serif" font-size="24" font-weight="900" letter-spacing="6">SYSTEM MAP / REAL MODULE BOUNDARIES</text>
+<g font-family="Arial, Helvetica, sans-serif">
+<path d="M70 190H330V320H70Z" fill="#111D29" stroke="#078BFF" stroke-width="5"/>
+<text x="98" y="232" fill="#FFF5E8" font-size="28" font-weight="900">MODERATOR</text>
+<text x="98" y="274" fill="#CFC8B9" font-size="19">Reddit post menu</text>
+<text x="98" y="302" fill="#CFC8B9" font-size="19">Native Devvit form</text>
+<path d="M385 190H690V320H385Z" fill="#15110D" stroke="#FF7900" stroke-width="5"/>
+<text x="414" y="232" fill="#FFF5E8" font-size="27" font-weight="900">HONO ROUTES</text>
+<text x="414" y="274" fill="#CFC8B9" font-size="18">menu.ts</text>
+<text x="414" y="302" fill="#CFC8B9" font-size="18">forms.ts</text>
+<path d="M745 150H1060V370H745Z" fill="#10100D" stroke="#8CFF00" stroke-width="5"/>
+<text x="775" y="194" fill="#FFF5E8" font-size="27" font-weight="900">CORE MODULES</text>
+<path d="M775 222H1030" stroke="#8CFF00" stroke-width="3"/>
+<text x="775" y="260" fill="#8CFF00" font-size="19" font-weight="900">markdown.ts</text><text x="925" y="260" fill="#CFC8B9" font-size="17">parse source</text>
+<text x="775" y="300" fill="#8CFF00" font-size="19" font-weight="900">render.ts</text><text x="925" y="300" fill="#CFC8B9" font-size="17">build SVG</text>
+<text x="775" y="340" fill="#8CFF00" font-size="19" font-weight="900">richtext.ts</text><text x="925" y="340" fill="#CFC8B9" font-size="17">build comment</text>
+<path d="M70 470H330V620H70Z" fill="#111D29" stroke="#FF2525" stroke-width="5"/>
+<text x="98" y="514" fill="#FFF5E8" font-size="25" font-weight="900">RESVG WASM</text>
+<text x="98" y="554" fill="#CFC8B9" font-size="18">SVG to PNG</text>
+<text x="98" y="586" fill="#CFC8B9" font-size="18">Bundled font assets</text>
+<path d="M385 470H690V620H385Z" fill="#15110D" stroke="#078BFF" stroke-width="5"/>
+<text x="414" y="514" fill="#FFF5E8" font-size="25" font-weight="900">REDDIT MEDIA</text>
+<text x="414" y="554" fill="#CFC8B9" font-size="18">Upload rendered PNG</text>
+<text x="414" y="586" fill="#CFC8B9" font-size="18">Return hosted media URL</text>
+<path d="M745 470H1060V620H745Z" fill="#10100D" stroke="#FF7900" stroke-width="5"/>
+<text x="775" y="514" fill="#FFF5E8" font-size="25" font-weight="900">REDDIT API</text>
+<text x="775" y="554" fill="#CFC8B9" font-size="18">Permission and post checks</text>
+<text x="775" y="586" fill="#CFC8B9" font-size="18">Submit, pin, verify, edit, delete</text>
+<path d="M1115 190H1365V320H1115Z" fill="#10100D" stroke="#FF7900" stroke-width="5"/>
+<text x="1140" y="232" fill="#FFF5E8" font-size="25" font-weight="900">DEVVIT REDIS</text>
+<text x="1140" y="274" fill="#CFC8B9" font-size="18">Post lock</text>
+<text x="1140" y="302" fill="#CFC8B9" font-size="18">Managed metadata</text>
+<path d="M330 255H377M690 255H737M900 370V430H200V462M330 545H377M690 545H737M1060 255H1107" fill="none" stroke="#FFF5E8" stroke-width="4" marker-end="url(#arrow)"/>
+<path d="M900 370V430H1235V462" fill="none" stroke="#FFF5E8" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#arrow)"/>
+<path d="M1115 470H1365V620H1115Z" fill="#10100D" stroke="#8CFF00" stroke-width="5"/>
+<text x="1140" y="514" fill="#FFF5E8" font-size="25" font-weight="900">APP IDENTITY</text>
+<text x="1140" y="554" fill="#CFC8B9" font-size="18">runAs: APP</text>
+<text x="1140" y="586" fill="#CFC8B9" font-size="18">Top level comment</text>
+<path d="M1235 320V462" fill="none" stroke="#FFF5E8" stroke-width="3" stroke-dasharray="10 8" marker-end="url(#arrow)"/>
+<path d="M70 700H1365V790H70Z" fill="#FFF5E8"/>
+<text x="104" y="744" fill="#080605" font-size="23" font-weight="900">SOURCE OF TRUTH</text>
+<text x="360" y="744" fill="#080605" font-size="20" font-weight="700">Reddit confirms persisted comment state. Redis stores short locks and management metadata.</text>
+<text x="104" y="775" fill="#39352E" font-size="17">Routes orchestrate modules. The app account authors the comment. Reddit hosts the uploaded image.</text>
+</g>
+</svg>
