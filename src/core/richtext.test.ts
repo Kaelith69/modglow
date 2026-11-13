@@ -25,6 +25,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.equal(document.document[0]?.c?.[0]?.mediaUrl, 'https://reddit.test/media/header.png');
   assert.ok(document.document.length > 1);
   assert.ok(serialized.includes('Bold notice'));
+  assert.ok(!serialized.includes('**Bold notice**'));
   assert.ok(serialized.includes('https://example.com/rules'));
   assert.ok(serialized.includes('First item'));
   assert.ok(serialized.includes('Coconaad Moderator announcement'));
@@ -75,4 +76,19 @@ test('the attribution helper appends a superscript footer', () => {
   const document = JSON.parse(builder.build()) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
   assert.equal(document.document[0]?.c?.[0]?.t, 'Coconaad Moderator announcement');
   assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
+});
+
+test('redundant bold Markdown markers do not leak into rendered Reddit rich text', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    '**Bold** __also bold__ ***bold italic***',
+    'Coconaad',
+  ).build();
+  assert.ok(serialized.includes('Bold'));
+  assert.ok(serialized.includes('also bold'));
+  assert.ok(serialized.includes('bold italic'));
+  assert.ok(!serialized.includes('**'));
+  assert.ok(!serialized.includes('__'));
+  assert.ok(serialized.includes('"f":[[1,0,4]]'));
+  assert.ok(serialized.includes('"f":[[3,0,11]]'));
 });
