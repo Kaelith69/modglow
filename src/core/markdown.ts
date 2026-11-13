@@ -60,8 +60,15 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
 
-  for (const match of value.matchAll(pattern)) {
-    const index = match.index ?? 0;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(value)) !== null) {
+    const index = match.index;
+    // Compound tokens can consume inner matches. Never process a token that
+    // starts before the current cursor, and keep the regex cursor synchronized.
+    if (index < cursor) {
+      pattern.lastIndex = cursor;
+      continue;
+    }
     if (index > cursor) {
       appendInline(nodes, { type: 'text', text: value.slice(cursor, index), formatting: 0 });
     }
@@ -77,6 +84,7 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
         formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough,
       });
       cursor = index + nestedStrikeBold[0].length;
+      pattern.lastIndex = cursor;
       continue;
     }
 
