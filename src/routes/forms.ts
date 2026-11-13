@@ -126,14 +126,13 @@ forms.post('/create-announcement-submit', async (c) => {
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
-    const richtext = bodyBelowSvg
-      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName)
-      : appendAnnouncementFooter(
-        new RichTextBuilder().paragraph((paragraph) => {
-          paragraph.image({ mediaUrl: uploaded.mediaUrl });
-        }),
-        context.subredditName,
-      );
+    const richtext = buildAnnouncementCommentBody(
+      uploaded.mediaUrl,
+      announcement,
+      bodyBelowSvg,
+      includeRulesLink,
+      context.subredditName,
+    );
 
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
