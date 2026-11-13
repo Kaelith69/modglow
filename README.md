@@ -131,7 +131,7 @@ Ordinary body text is bold by default. Explicit italic and strikethrough are ret
 - Markdown images are represented by alt text. ModGlow does not fetch or embed external images.
 - Raw HTML is treated as text and is not executed or interpreted as markup.
 
-Compact SVG mode supports the main inline styles and block prefixes, but links are displayed as readable labels rather than clickable links.
+Compact SVG mode supports the main inline styles and block prefixes. Markdown link syntax is not parsed in this mode, so the bracket and URL notation remains visible as ordinary text.
 
 ### Example input
 
