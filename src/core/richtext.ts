@@ -15,7 +15,8 @@ type HeadingInlineContext = {
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    const formatting = [[(node.formatting ?? 0) | 1, 0, node.text.length] as FormatRange];
+    // Announcement body text is bold by default. Preserve only strike and code styling from Markdown.
+    const formatting = [[((node.formatting ?? 0) & (8 | 64)) | 1, 0, node.text.length] as FormatRange];
 
     if (node.type === 'link') {
       context.link({

@@ -32,7 +32,7 @@ The announcement composer includes an optional **Include a link to subreddit rul
 When the separate body toggle is enabled, Markdown is converted into native Reddit rich text:
 
 * Headings from `#` through `######`.
-* *Italic* and ~~strikethrough~~. Announcement body text is bold by default, so `**bold**`, `__bold__`, and the bold part of combined bold italic syntax are stripped as redundant. Combined bold italic input retains italic styling.
+* All native announcement body text is **bold**. User supplied bold and italic emphasis markers are removed rather than creating mixed text styles. ~~Strikethrough~~ and `inline code` formatting remain supported.
 * Inline `code` and fenced code blocks with an optional language label.
 * Ordered lists and unordered lists.
 * Blockquotes and horizontal rules.
