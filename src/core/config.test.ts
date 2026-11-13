@@ -23,10 +23,24 @@ test('Devvit menu and form configuration match the implemented server routes', (
 
   assert.equal(config.server.dir, 'dist/server');
   assert.equal(config.server.entry, 'index.cjs');
-  assert.equal(config.menu.items.length, 1);
+  assert.equal(config.menu.items.length, 3);
   assert.equal(config.menu.items[0]?.endpoint, '/internal/menu/create-announcement');
   assert.equal(config.menu.items[0]?.location, 'post');
   assert.equal(config.menu.items[0]?.forUserType, 'moderator');
+  assert.deepEqual(config.menu.items.slice(1).map((item) => [item.endpoint, item.location, item.forUserType]), [
+    ['/internal/menu/edit-announcement', 'comment', 'moderator'],
+    ['/internal/menu/delete-announcement', 'comment', 'moderator'],
+  ]);
+  assert.equal(config.forms.editAnnouncement, '/internal/form/edit-announcement-submit');
+  assert.equal(config.forms.deleteAnnouncement, '/internal/form/delete-announcement-submit');
+  assert.match(menuSource, /menu\\.post\\('\\/edit-announcement'/u);
+  assert.match(menuSource, /menu\\.post\\('\\/delete-announcement'/u);
+  assert.match(formsSource, /forms\\.post\\('\\/edit-announcement-submit'/u);
+  assert.match(formsSource, /forms\\.post\\('\\/delete-announcement-submit'/u);
+  assert.match(formsSource, /comment\\.edit\\(\\{ richtext \\}\\)/u);
+  assert.match(formsSource, /comment\\.delete\\(\\)/u);
+  assert.match(formsSource, /values\\?\\.confirmDelete !== true/u);
+  assert.match(formsSource, /announcementMetadataKey\\(publishedComment\\.id\\)/u);
   assert.equal(config.forms.createAnnouncement, '/internal/form/create-announcement-submit');
   assert.match(menuSource, /menu\.post\('\/create-announcement'/u);
   assert.match(formsSource, /forms\.post\('\/create-announcement-submit'/u);
