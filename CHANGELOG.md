@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add moderator only in place editing and confirmed permanent deletion for verified ModGlow announcement comments.
+- Persist announcement source content, flair, publishing mode, optional rules link setting, media URL, and ownership identifiers for safe management.
+- Prefill edit forms from saved announcement metadata, preserving the original comment identity, moderator distinction, and pin state.
+- Regenerate PNG artwork only when visual content changes and verify the updated comment.
+
 - Strip redundant `**bold**` and `__bold__` Markdown delimiters from announcement bodies, which are already bold by default.
 - Preserve italic styling from combined bold italic Markdown while removing its redundant bold flag.
 
