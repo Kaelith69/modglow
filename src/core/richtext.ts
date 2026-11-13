@@ -101,6 +101,21 @@ export function appendAnnouncementRulesLink(builder: RichTextBuilder, subredditN
   return builder;
 }
 
+
+/** Build an image only announcement with an optional native subreddit rules link. */
+export function buildAnnouncementImageOnlyRichText(
+  mediaUrl: string,
+  subredditName: string,
+  includeRulesLink = false,
+): RichTextBuilder {
+  const builder = new RichTextBuilder();
+  builder.paragraph((paragraph) => {
+    paragraph.image({ mediaUrl });
+  });
+  if (includeRulesLink) appendAnnouncementRulesLink(builder, subredditName);
+  return appendAnnouncementFooter(builder, subredditName);
+}
+
 export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string, includeRulesLink = false): RichTextBuilder {
   if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
