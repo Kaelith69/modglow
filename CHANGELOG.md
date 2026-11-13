@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Strip redundant `**bold**` and `__bold__` Markdown delimiters from announcement bodies, which are already bold by default.
+- Preserve italic styling from combined bold italic Markdown while removing its redundant bold flag.
+
 - Add moderator only in place editing and confirmed permanent deletion for verified ModGlow announcement comments.
 - Persist source content, flair, publishing mode, media URL, app author, comment, post, and subreddit identity for safe future management.
 - Regenerate uploaded PNG artwork only when flair, publishing mode, or embedded SVG text changes; retain the existing media asset for native Markdown body edits.
