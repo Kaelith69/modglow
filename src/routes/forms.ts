@@ -156,6 +156,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
     pinnedAndVerified = true;
     const appAuthorId = publishedComment.authorId ?? (await reddit.getAppUser())?.id;
+    let managementMetadataStored = false;
     if (appAuthorId && isUserId(appAuthorId)) {
       const metadata: AnnouncementMetadata = {
         version: 1,
@@ -169,12 +170,17 @@ forms.post('/create-announcement-submit', async (c) => {
         bodyBelowSvg,
         mediaUrl: uploaded.mediaUrl,
       };
-      await redis.set(announcementMetadataKey(publishedComment.id), JSON.stringify(metadata));
+      try {
+        await redis.set(announcementMetadataKey(publishedComment.id), JSON.stringify(metadata));
+        managementMetadataStored = true;
+      } catch (metadataError) {
+        console.error('[ModGlow] Announcement was published, but management metadata could not be saved.', metadataError);
+      }
     } else {
       console.error('[ModGlow] Published announcement but could not resolve the app author ID for management metadata.');
     }
     console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast(appAuthorId ? 'Published.' : 'Published. Editing and deletion are unavailable for this comment.'));
+    return c.json<UiResponse>(toast(managementMetadataStored ? 'Published.' : 'Published. Editing and deletion are unavailable for this comment.'));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
@@ -316,7 +322,7 @@ forms.post('/edit-announcement-submit', async (c) => {
     const edited = await comment.edit({ richtext });
     let verified = await reddit.getCommentById(comment.id);
 
-    if (wasDistinguished && (verified.distinguishedBy !== 'moderator' || verified.stickied !== wasPinned)) {
+    if ((wasDistinguished || wasPinned) && (verified.distinguishedBy !== 'moderator' || verified.stickied !== wasPinned)) {
       await edited.distinguish(wasPinned);
       verified = await reddit.getCommentById(comment.id);
     }
@@ -326,8 +332,8 @@ forms.post('/edit-announcement-submit', async (c) => {
       || verified.subredditId !== metadata.subredditId
       || verified.postId !== metadata.postId
       || verified.body !== edited.body
-      || (wasDistinguished && verified.distinguishedBy !== 'moderator')
-      || (wasPinned && !verified.stickied)
+      || verified.distinguishedBy === 'moderator' !== wasDistinguished
+      || verified.stickied !== wasPinned
     ) {
       throw new Error('Reddit did not confirm the edited announcement state.');
     }
