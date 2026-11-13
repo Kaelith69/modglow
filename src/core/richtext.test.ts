@@ -90,7 +90,44 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
   assert.ok(serialized.includes('"f":[[1,0,15]]'));
-  assert.ok(serialized.includes('"f":[[3,0,11]]'));
+  assert.ok(serialized.includes('"f":[[1,0,11]]'));
+});
+
+test('all announcement body text is bold and user emphasis syntax is removed', () => {
+  const input = [
+    '**Respect everyone.** *Keep discussions civil.*',
+    '',
+    '**Stay relevant.** *Follow the subreddit rules.*',
+    '',
+    '**No spam, harassment, or hate.** *Post responsibly.*',
+    '',
+    '**Use the right flair.** *Keep content organised.*',
+    '',
+    '**Think before posting.** *Quality over quantity.*',
+    '',
+    '**Be part of the community.** *Keep Coconaad welcoming.*',
+  ].join('\\n');
+
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ c?: Array<{ e?: string; t?: string; f?: number[][] }> }>;
+  };
+  const bodyNodes = document.document
+    .flatMap((block) => block.c ?? [])
+    .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
+
+  assert.equal(bodyNodes.map((node) => node.t).join(' '),
+    'Respect everyone. Keep discussions civil. Stay relevant. Follow the subreddit rules. No spam, harassment, or hate. Post responsibly. Use the right flair. Keep content organised. Think before posting. Quality over quantity. Be part of the community. Keep Coconaad welcoming.');
+  assert.ok(!serialized.includes('**'));
+  assert.ok(!serialized.includes('*'));
+  for (const node of bodyNodes) {
+    assert.ok(node.f?.some((range) => (range[0] & 1) === 1), 'every body text node must be bold');
+    assert.ok(!node.f?.some((range) => (range[0] & 2) === 2), 'user italic markup must not produce italic text');
+  }
 });
 
 test('optional rules link is emitted as a clickable native rich text link', () => {
