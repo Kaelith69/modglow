@@ -45,6 +45,8 @@ test('comment IDs require Reddit comment fullnames', () => {
 
 test('managed announcement requires matching app author, comment, parent and subreddit identity', () => {
   assert.equal(isManagedAnnouncementComment(comment, metadata, 't2_app', 'ExampleSub', 't5_sub'), true);
+  const { includeRulesLink: _legacyRulesFlag, ...legacyMetadata } = metadata;
+  assert.equal(isManagedAnnouncementComment(comment, legacyMetadata, 't2_app', 'ExampleSub', 't5_sub'), true);
   assert.equal(isManagedAnnouncementComment({ ...comment, authorId: 't2_other' }, metadata, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment(comment, { ...metadata, appAuthorId: 't2_other' }, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment({ ...comment, id: 't1_other' }, metadata, 't2_app', 'ExampleSub', 't5_sub'), false);
