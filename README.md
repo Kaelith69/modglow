@@ -13,7 +13,15 @@
 5. The comment is published as the **ModGlow app account**, distinguished as a moderator, and pinned.
 6. ModGlow fetches the comment again and verifies that Reddit reports it as both moderator distinguished and stickied.
 
-ModGlow does not create a separate Reddit post, select or quote an existing comment, edit another user's content, or remove existing comments.
+ModGlow does not create a separate Reddit post or select or quote an existing comment.
+
+## Managing published announcements
+
+Moderators can open a ModGlow comment's menu to **Edit ModGlow announcement** or **Delete ModGlow announcement**. Editing replaces the existing app authored comment body in place, regenerates the PNG only when the visual artwork changes, and verifies the saved comment. The original comment identity, moderator distinction, and pin are retained wherever Reddit supports them.
+
+Deletion requires an explicit confirmation and uses Devvit's app account `Comment.delete()` API. It permanently deletes only a comment whose app author, comment ID, parent post, subreddit name, subreddit ID, and ModGlow metadata all match. It never uses moderator removal.
+
+ModGlow stores the original flair, source announcement, publishing mode, uploaded media URL, and ownership identifiers in Redis when publishing. For safety, announcements created before this management metadata existed are not eligible for these actions. Their original SVG text and flair cannot be reliably reconstructed from a rendered image, so ModGlow will refuse to guess.
 
 ## Markdown support
 

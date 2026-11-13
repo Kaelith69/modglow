@@ -13,11 +13,27 @@
         "location": "post",
         "forUserType": "moderator",
         "endpoint": "/internal/menu/create-announcement"
+      },
+      {
+        "label": "Edit ModGlow announcement",
+        "description": "Edit this app's verified announcement without publishing a duplicate.",
+        "location": "comment",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/edit-announcement"
+      },
+      {
+        "label": "Delete ModGlow announcement",
+        "description": "Permanently delete this app's verified announcement.",
+        "location": "comment",
+        "forUserType": "moderator",
+        "endpoint": "/internal/menu/delete-announcement"
       }
     ]
   },
   "forms": {
-    "createAnnouncement": "/internal/form/create-announcement-submit"
+    "createAnnouncement": "/internal/form/create-announcement-submit",
+    "editAnnouncement": "/internal/form/edit-announcement-submit",
+    "deleteAnnouncement": "/internal/form/delete-announcement-submit"
   },
   "scripts": {
     "build": "vite build",

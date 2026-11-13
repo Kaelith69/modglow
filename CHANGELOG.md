@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Add moderator only in place editing and confirmed permanent deletion for verified ModGlow announcement comments.
+- Persist source content, flair, publishing mode, media URL, app author, comment, post, and subreddit identity for safe future management.
+- Regenerate uploaded PNG artwork only when flair, publishing mode, or embedded SVG text changes; retain the existing media asset for native Markdown body edits.
+- Verify edited comments and preserve moderator distinction and pin status wherever supported.
+- Refuse management actions on comments without matching ModGlow ownership metadata, including older announcements that cannot be reconstructed safely.
+
 - Add an optional native Markdown body below a fixed title only SVG while preserving the compact embedded body mode.
 - Keep the SVG image first in the same Reddit rich text comment in both publishing modes.
 - Avoid deleting a potentially successful comment when Reddit pin verification cannot be read; only clean up after an explicit persisted state mismatch.
