@@ -15,8 +15,7 @@ test('inline Markdown removes redundant bold markers while retaining italic, str
   assert.deepEqual(
     nodes.map((node) => [node.text, node.formatting]),
     [
-      ['bold', 0],
-      [' ', 0],
+      ['bold ', 0],
       ['italic', MARKDOWN_FORMAT.italic],
       [' ', 0],
       ['both', MARKDOWN_FORMAT.italic],
@@ -141,9 +140,7 @@ test('empty Markdown yields no blocks and grapheme limits count visible characte
 
 test('bold Markdown delimiters are removed while body text stays plain for default bold rendering', () => {
   assert.deepEqual(parseInlineMarkdown('**double asterisk** and __double underscore__'), [
-    { type: 'text', text: 'double asterisk', formatting: 0 },
-    { type: 'text', text: ' and ', formatting: 0 },
-    { type: 'text', text: 'double underscore', formatting: 0 },
+    { type: 'text', text: 'double asterisk and double underscore', formatting: 0 },
   ]);
   assert.deepEqual(parseInlineMarkdown('***bold italic*** and ___bold italic underscore___'), [
     { type: 'text', text: 'bold italic', formatting: MARKDOWN_FORMAT.italic },
