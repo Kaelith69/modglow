@@ -292,4 +292,12 @@ test('the full announcement example preserves bold italic strike code and each h
   assert.equal(flagsFor('Inline code'), 64);
   assert.equal(nodes.filter((node) => node.e === 'br').length, 4);
   assert.ok(!nodes.some((node) => node.t?.includes(slash)));
+
+  // Assert the exact visible body text, not only formatting flags. This catches
+  // Markdown delimiters leaking into Reddit text nodes after formatting.
+  assert.equal(
+    nodes.map((node) => node.t ?? '').join(''),
+    'Bold text for emphasis.Italic text for subtle emphasis.Bold and italic for extra emphasis.Strikethrough for deleted text.Inline code for technical terms.',
+  );
+  assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
 });
