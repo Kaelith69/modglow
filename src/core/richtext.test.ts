@@ -76,3 +76,19 @@ test('the attribution helper appends a superscript footer', () => {
   assert.equal(document.document[0]?.c?.[0]?.t, 'Coconaad Moderator announcement');
   assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
 });
+
+test('optional rules link is emitted as a clickable native rich text link', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    '**Respect everyone. **Keep discussions civil.',
+    'Coconaad',
+    true,
+  ).build();
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ e?: string; t?: string; u?: string }> }> };
+  const link = document.document.flatMap((node) => node.c ?? []).find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Subreddit rules and guidelines');
+  assert.equal(link?.u, 'https://www.reddit.com/r/Coconaad/about/rules');
+  assert.ok(!serialized.includes('**Respect'));
+  assert.ok(serialized.includes('Respect everyone.'));
+  assert.ok(serialized.includes('Keep discussions civil.'));
+});
