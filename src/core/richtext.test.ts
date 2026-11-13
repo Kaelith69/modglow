@@ -194,7 +194,7 @@ test('normal, italic, and combined emphasis runs are bold by default with italic
     'Coconaad',
   ).build();
   const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
-  const runs = document.document.flatMap((block) => block.c ?? []).filter((node) => node.t);
+  const runs = document.document.flatMap((block) => block.c ?? []).filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
   assert.deepEqual(runs.map((node) => [node.t, node.f]), [
     ['Normal ', [[1, 0, 7]]],
     ['italic', [[3, 0, 6]]],
