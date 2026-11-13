@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildAnnouncementRichText } from './richtext.ts';
+import { RichTextBuilder } from '@devvit/reddit';
+import { appendAnnouncementFooter, buildAnnouncementRichText } from './richtext.ts';
 import { MAX_ANNOUNCEMENT_BODY_CHARS } from './markdown.ts';
 
 test('the SVG image is the first comment node and Markdown follows it', () => {
@@ -66,4 +67,12 @@ test('rich text builder enforces the Markdown body grapheme limit', () => {
     ),
     /character limit/,
   );
+});
+
+
+test('the attribution helper appends a superscript footer', () => {
+  const builder = appendAnnouncementFooter(new RichTextBuilder(), 'Coconaad');
+  const document = JSON.parse(builder.build()) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
+  assert.equal(document.document[0]?.c?.[0]?.t, 'Coconaad Moderator announcement');
+  assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
 });
