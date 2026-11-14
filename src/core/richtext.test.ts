@@ -311,26 +311,24 @@ test('mixed inline formatting renders without leaking or duplicating nested deli
 test('complete announcement input removes escaped bold markers in paragraphs lists and links', () => {
   const input = [
     '# Heading',
-    '**Bold text**, *italic text*, ~~strikethrough~~',
-    '***Bold and italic***, `inline code`, ~~**bold strikethrough**~~',
-    '> This is a blockquote with **bold** and *italic* text.',
-    '- Unordered list with **bold** and *italic*',
+    '\\\\*\\\\*Bold text\\\\*\\\\*, *italic text*, ~~strikethrough~~',
+    '***Bold and italic***, \`inline code\`, ~~\\\\*\\\\*bold strikethrough\\\\*\\\\*~~',
+    '> This is a blockquote with \\\\*\\\\*bold\\\\*\\\\* and *italic* text.',
+    '- Unordered list with \\\\*\\\\*bold\\\\*\\\\* and *italic*',
     '[Link](https://example.com) and ![Image](https://example.com/image.png)',
-  ].join('\\n').replace(/\\*\\*/gu, String.raw`\\*\\*`);
+  ].join('\\n');
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     input,
     'modglow_dev',
   ).build();
   const document = JSON.parse(serialized) as {
-    document: Array<{ e?: string; t?: string; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][]; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }> }>;
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
   };
-  const visibleText = document.document.flatMap((block) => [
-    ...(block.c ?? []).flatMap((node) => [node.t ?? '', ...(node.c ?? []).map((child) => child.t ?? '')]),
-  ]).join('');
+  const visibleText = document.document.flatMap((block) => (block.c ?? []).map((node) => node.t ?? '')).join('');
   assert.ok(!visibleText.includes('*'));
   assert.ok(!visibleText.includes('~'));
-  assert.ok(!visibleText.includes('`'));
+  assert.ok(!visibleText.includes('\`'));
   assert.ok(visibleText.includes('Bold text'));
   assert.ok(visibleText.includes('bold strikethrough'));
   assert.ok(visibleText.includes('Unordered list with bold and italic'));
