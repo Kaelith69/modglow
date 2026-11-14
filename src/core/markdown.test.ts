@@ -60,11 +60,11 @@ test('adjacent Markdown tokens do not reprocess delimiters consumed by compound 
 test('balanced escaped bold delimiters from paragraph form input are normalized before parsing', () => {
   assert.deepEqual(
     parseInlineMarkdown('\\*\\*Bold text\\*\\* and \\*\\*more bold\\*\\*'),
-    [{ type: 'text', text: 'Bold text and more bold', formatting: 0 }],
+    [{ type: 'text', text: 'Bold text and more bold', formatting: MARKDOWN_FORMAT.bold }],
   );
   assert.deepEqual(
     parseInlineMarkdown('\\**Bold text\\**'),
-    [{ type: 'text', text: 'Bold text', formatting: 0 }],
+    [{ type: 'text', text: 'Bold text', formatting: MARKDOWN_FORMAT.bold }],
   );
   assert.deepEqual(
     parseInlineMarkdown('\\*literal\\*'),
