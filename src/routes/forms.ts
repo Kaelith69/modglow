@@ -27,54 +27,6 @@ function toast(message: string): UiResponse {
   return { showToast: message };
 }
 
-type MarkdownProbe = {
-  stars: number;
-  tildes: number;
-  backticks: number;
-  backslashes: number;
-  encodedStars: number;
-  textNodes: number;
-  links: number;
-  formatRanges: number;
-};
-
-function emptyMarkdownProbe(): MarkdownProbe {
-  return { stars: 0, tildes: 0, backticks: 0, backslashes: 0, encodedStars: 0, textNodes: 0, links: 0, formatRanges: 0 };
-}
-
-function addStringProbe(probe: MarkdownProbe, value: string): void {
-  for (const character of value) {
-    if (character === '*') probe.stars += 1;
-    else if (character === '~') probe.tildes += 1;
-    else if (character === String.fromCharCode(96)) probe.backticks += 1;
-    else if (character === String.fromCharCode(92)) probe.backslashes += 1;
-  }
-  probe.encodedStars += [...value.matchAll(/(?:&#0*42;|&#x0*2a;|&ast;)/giu)].length;
-}
-
-function inspectRichTextProbe(serialized: string): MarkdownProbe {
-  const probe = emptyMarkdownProbe();
-  const root: unknown = JSON.parse(serialized);
-  const visit = (value: unknown): void => {
-    if (Array.isArray(value)) {
-      for (const child of value) visit(child);
-      return;
-    }
-    if (!value || typeof value !== 'object') return;
-    const node = value as Record<string, unknown>;
-    if (typeof node.t === 'string') {
-      probe.textNodes += 1;
-      addStringProbe(probe, node.t);
-    }
-    if (node.e === 'link') probe.links += 1;
-    if (Array.isArray(node.f)) probe.formatRanges += node.f.length;
-    if (node.c !== undefined) visit(node.c);
-    if (node.document !== undefined) visit(node.document);
-  };
-  visit(root);
-  return probe;
-}
-
 async function acquirePostLock(postId: string): Promise<string | undefined> {
   const key = `${LOCK_PREFIX}${postId}`;
   const token = `${Date.now()}:${randomUUID()}`;
@@ -177,10 +129,6 @@ forms.post('/create-announcement-submit', async (c) => {
     const richtext = bodyBelowSvg
       ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName, includeRulesLink)
 : buildAnnouncementImageOnlyRichText(uploaded.mediaUrl, context.subredditName, includeRulesLink);
-    const sourceProbe = emptyMarkdownProbe();
-    addStringProbe(sourceProbe, announcement);
-    const richTextProbe = inspectRichTextProbe(richtext.build());
-
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
       id: postId,
@@ -228,13 +176,8 @@ forms.post('/create-announcement-submit', async (c) => {
     } else {
       console.error('[ModGlow] Published announcement but could not resolve the app author ID for management metadata.');
     }
-    const redditBodyProbe = emptyMarkdownProbe();
-    addStringProbe(redditBodyProbe, typeof publishedComment.body === 'string' ? publishedComment.body : '');
-    const diagnostic = { source: sourceProbe, richText: richTextProbe, redditBody: redditBodyProbe };
-    console.info(`[ModGlow] Markdown rendering probe ${JSON.stringify(diagnostic)}`);
-    const diagnosticToast = `Probe source*= ${sourceProbe.stars}, RTJSON*= ${richTextProbe.stars}, API body*= ${redditBodyProbe.stars}; slashes source/RTJSON=${sourceProbe.backslashes}/${richTextProbe.backslashes}; text nodes=${richTextProbe.textNodes}.`;
     console.info(`[ModGlow] Published and pinned ${flair} ${publishedComment.id} under ${postId} in r/${context.subredditName}.`);
-    return c.json<UiResponse>(toast(managementMetadataStored ? `Published. ${diagnosticToast}` : `Published. Editing and deletion are unavailable. ${diagnosticToast}`));
+    return c.json<UiResponse>(toast(managementMetadataStored ? 'Published.' : 'Published. Editing and deletion are unavailable for this comment.'));
   } catch (error) {
     console.error('[ModGlow] Announcement publishing failed.', error);
 
