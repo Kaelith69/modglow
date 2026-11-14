@@ -312,7 +312,7 @@ test('complete announcement input removes escaped bold markers in paragraphs lis
   const input = [
     '# Heading',
     '\\*\\*Bold text\\*\\*, *italic text*, ~~strikethrough~~',
-    '***Bold and italic***, \`inline code\`, ~~\\*\\*bold strikethrough\\*\\*~~',
+    '***Bold and italic***, `inline code`, ~~\\*\\*bold strikethrough\\*\\*~~',
     '> This is a blockquote with \\*\\*bold\\*\\* and *italic* text.',
     '- Unordered list with \\*\\*bold\\*\\* and *italic*',
     '[Link](https://example.com) and ![Image](https://example.com/image.png)',
