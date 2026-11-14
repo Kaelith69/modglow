@@ -64,7 +64,7 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // times by the submission pipeline. Remove transport escapes before parsing
   // so emphasis markers are consumed consistently in paragraphs, lists,
   // blockquotes, links, and image alt text.
-  const normalizedValue = value.replace(/\\+([*_~`])/gu, '$1');
+  const normalizedValue = value.replace(/\\+([*_~`]+)/gu, '$1');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
