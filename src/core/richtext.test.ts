@@ -39,7 +39,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
-  assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
+  assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
   assert.deepEqual(codeNode?.f, [[MARKDOWN_FORMAT.monospace, 0, 4]]);
