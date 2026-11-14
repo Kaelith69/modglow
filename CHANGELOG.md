@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add a moderator focused README with use cases, feature instructions, Markdown guidance, limits, privacy notes, and developer setup.
+- Add a plain language Terms of Service and Privacy Policy that describe the current Devvit, Reddit media, and Redis data flows.
+- Add a Reddit app submission checklist with a suggested listing description, policy URLs, current data disclosures, and launch steps.
+
 - Ensure the optional subreddit rules link is included in compact image only announcements as well as Markdown body announcements.
 - Share the compact rich text builder between publishing and editing, with regression tests for enabled and disabled rules links.
 
