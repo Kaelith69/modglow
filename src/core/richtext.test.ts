@@ -78,7 +78,7 @@ test('the attribution helper appends a superscript footer', () => {
   assert.deepEqual(document.document[0]?.c?.[0]?.f, [[32, 0, 31]]);
 });
 
-test('redundant bold Markdown markers do not leak into rendered Reddit rich text', () => {
+test('bold Markdown is represented by explicit formatting ranges without marker text', () => {
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     '**Bold** __also bold__ ***bold italic***',
@@ -89,11 +89,14 @@ test('redundant bold Markdown markers do not leak into rendered Reddit rich text
   assert.ok(serialized.includes('bold italic'));
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('__'));
-  assert.ok(serialized.includes('"f":[[1,0,15]]'));
-  assert.ok(serialized.includes('"f":[[3,0,11]]'));
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
+  const nodes = document.document.flatMap((block) => block.c ?? []);
+  assert.deepEqual(nodes.find((node) => node.t === 'Bold')?.f, [[1, 0, 4]]);
+  assert.deepEqual(nodes.find((node) => node.t === 'also bold')?.f, [[1, 0, 9]]);
+  assert.deepEqual(nodes.find((node) => node.t === 'bold italic')?.f, [[3, 0, 11]]);
 });
 
-test('all announcement body text is bold while explicit italic styling is retained', () => {
+test('announcement body preserves only explicitly requested bold and italic styles', () => {
   const input = [
     '**Respect everyone.** *Keep discussions civil.*',
     '',
@@ -136,14 +139,20 @@ test('all announcement body text is bold while explicit italic styling is retain
   ]);
   assert.ok(!serialized.includes('**'));
   assert.ok(!serialized.includes('*'));
-  for (const block of document.document) {
-    if (block.e !== 'par') continue;
-    for (const node of block.c ?? []) {
-      if (!node.t || node.t === 'Coconaad Moderator announcement') continue;
-      assert.ok(node.f?.some((range) => (range[0] & 1) === 1), 'every body text node must be bold');
-      if (node.t.includes('Keep discussions civil.') || node.t.includes('Follow the subreddit rules.') || node.t.includes('Post responsibly.') || node.t.includes('Keep content organised.') || node.t.includes('Quality over quantity.') || node.t.includes('Keep Coconaad welcoming.')) {
-        assert.ok(node.f?.some((range) => (range[0] & 2) === 2), 'explicit italic Markdown must remain italic');
-      }
+  const bodyNodes = document.document
+    .filter((block) => block.e === 'par')
+    .flatMap((block) => block.c ?? [])
+    .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
+  for (const node of bodyNodes) {
+    if (node.t?.startsWith('Respect everyone.') || node.t?.startsWith('Stay relevant.')
+      || node.t?.startsWith('No spam') || node.t?.startsWith('Use the right flair.')
+      || node.t?.startsWith('Think before posting.') || node.t?.startsWith('Be part of the community.')) {
+      assert.deepEqual(node.f, [[MARKDOWN_FORMAT.bold, 0, node.t.length]]);
+    }
+    if (node.t?.includes('Keep discussions civil.') || node.t?.includes('Follow the subreddit rules.')
+      || node.t?.includes('Post responsibly.') || node.t?.includes('Keep content organised.')
+      || node.t?.includes('Quality over quantity.') || node.t?.includes('Keep Coconaad welcoming.')) {
+      assert.deepEqual(node.f, [[MARKDOWN_FORMAT.italic, 0, node.t.length]]);
     }
   }
 });
@@ -299,8 +308,8 @@ test('mixed inline formatting renders only the styles specified by Markdown', ()
   const nodes = paragraph?.c ?? [];
   assert.equal(nodes.map((node) => node.t ?? '').join(''), 'Bold text, italic text, strikethrough Bold and italic, inline code, bold strikethrough');
   assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
-  const flagsFor = (value: string) => nodes.find((node) => node.t === value)?.f?.[0]?.[0];
-  assert.equal(flagsFor('Bold text, '), MARKDOWN_FORMAT.bold);
+  const flagsFor = (value: string) => nodes.find((node) => node.t?.startsWith(value))?.f?.[0]?.[0];
+  assert.equal(flagsFor('Bold text'), MARKDOWN_FORMAT.bold);
   assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.italic);
   assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.strikethrough);
   assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
