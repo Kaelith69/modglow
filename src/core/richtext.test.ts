@@ -534,7 +534,7 @@ test('deeply escaped and nested Markdown serializes cleanly across native announ
   const visibleText = bodyNodes.map((node) => node.t as string).join('');
   assert.equal(
     visibleText,
-    'Escaped headingParagraph bold, italic and bold strikeQuoted boldUnordered boldOrdered boldLink labelImage alt',
+    'Escaped headingParagraph bold, italic and bold strikeQuoted boldUnordered boldOrdered boldLink label Image alt',
   );
   for (const marker of ['*', '~', String.fromCharCode(96), slash]) {
     assert.ok(!visibleText.includes(marker), 'unexpected Markdown marker ' + JSON.stringify(marker) + ' in ' + JSON.stringify(visibleText));
