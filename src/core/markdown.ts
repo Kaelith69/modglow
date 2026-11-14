@@ -61,9 +61,9 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // Markdown syntax so the published rich text does not expose the markers.
   // Single escaped markers remain literal and retain normal Markdown escaping.
   const normalizedValue = value
-    .replace(/\\\\\\*\\\\\\*(.+?)\\\\\\*\\\\\\*/gu, '**$1**')
-    .replace(/\\\\\\*\\*(.+?)\\\\\\*\\*/gu, '**$1**')
-    .replace(/\\\\__(.+?)\\\\__/gu, '__$1__');
+    .replace(/\\\*\\\*(.+?)\\\*\\\*/gu, '**$1**')
+    .replace(/\\\*\*(.+?)\\\*\*/gu, '**$1**')
+    .replace(/\\__(.+?)\\__/gu, '__$1__');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
