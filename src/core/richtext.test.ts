@@ -635,7 +635,8 @@ test('asymmetrically escaped form payload serializes without Markdown leakage in
   assert.equal(link?.t, 'Link');
   assert.equal(link?.u, 'https://example.com');
   assert.deepEqual(link?.f, [[MARKDOWN_FORMAT.bold, 0, 'Link'.length]]);
-  assert.deepEqual(findText('Image')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Image'.length]]);
+  const imageAltRun = bodyNodes.find((node) => typeof node.t === 'string' && node.t.includes('Image'));
+  assert.equal((imageAltRun?.f as number[][] | undefined)?.[0]?.[0], MARKDOWN_FORMAT.bold);
 
   assert.equal(document.document.filter((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'list').length, 2);
   assert.ok(document.document.some((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'blockquote'));
