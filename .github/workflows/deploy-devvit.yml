@@ -46,3 +46,10 @@ jobs:
         env:
           DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
         run: npm run deploy
+
+      - name: Update r/modglow_dev installation
+        env:
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
+        run: |
+          npx devvit install r/modglow_dev
+          npx devvit list installs r/modglow_dev
