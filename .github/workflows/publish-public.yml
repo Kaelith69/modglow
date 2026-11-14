@@ -1,0 +1,58 @@
+name: Publish ModGlow publicly
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_public_submission:
+        description: "Explicitly confirm that this workflow should submit ModGlow for public App Directory review"
+        required: true
+        type: choice
+        options:
+          - "no"
+          - "yes"
+        default: "no"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: modglow-public-release
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: inputs.confirm_public_submission == 'yes'
+    name: Validate and submit public release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v5
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Devvit authentication
+        env:
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
+        run: |
+          if [ -z "$DEVVIT_AUTH_TOKEN" ]; then
+            echo "::error::Missing DEVVIT_AUTH_TOKEN repository secret."
+            exit 1
+          fi
+          echo "DEVVIT_AUTH_TOKEN is configured."
+
+      - name: Run all project checks
+        run: npm run check
+
+      - name: Submit public release for Reddit review
+        env:
+          DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
+        run: npx devvit publish --public --bump patch
