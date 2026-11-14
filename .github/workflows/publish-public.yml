@@ -55,4 +55,5 @@ jobs:
       - name: Submit public release for Reddit review
         env:
           DEVVIT_AUTH_TOKEN: ${{ secrets.DEVVIT_AUTH_TOKEN }}
+          DEVVIT_ALLOW_SOURCE_UPLOAD: "1"
         run: npx devvit publish --public --bump patch
