@@ -67,7 +67,6 @@ forms.post('/create-announcement-submit', async (c) => {
   const bodyBelowSvg = values?.bodyBelowSvg !== false;
   const includeRulesLink = values?.includeRulesLink === true;
   const defaultBold = values?.defaultBold !== false;
-  const defaultBold = values?.defaultBold !== false;
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Enter announcement text.'));
@@ -286,6 +285,7 @@ forms.post('/edit-announcement-submit', async (c) => {
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
   const bodyBelowSvg = values?.bodyBelowSvg !== false;
   const includeRulesLink = values?.includeRulesLink === true;
+  const defaultBold = values?.defaultBold !== false;
 
   if (!announcement) return c.json<UiResponse>(toast('Enter announcement text.'));
   if (!flair) return c.json<UiResponse>(toast('Choose a flair.'));
