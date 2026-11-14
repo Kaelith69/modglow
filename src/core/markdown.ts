@@ -74,11 +74,11 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // delimiter run. Normalize backslashes before any character in that run,
   // but leave singly escaped literal markers such as \\*literal\\*.
   const normalizedValue = value.replace(
-    /\\\\*([*_~`])(?:\\\\*\\1){1,2}/gu,
-    (escapedDelimiterRun) => escapedDelimiterRun.includes('\\\\')
-      ? escapedDelimiterRun.replace(/\\\\\\\\/gu, '')
+    /\\*([*_~`])(?:\\*\1){1,2}/gu,
+    (escapedDelimiterRun) => escapedDelimiterRun.includes('\\')
+      ? escapedDelimiterRun.replace(/\\/gu, '')
       : escapedDelimiterRun,
-  );;
+  );
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;

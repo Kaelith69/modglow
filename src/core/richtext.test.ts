@@ -583,7 +583,7 @@ test('asymmetrically escaped form payload serializes without Markdown leakage in
     fence + 'ts',
     'const answer = 42;',
     fence,
-  ].join('\\n');
+  ].join('\n');
 
   // Match the create and edit handlers' JSON body decoding and trim step.
   const submitted = JSON.parse(JSON.stringify({ announcement: formAnnouncement })) as { announcement: string };
