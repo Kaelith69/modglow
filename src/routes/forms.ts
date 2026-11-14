@@ -123,7 +123,7 @@ forms.post('/create-announcement-submit', async (c) => {
 
     const svg = bodyBelowSvg
       ? buildAnnouncementHeaderSvg(flair)
-      : buildAnnouncementSvg(announcement, flair);
+      : buildAnnouncementSvg(announcement, flair, defaultBold);
     const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
@@ -313,7 +313,7 @@ forms.post('/edit-announcement-submit', async (c) => {
     if (visualChanged) {
       const svg = bodyBelowSvg
         ? buildAnnouncementHeaderSvg(flair)
-        : buildAnnouncementSvg(announcement, flair);
+        : buildAnnouncementSvg(announcement, flair, defaultBold);
       const png = await renderAnnouncementPng(svg);
       const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
       mediaUrl = (await media.upload({ url: imageDataUrl, type: 'image' })).mediaUrl;
