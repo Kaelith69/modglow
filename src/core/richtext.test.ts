@@ -557,3 +557,94 @@ test('deeply escaped and nested Markdown serializes cleanly across native announ
   assert.equal(document.document.filter((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'list').length, 2);
   assert.ok(document.document.some((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'blockquote'));
 });
+
+
+test('asymmetrically escaped form payload serializes without Markdown leakage in every supported block', () => {
+  const slash = String.fromCharCode(92);
+  const tick = String.fromCharCode(96);
+  const fence = tick.repeat(3);
+  const formAnnouncement = [
+    '# Heading',
+    '',
+    '**Bold text*' + slash + '*, *italic text*, ~~strikethrough~~, ***Bold and italic***, ' + tick + 'inline code' + tick + ', ~~**bold strikethrough*' + slash + '*~~',
+    '',
+    '> This is a blockquote with **bold*' + slash + '* and *italic* text.',
+    '',
+    '- Unordered list with **bold*' + slash + '* and *italic*',
+    '- Another list item with ~~strikethrough~~',
+    '',
+    '1. Ordered item with **bold*' + slash + '*',
+    '2. Ordered item with *italic*',
+    '',
+    '**[Link](https://example.com) and ![Image](https://example.com/image.png)*' + slash + '*',
+    '',
+    'First line' + slash,
+    'Second line',
+    '',
+    fence + 'ts',
+    'const answer = 42;',
+    fence,
+  ].join('\n');
+
+  // Match the create and edit handlers' JSON body decoding and trim step.
+  const submitted = JSON.parse(JSON.stringify({ announcement: formAnnouncement })) as { announcement: string };
+  const announcement = submitted.announcement.trim();
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    announcement,
+    'modglow_dev',
+  ).build();
+  const document = JSON.parse(serialized) as { document: unknown[] };
+  const richTextNodes: Array<Record<string, unknown>> = [];
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    const node = value as Record<string, unknown>;
+    if (typeof node.t === 'string') richTextNodes.push(node);
+    if (node.c !== undefined) visit(node.c);
+    if (node.document !== undefined) visit(node.document);
+  };
+  visit(document.document);
+
+  const bodyNodes = richTextNodes.filter((node) => node.t !== 'modglow_dev Moderator announcement');
+  const visibleText = bodyNodes.map((node) => node.t as string).join('');
+  assert.equal(
+    visibleText,
+    'HeadingBold text, italic text, strikethrough, Bold and italic, inline code, bold strikethroughThis is a blockquote with bold and italic text.Unordered list with bold and italicAnother list item with strikethroughOrdered item with boldOrdered item with italicLink and ImageFirst lineSecond lineconst answer = 42;',
+  );
+  for (const marker of ['*', '~', String.fromCharCode(96), slash]) {
+    assert.ok(!visibleText.includes(marker), 'unexpected Markdown delimiter ' + JSON.stringify(marker) + ' in ' + JSON.stringify(visibleText));
+  }
+
+  const findText = (text: string) => bodyNodes.find((node) => node.t === text);
+  assert.deepEqual(findText('Bold text')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Bold text'.length]]);
+  assert.deepEqual(findText('italic text')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic, 0, 'italic text'.length]]);
+  assert.deepEqual(findText('strikethrough')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough, 0, 'strikethrough'.length]]);
+  assert.deepEqual(findText('Bold and italic')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic, 0, 'Bold and italic'.length]]);
+  assert.deepEqual(findText('inline code')?.f, [[MARKDOWN_FORMAT.monospace, 0, 'inline code'.length]]);
+  assert.deepEqual(findText('bold strikethrough')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough, 0, 'bold strikethrough'.length]]);
+  assert.deepEqual(findText('bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 'bold'.length]]);
+  assert.deepEqual(findText('Unordered list with ')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Unordered list with '.length]]);
+  assert.deepEqual(findText('Ordered item with ')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Ordered item with '.length]]);
+  assert.deepEqual(findText('const answer = 42;')?.f, [[MARKDOWN_FORMAT.monospace, 0, 'const answer = 42;'.length]]);
+
+  const link = bodyNodes.find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Link');
+  assert.equal(link?.u, 'https://example.com');
+  assert.deepEqual(link?.f, [[MARKDOWN_FORMAT.bold, 0, 'Link'.length]]);
+  const imageAltRun = bodyNodes.find((node) => typeof node.t === 'string' && node.t.includes('Image'));
+  assert.equal((imageAltRun?.f as number[][] | undefined)?.[0]?.[0], MARKDOWN_FORMAT.bold);
+
+  assert.equal(document.document.filter((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'list').length, 2);
+  assert.ok(document.document.some((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'blockquote'));
+  const hardBreakParagraph = document.document.find((value) =>
+    !!value && typeof value === 'object'
+    && (value as Record<string, unknown>).e === 'par'
+    && Array.isArray((value as Record<string, unknown>).c)
+    && ((value as Record<string, unknown>).c as Array<Record<string, unknown>>).some((node) => node.t === 'First line'),
+  ) as { c?: Array<Record<string, unknown>> } | undefined;
+  assert.equal(hardBreakParagraph?.c?.filter((node) => node.e === 'br').length, 1);
+});

@@ -70,12 +70,14 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // backslash escaping. Treat escaped, balanced double emphasis delimiters as
   // Markdown syntax so the published rich text does not expose the markers.
   // Single escaped markers remain literal and retain normal Markdown escaping.
-  // Devvit form transport can add one or more backslash layers before
-  // paired Markdown delimiters. Remove those transport escapes without
-  // changing a singly escaped literal marker such as \\*literal\\*.
+  // Devvit form transport can escape only some characters in a paired
+  // delimiter run. Normalize backslashes before any character in that run,
+  // but leave singly escaped literal markers such as \\*literal\\*.
   const normalizedValue = value.replace(
-    /\\+([*_~`])(?:\\+\1|\1){1,2}/gu,
-    (escapedDelimiter) => escapedDelimiter.replace(/\\/gu, ''),
+    /\\*([*_~`])(?:\\*\1){1,2}/gu,
+    (escapedDelimiterRun) => escapedDelimiterRun.includes('\\')
+      ? escapedDelimiterRun.replace(/\\/gu, '')
+      : escapedDelimiterRun,
   );
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');

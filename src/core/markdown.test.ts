@@ -259,3 +259,35 @@ test('nested emphasis is parsed recursively in either nesting order', () => {
     { type: 'text', text: ' text', formatting: MARKDOWN_FORMAT.bold },
   ]);
 });
+
+
+test('partially escaped delimiter pairs normalize regardless of which delimiter character is escaped', () => {
+  const slash = String.fromCharCode(92);
+  const tick = String.fromCharCode(96);
+
+  assert.deepEqual(parseInlineMarkdown('**Bold text*' + slash + '*'), [
+    { type: 'text', text: 'Bold text', formatting: MARKDOWN_FORMAT.bold },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('*' + slash + '*Bold text**'), [
+    { type: 'text', text: 'Bold text', formatting: MARKDOWN_FORMAT.bold },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('~~struck~' + slash + '~'), [
+    { type: 'text', text: 'struck', formatting: MARKDOWN_FORMAT.strikethrough },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('__underscore bold_' + slash + '_'), [
+    { type: 'text', text: 'underscore bold', formatting: MARKDOWN_FORMAT.bold },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('***bold italic**' + slash + '*'), [
+    { type: 'text', text: 'bold italic', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic },
+  ]);
+  assert.deepEqual(parseInlineMarkdown(tick + 'inline code' + tick), [
+    { type: 'text', text: 'inline code', formatting: MARKDOWN_FORMAT.monospace },
+  ]);
+  assert.deepEqual(parseInlineMarkdown(slash + tick + 'literal' + slash + tick), [
+    { type: 'text', text: tick + 'literal' + tick, formatting: 0 },
+  ]);
+
+  assert.deepEqual(parseInlineMarkdown(slash + '*literal' + slash + '*'), [
+    { type: 'text', text: '*literal*', formatting: 0 },
+  ]);
+});
