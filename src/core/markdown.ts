@@ -60,10 +60,11 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // backslash escaping. Treat escaped, balanced double emphasis delimiters as
   // Markdown syntax so the published rich text does not expose the markers.
   // Single escaped markers remain literal and retain normal Markdown escaping.
-  const normalizedValue = value
-    .replace(/\\\*\\\*(.+?)\\\*\\\*/gu, '**$1**')
-    .replace(/\\\*\*(.+?)\\\*\*/gu, '**$1**')
-    .replace(/\\__(.+?)\\__/gu, '__$1__');
+  // Form inputs can arrive with Markdown delimiters escaped one or more
+  // times by the submission pipeline. Remove transport escapes before parsing
+  // so emphasis markers are consumed consistently in paragraphs, lists,
+  // blockquotes, links, and image alt text.
+  const normalizedValue = value.replace(/\\+([*_~`])/gu, '$1');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
