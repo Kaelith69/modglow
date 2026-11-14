@@ -280,8 +280,11 @@ test('partially escaped delimiter pairs normalize regardless of which delimiter 
   assert.deepEqual(parseInlineMarkdown('***bold italic**' + slash + '*'), [
     { type: 'text', text: 'bold italic', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic },
   ]);
-  assert.deepEqual(parseInlineMarkdown(tick + 'inline code' + slash + tick), [
+  assert.deepEqual(parseInlineMarkdown(tick + 'inline code' + tick), [
     { type: 'text', text: 'inline code', formatting: MARKDOWN_FORMAT.monospace },
+  ]);
+  assert.deepEqual(parseInlineMarkdown(slash + tick + 'literal' + slash + tick), [
+    { type: 'text', text: tick + 'literal' + tick, formatting: 0 },
   ]);
 
   assert.deepEqual(parseInlineMarkdown(slash + '*literal' + slash + '*'), [

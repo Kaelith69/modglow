@@ -561,11 +561,12 @@ test('deeply escaped and nested Markdown serializes cleanly across native announ
 
 test('asymmetrically escaped form payload serializes without Markdown leakage in every supported block', () => {
   const slash = String.fromCharCode(92);
-  const fence = String.fromCharCode(96).repeat(3);
+  const tick = String.fromCharCode(96);
+  const fence = tick.repeat(3);
   const formAnnouncement = [
     '# Heading',
     '',
-    '**Bold text*' + slash + '*, *italic text*, ~~strikethrough~~, ***Bold and italic***, inline code, ~~**bold strikethrough*' + slash + '*~~',
+    '**Bold text*' + slash + '*, *italic text*, ~~strikethrough~~, ***Bold and italic***, ' + tick + 'inline code' + tick + ', ~~**bold strikethrough*' + slash + '*~~',
     '',
     '> This is a blockquote with **bold*' + slash + '* and *italic* text.',
     '',
