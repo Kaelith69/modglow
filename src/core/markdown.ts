@@ -56,12 +56,20 @@ function safeHttpUrl(value: string): boolean {
 
 /** Parse the inline Markdown subset supported by Reddit rich text comments. Balanced single level parentheses in link URLs are supported. */
 export function parseInlineMarkdown(value: string): MarkdownInline[] {
+  // Devvit paragraph form submissions can preserve emphasis delimiters with
+  // backslash escaping. Treat escaped, balanced double emphasis delimiters as
+  // Markdown syntax so the published rich text does not expose the markers.
+  // Single escaped markers remain literal and retain normal Markdown escaping.
+  const normalizedValue = value
+    .replace(/\\\*\\\*(.+?)\\\*\\\*/gu, '**$1**')
+    .replace(/\\\*\*(.+?)\\\*\*/gu, '**$1**')
+    .replace(/\\__(.+?)\\__/gu, '__$1__');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
 
   let match: RegExpExecArray | null;
-  while ((match = pattern.exec(value)) !== null) {
+  while ((match = pattern.exec(normalizedValue)) !== null) {
     const index = match.index;
     // Compound tokens can consume inner matches. Never process a token that
     // starts before the current cursor, and keep the regex cursor synchronized.
@@ -70,13 +78,13 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
       continue;
     }
     if (index > cursor) {
-      appendInline(nodes, { type: 'text', text: value.slice(cursor, index), formatting: 0 });
+      appendInline(nodes, { type: 'text', text: normalizedValue.slice(cursor, index), formatting: 0 });
     }
 
     // Handle bold nested inside strikethrough before the general strike token.
     // The outer strike alternative otherwise consumes the inner bold markers as
     // literal text, because the token expression is intentionally non recursive.
-    const nestedStrikeBold = value.slice(index).match(/^~~(?:\*\*(.+?)\*\*|__(.+?)__)~~/u);
+    const nestedStrikeBold = normalizedValue.slice(index).match(/^~~(?:\*\*(.+?)\*\*|__(.+?)__)~~/u);
     if (nestedStrikeBold) {
       appendInline(nodes, {
         type: 'text',
@@ -114,8 +122,8 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
     cursor = index + match[0].length;
   }
 
-  if (cursor < value.length) {
-    appendInline(nodes, { type: 'text', text: value.slice(cursor), formatting: 0 });
+  if (cursor < normalizedValue.length) {
+    appendInline(nodes, { type: 'text', text: normalizedValue.slice(cursor), formatting: 0 });
   }
 
   return nodes;

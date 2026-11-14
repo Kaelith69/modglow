@@ -308,6 +308,35 @@ test('mixed inline formatting renders without leaking or duplicating nested deli
   assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
 });
 
+test('complete announcement input removes escaped bold markers in paragraphs lists and links', () => {
+  const input = [
+    '# Heading',
+    '\\*\\*Bold text\\*\\*, *italic text*, ~~strikethrough~~',
+    '***Bold and italic***, `inline code`, ~~\\*\\*bold strikethrough\\*\\*~~',
+    '> This is a blockquote with \\*\\*bold\\*\\* and *italic* text.',
+    '- Unordered list with \\*\\*bold\\*\\* and *italic*',
+    '[Link](https://example.com) and ![Image](https://example.com/image.png)',
+  ].join('\n');
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'modglow_dev',
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
+  };
+  const collectText = (nodes: Array<{ t?: string; c?: Array<{ t?: string; c?: Array<{ t?: string }> }> }>): string =>
+    nodes.map((node) => (node.t ?? '') + collectText(node.c ?? [])).join('');
+  const visibleText = collectText(document.document.flatMap((block) => block.c ?? []));
+  assert.ok(!visibleText.includes('*'));
+  assert.ok(!visibleText.includes('~'));
+  assert.ok(!visibleText.includes('`'));
+  assert.ok(visibleText.includes('Bold text'));
+  assert.ok(visibleText.includes('bold strikethrough'));
+  assert.ok(visibleText.includes('Unordered list with bold and italic'));
+  assert.ok(visibleText.includes('Link and Image'));
+});
+
 test('the full announcement example preserves bold italic strike code and each hard break', () => {
   const slash = String.fromCharCode(92);
   const input = [

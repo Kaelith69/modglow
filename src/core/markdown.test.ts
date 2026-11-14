@@ -57,6 +57,21 @@ test('adjacent Markdown tokens do not reprocess delimiters consumed by compound 
   );
 });
 
+test('balanced escaped bold delimiters from paragraph form input are normalized before parsing', () => {
+  assert.deepEqual(
+    parseInlineMarkdown('\\*\\*Bold text\\*\\* and \\*\\*more bold\\*\\*'),
+    [{ type: 'text', text: 'Bold text and more bold', formatting: 0 }],
+  );
+  assert.deepEqual(
+    parseInlineMarkdown('\\**Bold text\\**'),
+    [{ type: 'text', text: 'Bold text', formatting: 0 }],
+  );
+  assert.deepEqual(
+    parseInlineMarkdown('\\*literal\\*'),
+    [{ type: 'text', text: '*literal*', formatting: 0 }],
+  );
+});
+
 test('Markdown links are retained as safe HTTP links and images degrade to alt text', () => {
   const nodes = parseInlineMarkdown('Read [the rules](https://example.com/rules). ![Diagram](https://example.com/image.png)');
   const link = nodes.find((node) => node.type === 'link');
