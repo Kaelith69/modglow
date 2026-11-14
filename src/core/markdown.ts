@@ -60,10 +60,13 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // backslash escaping. Treat escaped, balanced double emphasis delimiters as
   // Markdown syntax so the published rich text does not expose the markers.
   // Single escaped markers remain literal and retain normal Markdown escaping.
+  // Form inputs can arrive with Markdown delimiters escaped one or more
+  // times by the submission pipeline. Remove transport escapes before parsing
+  // so emphasis markers are consumed consistently in paragraphs, lists,
+  // blockquotes, links, and image alt text.
   const normalizedValue = value
-    .replace(/\\\*\\\*(.+?)\\\*\\\*/gu, '**$1**')
-    .replace(/\\\*\*(.+?)\\\*\*/gu, '**$1**')
-    .replace(/\\__(.+?)\\__/gu, '__$1__');
+    .replace(/\\([*_~`])\\\1/gu, '$1$1')
+    .replace(/\\([*_~`])\1/gu, '$1$1');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
@@ -99,14 +102,25 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
     if (match[1] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[1], formatting: 0 });
     } else if (match[2] !== undefined) {
-      // Images intentionally degrade to their readable alt text. External images
-      // are never fetched or embedded in a moderator comment.
-      appendInline(nodes, { type: 'text', text: match[2], formatting: 0 });
+      // Images intentionally degrade to readable alt text. Parse that text as
+      // inline Markdown too, otherwise emphasis markers inside alt text leak.
+      for (const altNode of parseInlineMarkdown(match[2])) appendInline(nodes, altNode);
     } else if (match[4] !== undefined) {
       const label = match[4];
       const url = match[5] ?? '';
-      if (safeHttpUrl(url)) appendInline(nodes, { type: 'link', text: label, url, formatting: 0 });
-      else appendInline(nodes, { type: 'text', text: label, formatting: 0 });
+      const labelNodes = parseInlineMarkdown(label);
+      if (safeHttpUrl(url)) {
+        for (const labelNode of labelNodes) {
+          appendInline(nodes, {
+            type: 'link',
+            text: labelNode.text,
+            url,
+            formatting: labelNode.formatting,
+          });
+        }
+      } else {
+        for (const labelNode of labelNodes) appendInline(nodes, labelNode);
+      }
     } else if (match[6] !== undefined || match[7] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[6] ?? match[7] ?? '', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic });
     } else if (match[8] !== undefined || match[9] !== undefined) {

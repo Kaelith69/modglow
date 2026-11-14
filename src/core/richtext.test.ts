@@ -446,3 +446,51 @@ test('the full announcement example preserves bold italic strike code and each h
   );
   assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
 });
+
+
+test('escaped Markdown transport delimiters never leak across every supported block and inline element', () => {
+  const slash = String.fromCharCode(92);
+  const escapedBold = (value: string) => slash + '**' + value + slash + '**';
+  const input = [
+    escapedBold('Paragraph bold') + ', *italic*',
+    '> ' + escapedBold('Quote bold') + ' and *quote italic*',
+    '- ' + escapedBold('List bold') + ' and *list italic*',
+    '[' + escapedBold('Link label') + '](https://example.com) and !['
+      + escapedBold('Image alt') + '](https://example.com/image.png)',
+  ].join('\n');
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'modglow_dev',
+  ).build();
+  const document = JSON.parse(serialized) as { document: unknown[] };
+  const textNodes: Array<Record<string, unknown>> = [];
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    const node = value as Record<string, unknown>;
+    if (typeof node.t === 'string') textNodes.push(node);
+    if (node.c !== undefined) visit(node.c);
+    if (node.document !== undefined) visit(node.document);
+  };
+  visit(document.document);
+
+  const visibleText = textNodes.map((node) => node.t as string).join('');
+  for (const marker of ['*', '~', '`', slash]) {
+    assert.ok(!visibleText.includes(marker), `unexpected Markdown marker ${JSON.stringify(marker)} in ${JSON.stringify(visibleText)}`);
+  }
+  for (const expected of ['Paragraph bold', 'Quote bold', 'List bold', 'Link label', 'Image alt']) {
+    assert.ok(visibleText.includes(expected), `missing rendered text: ${expected}`);
+  }
+  const formatted = textNodes.filter((node) => ['Paragraph bold', 'Quote bold', 'List bold'].includes(node.t as string));
+  assert.equal(formatted.length, 3);
+  for (const node of formatted) assert.deepEqual(node.f, [[MARKDOWN_FORMAT.bold, 0, (node.t as string).length]]);
+  const link = textNodes.find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Link label');
+  assert.deepEqual(link?.f, [[MARKDOWN_FORMAT.bold, 0, 10]]);
+  const imageAlt = textNodes.find((node) => node.t === 'Image alt');
+  assert.deepEqual(imageAlt?.f, [[MARKDOWN_FORMAT.bold, 0, 9]]);
+});
