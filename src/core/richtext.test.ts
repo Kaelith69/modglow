@@ -330,7 +330,7 @@ test('complete announcement input removes escaped bold markers in paragraphs lis
   const visibleText = collectText(document.document.flatMap((block) => block.c ?? []));
   assert.ok(!visibleText.includes('*'));
   assert.ok(!visibleText.includes('~'));
-  assert.ok(!visibleText.includes('\`'));
+  assert.ok(!visibleText.includes('`'));
   assert.ok(visibleText.includes('Bold text'));
   assert.ok(visibleText.includes('bold strikethrough'));
   assert.ok(visibleText.includes('Unordered list with bold and italic'));
