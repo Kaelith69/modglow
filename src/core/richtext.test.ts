@@ -648,3 +648,39 @@ test('asymmetrically escaped form payload serializes without Markdown leakage in
   ) as { c?: Array<Record<string, unknown>> } | undefined;
   assert.equal(hardBreakParagraph?.c?.filter((node) => node.e === 'br').length, 1);
 });
+
+test('default bold can be disabled without changing explicit Markdown formatting', () => {
+  const code = "`" + 'code' + "`";
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'Plain text, **explicit bold**, *italic*, ~~strike~~, [link](https://example.com), and ' + code + '.',
+    'Coconaad',
+    false,
+    false,
+  ).build();
+  const document = JSON.parse(serialized) as {
+    document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
+  };
+  const bodyNodes = document.document
+    .filter((block) => block.e === 'par')
+    .flatMap((block) => block.c ?? [])
+    .filter((node) => node.t !== 'Coconaad Moderator announcement');
+  assert.deepEqual(bodyNodes.find((node) => node.t?.startsWith('Plain text'))?.f, undefined);
+  assert.deepEqual(bodyNodes.find((node) => node.t === 'explicit bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 13]]);
+  assert.deepEqual(bodyNodes.find((node) => node.t === 'italic')?.f, [[MARKDOWN_FORMAT.italic, 0, 6]]);
+  assert.deepEqual(bodyNodes.find((node) => node.t === 'strike')?.f, [[MARKDOWN_FORMAT.strikethrough, 0, 6]]);
+  assert.deepEqual(bodyNodes.find((node) => node.e === 'link')?.f, undefined);
+  assert.deepEqual(bodyNodes.find((node) => node.t === 'code')?.f, [[MARKDOWN_FORMAT.monospace, 0, 4]]);
+});
+
+test('default bold remains enabled when the option is omitted', () => {
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    'Plain text and *italic*.',
+    'Coconaad',
+  ).build();
+  const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
+  const nodes = document.document.flatMap((block) => block.c ?? []);
+  assert.deepEqual(nodes.find((node) => node.t === 'Plain text and ')?.f, [[MARKDOWN_FORMAT.bold, 0, 15]]);
+  assert.deepEqual(nodes.find((node) => node.t === 'italic')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic, 0, 6]]);
+});

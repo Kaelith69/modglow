@@ -14,7 +14,7 @@ type HeadingInlineContext = {
   link(options: { text: string; url: string; formatting?: FormatRange[] }): unknown;
 };
 
-function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
+function appendInline(context: InlineContext, nodes: MarkdownInline[], defaultBold: boolean): void {
   for (const node of nodes) {
     // Announcement bodies use bold as the default text style. Preserve every
     // explicit Markdown style by combining its flags with bold. Inline code is
@@ -22,7 +22,7 @@ function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
     const sourceFormatting = node.formatting ?? 0;
     const formatFlag = (sourceFormatting & MARKDOWN_FORMAT.monospace) !== 0
       ? MARKDOWN_FORMAT.monospace
-      : sourceFormatting | MARKDOWN_FORMAT.bold;
+      : sourceFormatting | (defaultBold ? MARKDOWN_FORMAT.bold : 0);
 
     // Newlines inside text nodes are not rendered as hard breaks by Reddit.
     // Emit the dedicated rich text linebreak node instead.
@@ -57,10 +57,10 @@ function appendHeading(context: HeadingInlineContext, nodes: MarkdownInline[]): 
   }
 }
 
-function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
+function appendBlock(builder: RichTextBuilder, block: MarkdownBlock, defaultBold: boolean): void {
   switch (block.type) {
     case 'paragraph':
-      builder.paragraph((paragraph) => appendInline(paragraph, block.content));
+      builder.paragraph((paragraph) => appendInline(paragraph, block.content, defaultBold));
       break;
     case 'heading':
       builder.heading({ level: block.level }, (heading) => appendHeading(heading, block.content));
@@ -68,7 +68,7 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
     case 'blockquote':
       builder.blockQuote({}, (quote) => {
         for (const paragraphNodes of block.paragraphs) {
-          quote.paragraph((paragraph) => appendInline(paragraph, paragraphNodes));
+          quote.paragraph((paragraph) => appendInline(paragraph, paragraphNodes, defaultBold));
         }
       });
       break;
@@ -76,7 +76,7 @@ function appendBlock(builder: RichTextBuilder, block: MarkdownBlock): void {
       builder.list({ ordered: block.ordered }, (list) => {
         for (const itemNodes of block.items) {
           list.item((item) => {
-            item.paragraph((paragraph) => appendInline(paragraph, itemNodes));
+            item.paragraph((paragraph) => appendInline(paragraph, itemNodes, defaultBold));
           });
         }
       });
@@ -130,7 +130,13 @@ export function buildAnnouncementImageOnlyRichText(
   return appendAnnouncementFooter(builder, subredditName);
 }
 
-export function buildAnnouncementRichText(mediaUrl: string, markdown: string, subredditName: string, includeRulesLink = false): RichTextBuilder {
+export function buildAnnouncementRichText(
+  mediaUrl: string,
+  markdown: string,
+  subredditName: string,
+  includeRulesLink = false,
+  defaultBold = true,
+): RichTextBuilder {
   if (countGraphemes(markdown, MAX_ANNOUNCEMENT_BODY_CHARS) > MAX_ANNOUNCEMENT_BODY_CHARS) {
     throw new Error('The Markdown body exceeds the ' + MAX_ANNOUNCEMENT_BODY_CHARS + ' character limit.');
   }
@@ -145,7 +151,7 @@ export function buildAnnouncementRichText(mediaUrl: string, markdown: string, su
     });
   });
 
-  for (const block of blocks) appendBlock(builder, block);
+  for (const block of blocks) appendBlock(builder, block, defaultBold);
 
   if (includeRulesLink) appendAnnouncementRulesLink(builder, subredditName);
   return appendAnnouncementFooter(builder, subredditName);

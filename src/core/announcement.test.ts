@@ -20,6 +20,7 @@ const metadata: AnnouncementMetadata = {
   announcement: 'Original announcement',
   bodyBelowSvg: true,
   includeRulesLink: false,
+  defaultBold: true,
   mediaUrl: 'https://reddit.test/header.png',
 };
 
@@ -47,7 +48,9 @@ test('managed announcement requires matching app author, comment, parent and sub
   assert.equal(isManagedAnnouncementComment(comment, metadata, 't2_app', 'ExampleSub', 't5_sub'), true);
   const legacyMetadata = { ...metadata };
   delete legacyMetadata.includeRulesLink;
+  delete legacyMetadata.defaultBold;
   assert.equal(isManagedAnnouncementComment(comment, legacyMetadata, 't2_app', 'ExampleSub', 't5_sub'), true);
+  assert.equal(isManagedAnnouncementComment(comment, { ...metadata, defaultBold: 'yes' as unknown as boolean }, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment({ ...comment, authorId: 't2_other' }, metadata, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment(comment, { ...metadata, appAuthorId: 't2_other' }, 't2_app', 'ExampleSub', 't5_sub'), false);
   assert.equal(isManagedAnnouncementComment({ ...comment, id: 't1_other' }, metadata, 't2_app', 'ExampleSub', 't5_sub'), false);

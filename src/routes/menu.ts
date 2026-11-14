@@ -31,6 +31,13 @@ const announcementFields = (defaults?: Partial<AnnouncementMetadata>): FormField
     helpText: 'Adds Markdown text below the SVG.',
   },
   {
+    name: 'defaultBold',
+    label: 'Bold ordinary text by default',
+    type: 'boolean',
+    defaultValue: defaults?.defaultBold ?? true,
+    helpText: 'ON: ordinary text is bold. OFF: ordinary text uses normal weight. Markdown still works either way. If you are writing Markdown with intentional mixed formatting, turn this off to avoid automatic bold being added.',
+  },
+  {
     name: 'includeRulesLink',
     label: 'Include a link to subreddit rules and guidelines',
     type: 'boolean',
@@ -44,7 +51,7 @@ const announcementFields = (defaults?: Partial<AnnouncementMetadata>): FormField
     defaultValue: defaults?.announcement ?? '',
     required: true,
     placeholder: '## Announcement\n\nWrite your announcement here. Markdown supported.',
-    helpText: 'Markdown is supported. Text below the SVG is always bold.',
+    helpText: 'Markdown is supported. Use the default bold option above to control ordinary text formatting.'
   },
 ];
 
