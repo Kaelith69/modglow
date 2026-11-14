@@ -65,8 +65,8 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // so emphasis markers are consumed consistently in paragraphs, lists,
   // blockquotes, links, and image alt text.
   const normalizedValue = value
-    .replace(/\\\\([*_~`])\\\\\\1/gu, '$1$1')
-    .replace(/\\\\([*_~`])\\1/gu, '$1$1');
+    .replace(/\\([*_~`])\\\1/gu, '$1$1')
+    .replace(/\\([*_~`])\1/gu, '$1$1');
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
