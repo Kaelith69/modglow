@@ -491,4 +491,6 @@ test('escaped Markdown transport delimiters never leak across every supported bl
   const link = textNodes.find((node) => node.e === 'link');
   assert.equal(link?.t, 'Link label');
   assert.deepEqual(link?.f, [[MARKDOWN_FORMAT.bold, 0, 10]]);
+  const imageAlt = textNodes.find((node) => node.t === 'Image alt');
+  assert.deepEqual(imageAlt?.f, [[MARKDOWN_FORMAT.bold, 0, 9]]);
 });
