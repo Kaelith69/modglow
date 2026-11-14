@@ -337,6 +337,47 @@ test('complete announcement input removes escaped bold markers in paragraphs lis
   assert.ok(visibleText.includes('Link and Image'));
 });
 
+test('the exact raw announcement example emits no Markdown markers in any rich text block', () => {
+  const input = [
+    '# Heading',
+    '**Bold text**, *italic text*, ~~strikethrough~~',
+    '***Bold and italic***, `inline code`, ~~**bold strikethrough**~~',
+    '> This is a blockquote with **bold** and *italic* text.',
+    '- Unordered list with **bold** and *italic*',
+    '[Link](https://example.com) and ![Image](https://example.com/image.png)',
+  ].join('\n');
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'modglow_dev',
+  ).build();
+  const document = JSON.parse(serialized) as { document: Array<unknown> };
+  const textNodes: string[] = [];
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    const node = value as Record<string, unknown>;
+    if (typeof node.t === 'string') textNodes.push(node.t);
+    if (node.c !== undefined) visit(node.c);
+    if (node.document !== undefined) visit(node.document);
+  };
+  visit(document.document);
+
+  const visibleText = textNodes.join('');
+  assert.ok(!visibleText.includes('*'), `unexpected asterisk in: ${JSON.stringify(textNodes)}`);
+  assert.ok(!visibleText.includes('~'), `unexpected tilde in: ${JSON.stringify(textNodes)}`);
+  assert.ok(!visibleText.includes(String.fromCharCode(96)), `unexpected backtick in: ${JSON.stringify(textNodes)}`);
+  assert.ok(!visibleText.includes(String.fromCharCode(92)), `unexpected backslash in: ${JSON.stringify(textNodes)}`);
+  assert.ok(visibleText.includes('Bold text'));
+  assert.ok(visibleText.includes('bold strikethrough'));
+  assert.ok(visibleText.includes('This is a blockquote with bold and italic text.'));
+  assert.ok(visibleText.includes('Unordered list with bold and italic'));
+  assert.ok(visibleText.includes('Link and Image'));
+});
+
 test('the full announcement example preserves bold italic strike code and each hard break', () => {
   const slash = String.fromCharCode(92);
   const input = [
