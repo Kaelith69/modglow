@@ -187,7 +187,7 @@ test('compact image only announcements omit the rules link when disabled', () =>
 });
 
 
-test('normal, italic, and combined emphasis runs are bold by default with italic preserved', () => {
+test('normal text remains plain while italic and combined emphasis retain explicit flags', () => {
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     'Normal *italic* ***bold italic***',
@@ -260,7 +260,7 @@ test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal ne
     ['First line', 'br', 'Second ', 'italic', ' line'],
   );
   const italic = paragraph?.c?.find((node) => node.t === 'italic');
-  assert.deepEqual(italic?.f, [[3, 0, 6]]);
+  assert.deepEqual(italic?.f, [[2, 0, 6]]);
 });
 
 test('nested bold strikethrough renders with combined Reddit formatting and no visible markers', () => {
@@ -353,6 +353,7 @@ test('the exact raw announcement example emits no Markdown markers in any rich t
   ).build();
   const document = JSON.parse(serialized) as { document: Array<unknown> };
   const textNodes: string[] = [];
+  const richTextNodes: Array<Record<string, unknown>> = [];
   const visit = (value: unknown): void => {
     if (Array.isArray(value)) {
       for (const child of value) visit(child);
@@ -360,11 +361,30 @@ test('the exact raw announcement example emits no Markdown markers in any rich t
     }
     if (!value || typeof value !== 'object') return;
     const node = value as Record<string, unknown>;
-    if (typeof node.t === 'string') textNodes.push(node.t);
+    if (typeof node.t === 'string') {
+      textNodes.push(node.t);
+      richTextNodes.push(node);
+    }
     if (node.c !== undefined) visit(node.c);
     if (node.document !== undefined) visit(node.document);
   };
   visit(document.document);
+
+  const flagsFor = (text: string) => {
+    const node = richTextNodes.find((candidate) => candidate.t === text);
+    const ranges = node?.f as number[][] | undefined;
+    return ranges?.[0]?.[0];
+  };
+  assert.equal(flagsFor('Bold text'), MARKDOWN_FORMAT.bold);
+  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
+  assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('bold'), MARKDOWN_FORMAT.bold);
+  assert.equal(flagsFor('italic'), MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('Unordered list with '), undefined);
+  assert.equal(richTextNodes.find((node) => node.e === 'link')?.f, undefined);
 
   const visibleText = textNodes.join('');
   assert.ok(!visibleText.includes('*'), `unexpected asterisk in: ${JSON.stringify(textNodes)}`);
@@ -401,7 +421,7 @@ test('the full announcement example preserves bold italic strike code and each h
   const nodes = body?.c ?? [];
   const flagsFor = (needle: string) => nodes.find((node) => node.t?.includes(needle))?.f?.[0]?.[0];
   assert.equal(flagsFor('Bold text'), 1);
-  assert.equal(flagsFor('Italic text'), 3);
+  assert.equal(flagsFor('Italic text'), 2);
   assert.equal(flagsFor('Bold and italic'), 3);
   assert.equal(flagsFor('Strikethrough'), 8);
   assert.equal(flagsFor('Inline code'), 64);
