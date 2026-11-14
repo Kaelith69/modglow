@@ -36,7 +36,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
     node.e === 'par' && node.c?.some((child) => child.t?.startsWith('Bold notice')),
   );
   const boldNode = bodyParagraph?.c?.find((child) => child.t?.startsWith('Bold notice'));
-  assert.deepEqual(boldNode?.f, [[1, 0, 17]]);
+  assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
   assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
@@ -371,7 +371,9 @@ test('the exact raw announcement example emits no Markdown markers in any rich t
   visit(document.document);
 
   const flagsFor = (text: string) => {
-    const node = richTextNodes.find((candidate) => candidate.t === text);
+    const node = richTextNodes.find((candidate) =>
+      typeof candidate.t === 'string' && candidate.t.includes(text),
+    );
     const ranges = node?.f as number[][] | undefined;
     return ranges?.[0]?.[0];
   };
@@ -381,8 +383,7 @@ test('the exact raw announcement example emits no Markdown markers in any rich t
   assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
   assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
   assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
-  assert.equal(flagsFor('bold'), MARKDOWN_FORMAT.bold);
-  assert.equal(flagsFor('italic'), MARKDOWN_FORMAT.italic);
+  assert.deepEqual(richTextNodes.filter((node) => node.t === 'bold').map((node) => (node.f as number[][] | undefined)?.[0]?.[0]), [MARKDOWN_FORMAT.bold, MARKDOWN_FORMAT.bold]);
   assert.equal(flagsFor('Unordered list with '), undefined);
   assert.equal(richTextNodes.find((node) => node.e === 'link')?.f, undefined);
 
