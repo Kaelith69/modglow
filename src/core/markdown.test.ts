@@ -210,3 +210,52 @@ test('a trailing Markdown backslash creates a hard line break without leaking th
   if (blocks[0]?.type !== 'paragraph') return;
   assert.equal(blocks[0].content.map((node) => node.text).join(''), 'First line\nSecond line');
 });
+
+
+test('multiple transport escape layers are removed from paired delimiters without changing escaped literals', () => {
+  const slash = String.fromCharCode(92);
+  const escaped = (delimiter: string, depth: number) => slash.repeat(depth) + delimiter;
+
+  for (const depth of [1, 2, 3, 4]) {
+    assert.deepEqual(
+      parseInlineMarkdown(escaped('**', depth) + 'bold' + escaped('**', depth)),
+      [{ type: 'text', text: 'bold', formatting: MARKDOWN_FORMAT.bold }],
+    );
+    assert.deepEqual(
+      parseInlineMarkdown(escaped('***', depth) + 'bold italic' + escaped('***', depth)),
+      [{ type: 'text', text: 'bold italic', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic }],
+    );
+    assert.deepEqual(
+      parseInlineMarkdown(escaped('~~', depth) + 'struck' + escaped('~~', depth)),
+      [{ type: 'text', text: 'struck', formatting: MARKDOWN_FORMAT.strikethrough }],
+    );
+    assert.deepEqual(
+      parseInlineMarkdown(escaped('__', depth) + 'underscore bold' + escaped('__', depth)),
+      [{ type: 'text', text: 'underscore bold', formatting: MARKDOWN_FORMAT.bold }],
+    );
+  }
+
+  assert.deepEqual(parseInlineMarkdown(slash + '*literal' + slash + '*'), [
+    { type: 'text', text: '*literal*', formatting: 0 },
+  ]);
+});
+
+test('nested emphasis is parsed recursively in either nesting order', () => {
+  assert.deepEqual(parseInlineMarkdown('**~~bold strike~~**'), [
+    { type: 'text', text: 'bold strike', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('~~**bold strike**~~'), [
+    { type: 'text', text: 'bold strike', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough },
+  ]);
+  assert.deepEqual(parseInlineMarkdown('**bold *and italic* text**'), [
+    { type: 'text', text: 'bold ', formatting: MARKDOWN_FORMAT.bold },
+    { type: 'text', text: 'and italic', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic },
+    { type: 'text', text: ' text', formatting: MARKDOWN_FORMAT.bold },
+  ]);
+  const tick = String.fromCharCode(96);
+  assert.deepEqual(parseInlineMarkdown('**bold ' + tick + 'code' + tick + ' text**'), [
+    { type: 'text', text: 'bold ', formatting: MARKDOWN_FORMAT.bold },
+    { type: 'text', text: 'code', formatting: MARKDOWN_FORMAT.monospace },
+    { type: 'text', text: ' text', formatting: MARKDOWN_FORMAT.bold },
+  ]);
+});
