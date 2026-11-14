@@ -46,7 +46,7 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
-  assert.deepEqual(linkNode?.f, [[MARKDOWN_FORMAT.bold, 0, 5]]);
+  assert.deepEqual(linkNode?.f, [[MARKDOWN_FORMAT.bold, 0, 9]]);
 
   const listNode = document.document.find((node) => node.e === 'list');
   assert.equal(listNode?.o, false);
