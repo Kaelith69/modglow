@@ -39,14 +39,14 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(boldNode?.f, [[1, 0, 17]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
-  assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
+  assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
   assert.deepEqual(codeNode?.f, [[MARKDOWN_FORMAT.monospace, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
-  assert.deepEqual(linkNode?.f, [[1, 0, 9]]);
+  assert.equal(linkNode?.f, undefined);
 
   const listNode = document.document.find((node) => node.e === 'list');
   assert.equal(listNode?.o, false);
@@ -196,16 +196,16 @@ test('normal, italic, and combined emphasis runs are bold by default with italic
   const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
   const runs = document.document.flatMap((block) => block.c ?? []).filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
   assert.deepEqual(runs.map((node) => [node.t, node.f]), [
-    ['Normal ', [[1, 0, 7]]],
-    ['italic', [[3, 0, 6]]],
-    [' ', [[1, 0, 1]]],
+    ['Normal ', undefined],
+    ['italic', [[2, 0, 6]]],
+    [' ', undefined],
     ['bold italic', [[3, 0, 11]]],
   ]);
   assert.ok(!serialized.includes('**'));
 });
 
 
-test('announcement Markdown applies bold defaults without bolding inline code', () => {
+test('announcement Markdown applies only explicitly requested formatting', () => {
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     'Normal text *Italic text* **Bold text** ***Bold italic*** ~~Deleted text~~ `Inline code`',
@@ -217,11 +217,11 @@ test('announcement Markdown applies bold defaults without bolding inline code', 
   const runs = document.document.flatMap((block) => block.c ?? [])
     .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
   const formatFlags = (text: string) => runs.find((node) => node.t?.includes(text))?.f?.[0]?.[0];
-  assert.equal(formatFlags('Normal text'), 1);
-  assert.equal(formatFlags('Italic text'), 3);
+  assert.equal(formatFlags('Normal text'), undefined);
+  assert.equal(formatFlags('Italic text'), 2);
   assert.equal(formatFlags('Bold text'), 1);
   assert.equal(formatFlags('Bold italic'), 3);
-  assert.equal(formatFlags('Deleted text'), 9);
+  assert.equal(formatFlags('Deleted text'), 8);
   assert.equal(formatFlags('Inline code'), 64);
 });
 
@@ -283,7 +283,7 @@ test('nested bold strikethrough renders with combined Reddit formatting and no v
   assert.ok(!bodyNodes.some((node) => node.t && /[*~`]/u.test(node.t)));
 });
 
-test('mixed inline formatting renders without leaking or duplicating nested delimiters', () => {
+test('mixed inline formatting renders only the styles specified by Markdown', () => {
   const input = '**Bold text**, *italic text*, ~~strikethrough~~ ***Bold and italic***, `inline code`, ~~**bold strikethrough**~~';
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
@@ -301,8 +301,8 @@ test('mixed inline formatting renders without leaking or duplicating nested deli
   assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
   const flagsFor = (value: string) => nodes.find((node) => node.t === value)?.f?.[0]?.[0];
   assert.equal(flagsFor('Bold text, '), MARKDOWN_FORMAT.bold);
-  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
-  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.strikethrough);
   assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
   assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
   assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
@@ -403,7 +403,7 @@ test('the full announcement example preserves bold italic strike code and each h
   assert.equal(flagsFor('Bold text'), 1);
   assert.equal(flagsFor('Italic text'), 3);
   assert.equal(flagsFor('Bold and italic'), 3);
-  assert.equal(flagsFor('Strikethrough'), 9);
+  assert.equal(flagsFor('Strikethrough'), 8);
   assert.equal(flagsFor('Inline code'), 64);
   assert.equal(nodes.filter((node) => node.e === 'br').length, 4);
   assert.ok(!nodes.some((node) => node.t?.includes(slash)));
