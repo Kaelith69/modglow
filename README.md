@@ -1,90 +1,140 @@
 # ModGlow
 
-**ModGlow is a moderator only Reddit Devvit tool for publishing branded announcement comments.** Each announcement is a single top level comment authored by the ModGlow app, with its SVG image first and an optional native Markdown body beneath it.
+ModGlow is a moderator tool for creating clear, branded announcement comments in a subreddit. It turns a moderator's message into an announcement image and, if selected, adds the full message as formatted Reddit text below the image.
 
-## Publishing modes
+It is useful for community rules updates, event announcements, reminders, important notices, and other information moderators want to make easy to spot.
 
-1. A moderator opens a post menu and selects **Create ModGlow announcement**.
-2. The moderator chooses one of the four announcement flairs and writes the content in Markdown.
-3. The **Publish Markdown below the SVG** toggle controls the layout:
-   * **Off:** the text is rendered inside the SVG. This mode is intended for compact announcements, ideally one or two lines. It accepts up to 2600 grapheme clusters and rejects layouts requiring more than 24 rendered lines.
-   * **On:** the SVG contains the title artwork only. The full Markdown body is converted into native Reddit rich text and appended below the image in the same comment. This mode accepts up to 9000 grapheme clusters.
-4. ModGlow rasterises the SVG to PNG, uploads it to Reddit media hosting, and builds one comment. The image paragraph is always the first rich text node.
-5. The comment is published as the **ModGlow app account**, distinguished as a moderator, and pinned.
-6. ModGlow fetches the comment again and verifies that Reddit reports it as both moderator distinguished and stickied.
+ModGlow is available only to moderators with permission to manage posts. A moderator must open the composer and choose to publish each announcement. ModGlow does not publish announcements automatically.
 
-ModGlow does not create a separate Reddit post or select or quote an existing comment.
+## What moderators can do
 
-## Managing published announcements
+- Create an announcement as a top level comment on a selected post.
+- Choose one of four announcement styles: **IMPORTANT**, **NOTICE**, **REMINDER**, or **ANNOUNCEMENT**.
+- Put the full message in Reddit's native formatted text below the image, or place a shorter message inside the image.
+- Use Markdown for headings, paragraphs, lists, quotes, emphasis, strikethrough, code, and links where supported.
+- Choose whether ordinary text is bold by default. This option is on by default. Turn it off when you want ordinary Markdown text to keep its normal weight. Explicit Markdown formatting still works in either mode.
+- Optionally add a link to the subreddit's rules.
+- Edit a supported ModGlow announcement in place.
+- Permanently delete a supported ModGlow announcement after confirming the action.
 
-Moderators can open a ModGlow comment's menu to **Edit ModGlow announcement** or **Delete ModGlow announcement**. Editing replaces the existing app authored comment body in place, regenerates the PNG only when the visual artwork changes, and verifies the saved comment. The original comment identity, moderator distinction, and pin are retained wherever Reddit supports them.
+Every published announcement is one comment. The image appears first. When the separate text option is enabled, the message follows underneath in the same comment. ModGlow publishes the comment from the **ModGlow app account**, marks it as a moderator comment, and pins it. It does not create a new Reddit post or publish as the moderator who opened the form.
 
-Deletion requires an explicit confirmation and uses Devvit's app account `Comment.delete()` API. It permanently deletes only a comment whose app author, comment ID, parent post, subreddit name, subreddit ID, and ModGlow metadata all match. It never uses moderator removal.
+## How to create an announcement
 
-ModGlow stores the original flair, source announcement, publishing mode, uploaded media URL, and ownership identifiers in Redis when publishing. For safety, announcements created before this management metadata existed are not eligible for these actions. Their original SVG text and flair cannot be reliably reconstructed from a rendered image, so ModGlow will refuse to guess.
+1. Open a post in a subreddit where ModGlow is installed.
+2. Open the post's moderator menu.
+3. Select **Create ModGlow announcement**.
+4. Choose an announcement style.
+5. Enter your announcement text. Markdown is supported.
+6. Choose how the text should appear, using the options below.
+7. Review the content and select **Publish**.
 
-## Optional subreddit rules link
+ModGlow checks that the person submitting the form has permission to manage posts in that subreddit. It also checks that the selected post belongs to the current subreddit and can receive a new comment.
 
-The announcement composer includes an optional **Include a link to subreddit rules and guidelines** toggle, off by default. When enabled, ModGlow appends a clickable link to the current subreddit's rules in either publishing mode. The Markdown below the SVG toggle is on by default for new announcements. Editing an existing announcement preloads its saved flair, text, publishing mode, and rules link setting.
+### Text and formatting options
 
-## Markdown support
+**Publish Markdown below the image** is on by default.
 
-When the separate body toggle is enabled, Markdown is converted into native Reddit rich text:
+- **On:** The image contains the announcement title design. Your full message appears below it as Reddit formatted text. This is the recommended option for longer announcements. The text limit is 9,000 grapheme clusters.
+- **Off:** The message is rendered inside the image. This is intended for shorter announcements. The text limit is 2,600 grapheme clusters, and the layout must fit within 24 rendered lines.
 
-* Headings from `#` through `######`.
-* All native announcement body text is **bold**. User supplied bold and italic emphasis markers are removed rather than creating mixed text styles. ~~Strikethrough~~ and `inline code` formatting remain supported.
-* Inline `code` and fenced code blocks with an optional language label.
-* Ordered lists and unordered lists.
-* Blockquotes and horizontal rules.
-* Clickable HTTP and HTTPS links.
-* Markdown images are represented by their alt text. ModGlow does not fetch or embed external images.
+**Bold ordinary text by default** is on by default.
 
-Paragraph line breaks are treated as normal Markdown soft breaks. Raw HTML is not interpreted. Link URLs support balanced single level parentheses and only HTTP or HTTPS schemes are made clickable. List markers must start at the beginning of a line. Indented and nested list syntax remains literal text, ordered lists are numbered from 1 by Reddit, and Markdown tables are not converted into native structured blocks. Inline emphasis inside semantic headings is not retained because Reddit heading nodes accept plain text and links rather than formatted text ranges.
+- **On:** Ordinary text is bold. Explicit Markdown styles are preserved.
+- **Off:** Ordinary text uses normal weight. Explicit Markdown styles are still parsed and displayed.
 
-When the toggle is off, the existing SVG renderer handles short content inside the image. It supports the same main inline styles and block prefixes, but links are shown as readable labels rather than interactive links.
+If you are writing Markdown with intentional mixed formatting, turn the default bold option off to avoid adding bold to ordinary text.
 
-### Formatting input
+**Include a link to subreddit rules** is optional and off by default. When enabled, ModGlow adds a clickable link to the current subreddit's rules.
 
-The current composer uses Devvit's native menu form. Its paragraph field accepts Markdown source but does not expose custom buttons or cursor selection controls. Use the syntax directly:
+### Markdown examples
 
-````md
-# Main heading
-## Section heading
+Use Markdown directly in the announcement field:
 
-**Bold text** and *italic text*
+```md
+# Community announcement
 
-- First bullet
-- Second bullet
+Please read the updated rules before posting.
+
+**Important:** The changes take effect today.
+
+*Be kind and keep discussions on topic.*
+
+- First point
+- Second point
 
 1. First step
 2. Second step
 
-> Quoted text
+> A short quote or reminder.
+
+~~Retired information~~
 
 `inline code`
 
-```js
-const ready = true;
+[Read the subreddit rules](https://www.reddit.com/r/YourSubreddit/about/rules)
 ```
 
-[Read the rules](https://example.com/rules)
-````
+ModGlow supports headings, paragraphs, ordered and unordered lists, blockquotes, horizontal rules, bold, italic, strikethrough, inline code, fenced code blocks, and HTTP or HTTPS links in the separate text layout. Markdown images are shown as their alt text. ModGlow does not download or embed images from external Markdown image links. Raw HTML is not interpreted. Markdown tables and nested or indented lists are not converted into native structured blocks.
 
-A clickable formatting toolbar requires a custom interactive composer view. The native menu form does not provide a supported way to attach such a toolbar to its paragraph field.
+The image only layout is designed for shorter text. Links appear as readable labels in that image and are not clickable there.
 
-## Four announcement flairs
+## Editing and deleting announcements
 
-The composer offers exactly four choices. Each flair retains its own title artwork, geometry, and solid colour palette.
+To edit an announcement:
 
-* **IMPORTANT:** near black `#080605`, red `#FF2525`, ivory title panel and warning triangle.
-* **NOTICE:** midnight navy `#050D1C`, blue `#078BFF`, ivory title panel and information symbol.
-* **ANNOUNCEMENT:** deep green black `#050A05`, lime `#8CFF00`, ivory icon tile and megaphone.
-* **REMINDER:** warm black `#090604`, orange `#FF7900`, ivory icon tile and calendar.
+1. Open the ModGlow announcement comment.
+2. Open its comment menu.
+3. Select **Edit ModGlow announcement**.
+4. Update the content or options and save.
 
-The title only SVG is a fixed 2000 by 600 canvas. The embedded text SVG retains its dynamic height, wrapping, and frame clearance. The maintained vector examples are `assets/branding/svg/announcement-card-sample.svg` for compact mode and `assets/branding/svg/announcement-title-only-sample.svg` for separate body mode.
+Editing updates the existing comment rather than creating a second announcement. ModGlow checks that the comment belongs to the app and matches its saved announcement record before allowing changes.
 
-## Rendering details
+To delete an announcement, select **Delete ModGlow announcement** from the comment menu and confirm the permanent deletion. This removes the app authored comment and its saved management record.
 
-The announcement card SVG declares `Arial, Helvetica, sans-serif` explicitly. The PNG rasterizer uses bundled IBM Plex Sans as its deterministic sans serif fallback when Arial and Helvetica are unavailable. The bundled font files explicitly cover Latin, Malayalam, and Tamil; other scripts need visual validation in compact SVG mode. Embedded SVG body text is bold by default at weight 700; blockquotes are bold italic. The separate Markdown body uses Reddit's native typography and formatting.
+Only announcements with valid ModGlow management records can be edited or deleted this way. Older comments without those records are left untouched.
 
-The server rasterises SVG with bundled WebAssembly and fonts. No gradients, filters, external assets, transparency, or embedded raster artwork are used in the templates.
+## Important notes for moderators
+
+- Publishing is a manual moderator action. Check the text, links, and selected post before publishing.
+- Published comments are visible according to the subreddit's normal Reddit access and moderation settings.
+- Deleting an announcement is permanent.
+- If Reddit reports an uncertain publishing or pinning result, ModGlow may ask you to check the post before trying again. Check first to avoid creating a duplicate.
+- ModGlow cannot guarantee that Reddit will always be available or that every publish, edit, pin, or delete request will succeed.
+- Use the tool in line with Reddit's rules and your community's moderation policies.
+
+## Data and privacy
+
+ModGlow uses Reddit's Devvit services to publish comments, upload announcement images to Reddit media hosting, check moderator permissions, and store the information needed to manage announcements.
+
+The app stores the announcement text and settings, the subreddit and post identifiers, the app authored comment identifier, the app account identifier, and the uploaded media URL in Devvit Redis. It does not use an external analytics service, advertising tracker, or external HTTP Fetch service.
+
+Read the [Privacy Policy](PRIVACY.md) and [Terms of Service](TERMS.md) for details.
+
+## Installation and development
+
+Moderators can install ModGlow after it has been approved and made available through Reddit. Public App Directory listing is subject to Reddit's review and approval.
+
+For developers working with this repository:
+
+1. Install Node.js 24 or later.
+2. Install dependencies with `npm ci`.
+3. Sign in to Devvit with `npx devvit login`.
+4. Run `npm run check` to run type checking, tests, linting, and the production build.
+5. Use `npm run dev` to start a Devvit playtest.
+
+To upload a development build, run `npm run deploy`. To submit a public listing for Reddit review, run `npx devvit publish --public` after the app is ready and the listing details have been checked. Publishing submits the app for review; it does not guarantee approval or immediate directory availability.
+
+See [Reddit's launch guide](https://developers.reddit.com/docs/guides/launch/launch-guide) and [Devvit Rules](https://developers.reddit.com/docs/devvit_rules) before submitting.
+
+## Support
+
+Report a bug or request help through [GitHub Issues](https://github.com/Kaelith69/modglow/issues). Please do not include passwords, private messages, personal information, or other sensitive account data in an issue.
+
+## Project information
+
+- Platform: Reddit Developer Platform (Devvit)
+- App name: ModGlow
+- Source code license: [MIT](LICENSE)
+- Third party components: [Third party notices](THIRD_PARTY_NOTICES.md)
+- [Changelog](CHANGELOG.md)
