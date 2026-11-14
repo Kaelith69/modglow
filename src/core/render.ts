@@ -224,7 +224,7 @@ function renderBody(markdown: string, accentColor: string, defaultBold: boolean)
       }
       line = normalizeInlineMarkdown(line);
     } else {
-      baseStyle = { ...PLAIN_STYLE, code: true, accent: true };
+      baseStyle = { ...PLAIN_STYLE, bold: false, code: true, accent: true };
     }
 
     if (!line.trim() && !prefix) {
