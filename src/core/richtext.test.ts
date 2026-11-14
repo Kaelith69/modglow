@@ -325,7 +325,9 @@ test('complete announcement input removes escaped bold markers in paragraphs lis
   const document = JSON.parse(serialized) as {
     document: Array<{ e?: string; c?: Array<{ e?: string; t?: string; u?: string; f?: number[][] }> }>;
   };
-  const visibleText = document.document.flatMap((block) => (block.c ?? []).map((node) => node.t ?? '')).join('');
+  const collectText = (nodes: Array<{ t?: string; c?: Array<{ t?: string; c?: Array<{ t?: string }> }> }>): string =>
+    nodes.map((node) => (node.t ?? '') + collectText(node.c ?? [])).join('');
+  const visibleText = collectText(document.document.flatMap((block) => block.c ?? []));
   assert.ok(!visibleText.includes('*'));
   assert.ok(!visibleText.includes('~'));
   assert.ok(!visibleText.includes('\`'));
