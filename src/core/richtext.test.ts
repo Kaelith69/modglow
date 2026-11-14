@@ -494,3 +494,66 @@ test('escaped Markdown transport delimiters never leak across every supported bl
   const imageAlt = textNodes.find((node) => node.t === 'Image alt');
   assert.deepEqual(imageAlt?.f, [[MARKDOWN_FORMAT.bold, 0, 9]]);
 });
+
+
+test('deeply escaped and nested Markdown serializes cleanly across native announcement blocks', () => {
+  const slash = String.fromCharCode(92);
+  const escaped = (delimiter: string, text: string) =>
+    slash.repeat(2) + delimiter + text + slash.repeat(2) + delimiter;
+  const input = [
+    '# ' + escaped('**', 'Escaped heading'),
+    '',
+    escaped('**', 'Paragraph bold') + ', *italic* and **~~bold strike~~**',
+    '> ' + escaped('**', 'Quoted bold'),
+    '- ' + escaped('**', 'Unordered bold'),
+    '1. ' + escaped('**', 'Ordered bold'),
+    '[' + escaped('**', 'Link label') + '](https://example.com/path)',
+    '![' + escaped('**', 'Image alt') + '](https://example.com/image.png)',
+  ].join('\n');
+  const serialized = buildAnnouncementRichText(
+    'https://reddit.test/media/header.png',
+    input,
+    'modglow_dev',
+  ).build();
+  const document = JSON.parse(serialized) as { document: unknown[] };
+  const richTextNodes: Array<Record<string, unknown>> = [];
+  const visit = (value: unknown): void => {
+    if (Array.isArray(value)) {
+      for (const child of value) visit(child);
+      return;
+    }
+    if (!value || typeof value !== 'object') return;
+    const node = value as Record<string, unknown>;
+    if (typeof node.t === 'string') richTextNodes.push(node);
+    if (node.c !== undefined) visit(node.c);
+    if (node.document !== undefined) visit(node.document);
+  };
+  visit(document.document);
+
+  const bodyNodes = richTextNodes.filter((node) => node.t !== 'modglow_dev Moderator announcement');
+  const visibleText = bodyNodes.map((node) => node.t as string).join('');
+  assert.equal(
+    visibleText,
+    'Escaped headingParagraph bold, italic and bold strikeQuoted boldUnordered boldOrdered boldLink label Image alt',
+  );
+  for (const marker of ['*', '~', String.fromCharCode(96), slash]) {
+    assert.ok(!visibleText.includes(marker), 'unexpected Markdown marker ' + JSON.stringify(marker) + ' in ' + JSON.stringify(visibleText));
+  }
+
+  const findText = (text: string) => bodyNodes.find((node) => node.t === text);
+  assert.deepEqual(findText('Paragraph bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Paragraph bold'.length]]);
+  assert.deepEqual(findText('italic')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic, 0, 'italic'.length]]);
+  assert.deepEqual(findText('bold strike')?.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough, 0, 'bold strike'.length]]);
+  assert.deepEqual(findText('Quoted bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Quoted bold'.length]]);
+  assert.deepEqual(findText('Unordered bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Unordered bold'.length]]);
+  assert.deepEqual(findText('Ordered bold')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Ordered bold'.length]]);
+
+  const link = bodyNodes.find((node) => node.e === 'link');
+  assert.equal(link?.t, 'Link label');
+  assert.equal(link?.u, 'https://example.com/path');
+  assert.deepEqual(link?.f, [[MARKDOWN_FORMAT.bold, 0, 'Link label'.length]]);
+  assert.deepEqual(findText('Image alt')?.f, [[MARKDOWN_FORMAT.bold, 0, 'Image alt'.length]]);
+
+  assert.equal(document.document.filter((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'list').length, 2);
+  assert.ok(document.document.some((value) => !!value && typeof value === 'object' && (value as Record<string, unknown>).e === 'blockquote'));
+});

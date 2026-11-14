@@ -45,6 +45,16 @@ function appendInline(
   nodes.push(node);
 }
 
+function appendFormattedInline(nodes: MarkdownInline[], value: string, formatting: number): void {
+  for (const node of parseInlineMarkdown(value)) {
+    // Code spans stay monospace even when nested inside another emphasis style.
+    const combinedFormatting = (node.formatting & MARKDOWN_FORMAT.monospace) !== 0
+      ? MARKDOWN_FORMAT.monospace
+      : node.formatting | formatting;
+    appendInline(nodes, { ...node, formatting: combinedFormatting });
+  }
+}
+
 function safeHttpUrl(value: string): boolean {
   try {
     const url = new URL(value);
@@ -60,13 +70,13 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
   // backslash escaping. Treat escaped, balanced double emphasis delimiters as
   // Markdown syntax so the published rich text does not expose the markers.
   // Single escaped markers remain literal and retain normal Markdown escaping.
-  // Form inputs can arrive with Markdown delimiters escaped one or more
-  // times by the submission pipeline. Remove transport escapes before parsing
-  // so emphasis markers are consumed consistently in paragraphs, lists,
-  // blockquotes, links, and image alt text.
-  const normalizedValue = value
-    .replace(/\\([*_~`])\\\1/gu, '$1$1')
-    .replace(/\\([*_~`])\1/gu, '$1$1');
+  // Devvit form transport can add one or more backslash layers before
+  // paired Markdown delimiters. Remove those transport escapes without
+  // changing a singly escaped literal marker such as \\*literal\\*.
+  const normalizedValue = value.replace(
+    /\\+([*_~`])(?:\\+\1|\1){1,2}/gu,
+    (escapedDelimiter) => escapedDelimiter.replace(/\\/gu, ''),
+  );
   const nodes: MarkdownInline[] = [];
   const pattern = new RegExp("\\\\([\\\\\\x60*_{}\\x5B\\]()#+.!>~-])|!\\[([^\\]]*)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\[([^\\]]+)\\]\\(((?:[^\\s()]|\\([^()\\s]*\\))+)\\)|\\*\\*\\*(.+?)\\*\\*\\*|___(.+?)___|\\*\\*(.+?)\\*\\*|(?<![\\p{L}\\p{N}])__(.+?)__(?![\\p{L}\\p{N}])|~~(.+?)~~|\\x60([^\\x60]+)\\x60|\\*(.+?)\\*|(?<![\\p{L}\\p{N}])_(.+?)_(?![\\p{L}\\p{N}])", 'gu');
   let cursor = 0;
@@ -82,21 +92,6 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
     }
     if (index > cursor) {
       appendInline(nodes, { type: 'text', text: normalizedValue.slice(cursor, index), formatting: 0 });
-    }
-
-    // Handle bold nested inside strikethrough before the general strike token.
-    // The outer strike alternative otherwise consumes the inner bold markers as
-    // literal text, because the token expression is intentionally non recursive.
-    const nestedStrikeBold = normalizedValue.slice(index).match(/^~~(?:\*\*(.+?)\*\*|__(.+?)__)~~/u);
-    if (nestedStrikeBold) {
-      appendInline(nodes, {
-        type: 'text',
-        text: nestedStrikeBold[1] ?? nestedStrikeBold[2] ?? '',
-        formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough,
-      });
-      cursor = index + nestedStrikeBold[0].length;
-      pattern.lastIndex = cursor;
-      continue;
     }
 
     if (match[1] !== undefined) {
@@ -122,15 +117,15 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
         for (const labelNode of labelNodes) appendInline(nodes, labelNode);
       }
     } else if (match[6] !== undefined || match[7] !== undefined) {
-      appendInline(nodes, { type: 'text', text: match[6] ?? match[7] ?? '', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic });
+      appendFormattedInline(nodes, match[6] ?? match[7] ?? '', MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
     } else if (match[8] !== undefined || match[9] !== undefined) {
-      appendInline(nodes, { type: 'text', text: match[8] ?? match[9] ?? '', formatting: MARKDOWN_FORMAT.bold });
+      appendFormattedInline(nodes, match[8] ?? match[9] ?? '', MARKDOWN_FORMAT.bold);
     } else if (match[10] !== undefined) {
-      appendInline(nodes, { type: 'text', text: match[10], formatting: MARKDOWN_FORMAT.strikethrough });
+      appendFormattedInline(nodes, match[10], MARKDOWN_FORMAT.strikethrough);
     } else if (match[11] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[11], formatting: MARKDOWN_FORMAT.monospace });
     } else {
-      appendInline(nodes, { type: 'text', text: match[12] ?? match[13] ?? '', formatting: MARKDOWN_FORMAT.italic });
+      appendFormattedInline(nodes, match[12] ?? match[13] ?? '', MARKDOWN_FORMAT.italic);
     }
 
     cursor = index + match[0].length;
