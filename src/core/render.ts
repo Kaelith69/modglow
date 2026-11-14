@@ -178,7 +178,7 @@ function normalizeInlineMarkdown(line: string): string {
     .replace(/[ \t]+$/g, '');
 }
 
-function renderBody(markdown: string, accentColor: string): RenderedBody {
+function renderBody(markdown: string, accentColor: string, defaultBold: boolean): RenderedBody {
   const source = markdown.replace(/\r\n?/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
   const renderedLines: string[] = [];
   let activeFence: { character: string; length: number } | undefined;
@@ -199,7 +199,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
 
     const inCodeBlock = Boolean(activeFence);
     let line = originalLine;
-    let baseStyle = PLAIN_STYLE;
+    let baseStyle: RunStyle = { ...PLAIN_STYLE, bold: defaultBold };
     let prefix = '';
 
     if (!inCodeBlock) {
@@ -214,7 +214,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
       } else if (quote) {
         line = quote[1];
         prefix = '› ';
-        baseStyle = { ...PLAIN_STYLE, italic: true };
+        baseStyle = { ...PLAIN_STYLE, bold: defaultBold, italic: true };
       } else if (unordered) {
         line = unordered[1];
         prefix = '• ';
@@ -224,7 +224,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
       }
       line = normalizeInlineMarkdown(line);
     } else {
-      baseStyle = { ...PLAIN_STYLE, code: true, accent: true };
+      baseStyle = { ...PLAIN_STYLE, bold: false, code: true, accent: true };
     }
 
     if (!line.trim() && !prefix) {
@@ -237,7 +237,7 @@ function renderBody(markdown: string, accentColor: string): RenderedBody {
     const runs = parseInlineRuns(line, baseStyle);
     if (prefix) runs.unshift({
       text: prefix,
-      bold: true,
+      bold: defaultBold,
       italic: false,
       strike: false,
       code: false,
@@ -360,7 +360,7 @@ export function buildAnnouncementHeaderSvg(flair: AnnouncementFlair = 'ANNOUNCEM
   ].join('\n');
 }
 
-export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT'): string {
+export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair = 'ANNOUNCEMENT', defaultBold = true): string {
   if (typeof markdown !== 'string' || graphemeCount(markdown, MAX_ANNOUNCEMENT_CHARS) > MAX_ANNOUNCEMENT_CHARS) {
     throw new Error('The announcement exceeds the ' + MAX_ANNOUNCEMENT_CHARS + ' character limit.');
   }
@@ -368,7 +368,7 @@ export function buildAnnouncementSvg(markdown: string, flair: AnnouncementFlair 
     throw new Error('Choose one of the four supported announcement flairs.');
   }
 
-  const rendered = renderBody(markdown, FLAIR_THEMES[flair].accent);
+  const rendered = renderBody(markdown, FLAIR_THEMES[flair].accent, defaultBold);
   if (rendered.visibleCharacters === 0) throw new Error('The announcement has no renderable text.');
   if (rendered.lineCount > MAX_LINES) {
     throw new Error('The announcement needs more than ' + MAX_LINES + ' rendered lines. Shorten it to keep the image readable.');

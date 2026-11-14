@@ -16,6 +16,7 @@ type AnnouncementFormValues = {
   flair?: string | string[];
   bodyBelowSvg?: boolean;
   includeRulesLink?: boolean;
+  defaultBold?: boolean;
 };
 
 export const forms = new Hono();
@@ -65,6 +66,7 @@ forms.post('/create-announcement-submit', async (c) => {
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
   const bodyBelowSvg = values?.bodyBelowSvg !== false;
   const includeRulesLink = values?.includeRulesLink === true;
+  const defaultBold = values?.defaultBold !== false;
 
   if (!announcement) {
     return c.json<UiResponse>(toast('Enter announcement text.'));
@@ -121,13 +123,13 @@ forms.post('/create-announcement-submit', async (c) => {
 
     const svg = bodyBelowSvg
       ? buildAnnouncementHeaderSvg(flair)
-      : buildAnnouncementSvg(announcement, flair);
+      : buildAnnouncementSvg(announcement, flair, defaultBold);
     const png = await renderAnnouncementPng(svg);
     const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
     const uploaded = await media.upload({ url: imageDataUrl, type: 'image' });
 
     const richtext = bodyBelowSvg
-      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName, includeRulesLink)
+      ? buildAnnouncementRichText(uploaded.mediaUrl, announcement, context.subredditName, includeRulesLink, defaultBold)
 : buildAnnouncementImageOnlyRichText(uploaded.mediaUrl, context.subredditName, includeRulesLink);
     commentSubmissionStarted = true;
     publishedComment = await reddit.submitComment({
@@ -165,6 +167,7 @@ forms.post('/create-announcement-submit', async (c) => {
         announcement,
         bodyBelowSvg,
         includeRulesLink,
+        defaultBold,
         mediaUrl: uploaded.mediaUrl,
       };
       try {
@@ -265,8 +268,9 @@ function buildAnnouncementCommentBody(
   bodyBelowSvg: boolean,
   includeRulesLink: boolean,
   subredditName: string,
+  defaultBold: boolean,
 ) {
-  if (bodyBelowSvg) return buildAnnouncementRichText(mediaUrl, announcement, subredditName, includeRulesLink);
+  if (bodyBelowSvg) return buildAnnouncementRichText(mediaUrl, announcement, subredditName, includeRulesLink, defaultBold);
   const builder = new RichTextBuilder().paragraph((paragraph) => {
     paragraph.image({ mediaUrl });
   });
@@ -281,6 +285,7 @@ forms.post('/edit-announcement-submit', async (c) => {
   const flair = ANNOUNCEMENT_FLAIRS.find((candidate) => candidate === selectedFlair);
   const bodyBelowSvg = values?.bodyBelowSvg !== false;
   const includeRulesLink = values?.includeRulesLink === true;
+  const defaultBold = values?.defaultBold !== false;
 
   if (!announcement) return c.json<UiResponse>(toast('Enter announcement text.'));
   if (!flair) return c.json<UiResponse>(toast('Choose a flair.'));
@@ -308,7 +313,7 @@ forms.post('/edit-announcement-submit', async (c) => {
     if (visualChanged) {
       const svg = bodyBelowSvg
         ? buildAnnouncementHeaderSvg(flair)
-        : buildAnnouncementSvg(announcement, flair);
+        : buildAnnouncementSvg(announcement, flair, defaultBold);
       const png = await renderAnnouncementPng(svg);
       const imageDataUrl = `data:image/png;base64,${Buffer.from(png).toString('base64')}`;
       mediaUrl = (await media.upload({ url: imageDataUrl, type: 'image' })).mediaUrl;
@@ -316,7 +321,7 @@ forms.post('/edit-announcement-submit', async (c) => {
 
     const wasDistinguished = comment.distinguishedBy === 'moderator';
     const wasPinned = comment.stickied;
-    const richtext = buildAnnouncementCommentBody(mediaUrl, announcement, bodyBelowSvg, includeRulesLink, context.subredditName!);
+    const richtext = buildAnnouncementCommentBody(mediaUrl, announcement, bodyBelowSvg, includeRulesLink, context.subredditName!, defaultBold);
     const edited = await comment.edit({ richtext });
     let verified = await reddit.getCommentById(comment.id);
 
@@ -342,6 +347,7 @@ forms.post('/edit-announcement-submit', async (c) => {
       announcement,
       bodyBelowSvg,
       includeRulesLink,
+      defaultBold,
       mediaUrl,
     };
     await redis.set(announcementMetadataKey(comment.id), JSON.stringify(updated));

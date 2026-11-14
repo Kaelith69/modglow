@@ -13,6 +13,7 @@ export type AnnouncementMetadata = {
   announcement: string;
   bodyBelowSvg: boolean;
   includeRulesLink?: boolean;
+  defaultBold?: boolean;
   mediaUrl: string;
 };
 
@@ -62,6 +63,7 @@ export function isManagedAnnouncementComment(
     && typeof metadata.announcement === 'string'
     && typeof metadata.bodyBelowSvg === 'boolean'
     && (metadata.includeRulesLink === undefined || typeof metadata.includeRulesLink === 'boolean')
+    && (metadata.defaultBold === undefined || typeof metadata.defaultBold === 'boolean')
     && typeof metadata.mediaUrl === 'string'
     && metadata.mediaUrl.startsWith('https://')
   );
