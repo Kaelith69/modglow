@@ -39,14 +39,14 @@ test('the SVG image is the first comment node and Markdown follows it', () => {
   assert.deepEqual(boldNode?.f, [[1, 0, 11]]);
 
   const strikeNode = bodyParagraph?.c?.find((child) => child.t === 'old');
-  assert.deepEqual(strikeNode?.f, [[8, 0, 3]]);
+  assert.deepEqual(strikeNode?.f, [[9, 0, 3]]);
 
   const codeNode = bodyParagraph?.c?.find((child) => child.t === 'code');
   assert.deepEqual(codeNode?.f, [[MARKDOWN_FORMAT.monospace, 0, 4]]);
 
   const linkNode = bodyParagraph?.c?.find((child) => child.e === 'link');
   assert.equal(linkNode?.u, 'https://example.com/rules');
-  assert.equal(linkNode?.f, undefined);
+  assert.deepEqual(linkNode?.f, [[MARKDOWN_FORMAT.bold, 0, 9]]);
 
   const listNode = document.document.find((node) => node.e === 'list');
   assert.equal(listNode?.o, false);
@@ -152,7 +152,7 @@ test('announcement body preserves only explicitly requested bold and italic styl
     if (node.t?.includes('Keep discussions civil.') || node.t?.includes('Follow the subreddit rules.')
       || node.t?.includes('Post responsibly.') || node.t?.includes('Keep content organised.')
       || node.t?.includes('Quality over quantity.') || node.t?.includes('Keep Coconaad welcoming.')) {
-      assert.deepEqual(node.f, [[MARKDOWN_FORMAT.italic, 0, node.t.length]]);
+      assert.deepEqual(node.f, [[MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic, 0, node.t.length]]);
     }
   }
 });
@@ -205,9 +205,9 @@ test('normal text remains plain while italic and combined emphasis retain explic
   const document = JSON.parse(serialized) as { document: Array<{ c?: Array<{ t?: string; f?: number[][] }> }> };
   const runs = document.document.flatMap((block) => block.c ?? []).filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
   assert.deepEqual(runs.map((node) => [node.t, node.f]), [
-    ['Normal ', undefined],
-    ['italic', [[2, 0, 6]]],
-    [' ', undefined],
+    ['Normal ', [[MARKDOWN_FORMAT.bold, 0, 7]]],
+    ['italic', [[3, 0, 6]]],
+    [' ', [[MARKDOWN_FORMAT.bold, 0, 1]]],
     ['bold italic', [[3, 0, 11]]],
   ]);
   assert.ok(!serialized.includes('**'));
@@ -226,11 +226,11 @@ test('announcement Markdown applies only explicitly requested formatting', () =>
   const runs = document.document.flatMap((block) => block.c ?? [])
     .filter((node) => node.t && node.t !== 'Coconaad Moderator announcement');
   const formatFlags = (text: string) => runs.find((node) => node.t?.includes(text))?.f?.[0]?.[0];
-  assert.equal(formatFlags('Normal text'), undefined);
-  assert.equal(formatFlags('Italic text'), 2);
+  assert.equal(formatFlags('Normal text'), MARKDOWN_FORMAT.bold);
+  assert.equal(formatFlags('Italic text'), 3);
   assert.equal(formatFlags('Bold text'), 1);
   assert.equal(formatFlags('Bold italic'), 3);
-  assert.equal(formatFlags('Deleted text'), 8);
+  assert.equal(formatFlags('Deleted text'), 9);
   assert.equal(formatFlags('Inline code'), 64);
 });
 
@@ -269,7 +269,7 @@ test('Markdown hard breaks are emitted as Reddit linebreak nodes, not literal ne
     ['First line', 'br', 'Second ', 'italic', ' line'],
   );
   const italic = paragraph?.c?.find((node) => node.t === 'italic');
-  assert.deepEqual(italic?.f, [[2, 0, 6]]);
+  assert.deepEqual(italic?.f, [[3, 0, 6]]);
 });
 
 test('nested bold strikethrough renders with combined Reddit formatting and no visible markers', () => {
@@ -310,8 +310,8 @@ test('mixed inline formatting renders only the styles specified by Markdown', ()
   assert.ok(!nodes.some((node) => node.t && /[*~`]/u.test(node.t)));
   const flagsFor = (value: string) => nodes.find((node) => node.t?.startsWith(value))?.f?.[0]?.[0];
   assert.equal(flagsFor('Bold text'), MARKDOWN_FORMAT.bold);
-  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.italic);
-  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
   assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
   assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
   assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
@@ -387,14 +387,14 @@ test('the exact raw announcement example emits no Markdown markers in any rich t
     return ranges?.[0]?.[0];
   };
   assert.equal(flagsFor('Bold text'), MARKDOWN_FORMAT.bold);
-  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.italic);
-  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.strikethrough);
+  assert.equal(flagsFor('italic text'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
+  assert.equal(flagsFor('strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
   assert.equal(flagsFor('Bold and italic'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic);
   assert.equal(flagsFor('inline code'), MARKDOWN_FORMAT.monospace);
   assert.equal(flagsFor('bold strikethrough'), MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.strikethrough);
   assert.deepEqual(richTextNodes.filter((node) => node.t === 'bold').map((node) => (node.f as number[][] | undefined)?.[0]?.[0]), [MARKDOWN_FORMAT.bold, MARKDOWN_FORMAT.bold]);
-  assert.equal(flagsFor('Unordered list with '), undefined);
-  assert.equal(richTextNodes.find((node) => node.e === 'link')?.f, undefined);
+  assert.equal(flagsFor('Unordered list with '), MARKDOWN_FORMAT.bold);
+  assert.deepEqual(richTextNodes.find((node) => node.e === 'link')?.f, [[MARKDOWN_FORMAT.bold, 0, 4]]);
 
   const visibleText = textNodes.join('');
   assert.ok(!visibleText.includes('*'), `unexpected asterisk in: ${JSON.stringify(textNodes)}`);
@@ -431,9 +431,9 @@ test('the full announcement example preserves bold italic strike code and each h
   const nodes = body?.c ?? [];
   const flagsFor = (needle: string) => nodes.find((node) => node.t?.includes(needle))?.f?.[0]?.[0];
   assert.equal(flagsFor('Bold text'), 1);
-  assert.equal(flagsFor('Italic text'), 2);
+  assert.equal(flagsFor('Italic text'), 3);
   assert.equal(flagsFor('Bold and italic'), 3);
-  assert.equal(flagsFor('Strikethrough'), 8);
+  assert.equal(flagsFor('Strikethrough'), 9);
   assert.equal(flagsFor('Inline code'), 64);
   assert.equal(nodes.filter((node) => node.e === 'br').length, 4);
   assert.ok(!nodes.some((node) => node.t?.includes(slash)));

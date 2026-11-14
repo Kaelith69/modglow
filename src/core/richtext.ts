@@ -16,10 +16,13 @@ type HeadingInlineContext = {
 
 function appendInline(context: InlineContext, nodes: MarkdownInline[]): void {
   for (const node of nodes) {
-    // Markdown parsing already supplies the complete Reddit formatting bitmask.
-    // Do not add default bold: doing so changes plain text, italic, and strike
-    // into different styles and makes Reddit's Markdown serialization ambiguous.
-    const formatFlag = node.formatting ?? 0;
+    // Announcement bodies use bold as the default text style. Preserve every
+    // explicit Markdown style by combining its flags with bold. Inline code is
+    // the exception: monospace remains unchanged and must not inherit bold.
+    const sourceFormatting = node.formatting ?? 0;
+    const formatFlag = (sourceFormatting & MARKDOWN_FORMAT.monospace) !== 0
+      ? MARKDOWN_FORMAT.monospace
+      : sourceFormatting | MARKDOWN_FORMAT.bold;
 
     // Newlines inside text nodes are not rendered as hard breaks by Reddit.
     // Emit the dedicated rich text linebreak node instead.
@@ -44,7 +47,11 @@ function appendHeading(context: HeadingInlineContext, nodes: MarkdownInline[]): 
     if (node.type === 'link') context.link({
       text: node.text,
       url: node.url,
-      ...(node.formatting ? { formatting: [[node.formatting, 0, node.text.length]] } : {}),
+      formatting: [[
+        (node.formatting ?? 0) | MARKDOWN_FORMAT.bold,
+        0,
+        node.text.length,
+      ]],
     });
     else context.rawText(node.text);
   }
