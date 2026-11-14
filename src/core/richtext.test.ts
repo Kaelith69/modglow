@@ -457,7 +457,7 @@ test('escaped Markdown transport delimiters never leak across every supported bl
     '- ' + escapedBold('List bold') + ' and *list italic*',
     '[' + escapedBold('Link label') + '](https://example.com) and !['
       + escapedBold('Image alt') + '](https://example.com/image.png)',
-  ].join('\\n');
+  ].join('\n');
   const serialized = buildAnnouncementRichText(
     'https://reddit.test/media/header.png',
     input,
