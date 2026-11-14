@@ -100,14 +100,25 @@ export function parseInlineMarkdown(value: string): MarkdownInline[] {
     if (match[1] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[1], formatting: 0 });
     } else if (match[2] !== undefined) {
-      // Images intentionally degrade to their readable alt text. External images
-      // are never fetched or embedded in a moderator comment.
-      appendInline(nodes, { type: 'text', text: match[2], formatting: 0 });
+      // Images intentionally degrade to readable alt text. Parse that text as
+      // inline Markdown too, otherwise emphasis markers inside alt text leak.
+      for (const altNode of parseInlineMarkdown(match[2])) appendInline(nodes, altNode);
     } else if (match[4] !== undefined) {
       const label = match[4];
       const url = match[5] ?? '';
-      if (safeHttpUrl(url)) appendInline(nodes, { type: 'link', text: label, url, formatting: 0 });
-      else appendInline(nodes, { type: 'text', text: label, formatting: 0 });
+      const labelNodes = parseInlineMarkdown(label);
+      if (safeHttpUrl(url)) {
+        for (const labelNode of labelNodes) {
+          appendInline(nodes, {
+            type: 'link',
+            text: labelNode.text,
+            url,
+            formatting: labelNode.formatting,
+          });
+        }
+      } else {
+        for (const labelNode of labelNodes) appendInline(nodes, labelNode);
+      }
     } else if (match[6] !== undefined || match[7] !== undefined) {
       appendInline(nodes, { type: 'text', text: match[6] ?? match[7] ?? '', formatting: MARKDOWN_FORMAT.bold | MARKDOWN_FORMAT.italic });
     } else if (match[8] !== undefined || match[9] !== undefined) {
